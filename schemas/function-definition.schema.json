@@ -57,8 +57,7 @@
             "description": "Function definition attributes",
             "required": [
                 "scope",
-                "task",
-                "mapping"
+                "task"
             ],
             "properties": {
                 "scope": {
