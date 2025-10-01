@@ -62,29 +62,17 @@
             ],
             "properties": {
                 "scope": {
-                    "type": "integer",
+                    "type": "string",
                     "description": "Function scope (TaskScope enum value)",
-                    "oneOf": [
-                        {
-                            "const": 1,
-                            "description": "State OnEntry scope"
-                        },
-                        {
-                            "const": 2,
-                            "description": "State OnExit scope"
-                        },
-                        {
-                            "const": 3,
-                            "description": "Transition OnExecute scope"
-                        },
-                        {
-                            "const": 4,
-                            "description": "Workflow OnStart scope"
-                        },
-                        {
-                            "const": 5,
-                            "description": "Workflow OnEnd scope"
-                        }
+                    "enum": [
+                        "D",
+                        "F",
+                        "I"
+                    ],
+                    "enumDescriptions": [
+                        "Domain",
+                        "Flow",
+                        "Instance"
                     ]
                 },
                 "task": {
