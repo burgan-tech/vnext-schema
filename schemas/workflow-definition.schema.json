@@ -191,13 +191,15 @@
         1,
         2,
         3,
-        4
+        4,
+        5
       ],
       "enumDescriptions": [
         "Initial state",
         "Intermediate state",
         "Final state",
-        "SubFlow state"
+        "SubFlow state",
+        "Wizard state"
       ],
       "description": "Type of workflow state"
     },
@@ -568,6 +570,20 @@
         "versionStrategy",
         "labels"
       ],
+      "if": {
+        "properties": {
+          "stateType": {
+            "const": 5
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "transitions": {
+            "maxItems": 1
+          }
+        }
+      },
       "properties": {
         "key": {
           "type": "string",
