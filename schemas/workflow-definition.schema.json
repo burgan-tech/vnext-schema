@@ -4,14 +4,7 @@
   "title": "vNext Workflow Definition",
   "description": "Schema for vNext Workflow Component Definition JSON files (sys-flows flow)",
   "type": "object",
-  "required": [
-    "key",
-    "flow",
-    "domain",
-    "version",
-    "tags",
-    "attributes"
-  ],
+  "required": ["key", "flow", "domain", "version", "tags", "attributes"],
   "properties": {
     "$schema": {
       "type": "string",
@@ -51,39 +44,20 @@
     },
     "attributes": {
       "type": "object",
-      "required": [
-        "type",
-        "startTransition",
-        "states"
-      ],
+      "required": ["type", "startTransition", "states"],
       "properties": {
         "type": {
           "type": "string",
           "description": "Workflow type",
-          "enum": [
-            "C",
-            "F",
-            "S",
-            "P"
-          ],
-          "enumDescriptions": [
-            "Core",
-            "Flow",
-            "SubFlow",
-            "Sub Process"
-          ]
+          "enum": ["C", "F", "S", "P"],
+          "enumDescriptions": ["Core", "Flow", "SubFlow", "Sub Process"]
         },
         "timeout": {
           "anyOf": [
             {
               "type": "object",
               "description": "Timeout configuration for the workflow",
-              "required": [
-                "key",
-                "target",
-                "versionStrategy",
-                "timer"
-              ],
+              "required": ["key", "target", "versionStrategy", "timer"],
               "properties": {
                 "key": {
                   "type": "string",
@@ -159,24 +133,13 @@
   "definitions": {
     "versionStrategy": {
       "type": "string",
-      "enum": [
-        "Major",
-        "Minor"
-      ],
-      "enumDescriptions": [
-        "Major version update",
-        "Minor version update"
-      ],
+      "enum": ["Major", "Minor"],
+      "enumDescriptions": ["Major version update", "Minor version update"],
       "description": "Version strategy for updates"
     },
     "triggerType": {
       "type": "integer",
-      "enum": [
-        0,
-        1,
-        2,
-        3
-      ],
+      "enum": [0, 1, 2, 3],
       "enumDescriptions": [
         "Manual trigger",
         "Automatic trigger",
@@ -187,12 +150,7 @@
     },
     "stateType": {
       "type": "integer",
-      "enum": [
-        1,
-        2,
-        3,
-        4
-      ],
+      "enum": [1, 2, 3, 4],
       "enumDescriptions": [
         "Initial state",
         "Intermediate state",
@@ -203,10 +161,7 @@
     },
     "languageLabel": {
       "type": "object",
-      "required": [
-        "label",
-        "language"
-      ],
+      "required": ["label", "language"],
       "properties": {
         "label": {
           "type": "string",
@@ -221,10 +176,7 @@
     },
     "timerConfig": {
       "type": "object",
-      "required": [
-        "reset",
-        "duration"
-      ],
+      "required": ["reset", "duration"],
       "properties": {
         "reset": {
           "type": "string",
@@ -243,12 +195,7 @@
         {
           "type": "object",
           "description": "Explicit reference",
-          "required": [
-            "key",
-            "domain",
-            "flow",
-            "version"
-          ],
+          "required": ["key", "domain", "flow", "version"],
           "properties": {
             "key": {
               "type": "string"
@@ -270,23 +217,17 @@
           },
           "anyOf": [
             {
-              "required": [
-                "key"
-              ]
+              "required": ["key"]
             },
             {
-              "required": [
-                "id"
-              ]
+              "required": ["id"]
             }
           ]
         },
         {
           "type": "object",
           "description": "Reference using ref",
-          "required": [
-            "ref"
-          ],
+          "required": ["ref"],
           "properties": {
             "ref": {
               "type": "string",
@@ -299,10 +240,7 @@
     },
     "scriptCode": {
       "type": "object",
-      "required": [
-        "code",
-        "location"
-      ],
+      "required": ["code", "location"],
       "properties": {
         "code": {
           "type": "string",
@@ -316,27 +254,13 @@
     },
     "subFlow": {
       "type": "object",
-      "required": [
-        "type",
-        "process",
-        "mapping"
-      ],
+      "required": ["type", "process", "mapping"],
       "properties": {
         "type": {
           "type": "string",
           "description": "SubFlow type",
-          "enum": [
-            "C",
-            "F",
-            "S",
-            "P"
-          ],
-          "enumDescriptions": [
-            "Core",
-            "Flow",
-            "SubFlow",
-            "Sub Process"
-          ]
+          "enum": ["C", "F", "S", "P"],
+          "enumDescriptions": ["Core", "Flow", "SubFlow", "Sub Process"]
         },
         "process": {
           "$ref": "#/definitions/reference"
@@ -348,11 +272,7 @@
     },
     "onExecuteTask": {
       "type": "object",
-      "required": [
-        "order",
-        "task",
-        "mapping"
-      ],
+      "required": ["order", "task", "mapping"],
       "properties": {
         "order": {
           "type": "integer",
@@ -369,12 +289,7 @@
     },
     "transition": {
       "type": "object",
-      "required": [
-        "key",
-        "target",
-        "versionStrategy",
-        "triggerType"
-      ],
+      "required": ["key", "target", "versionStrategy", "triggerType"],
       "properties": {
         "key": {
           "type": "string",
@@ -462,12 +377,7 @@
     },
     "state": {
       "type": "object",
-      "required": [
-        "key",
-        "stateType",
-        "versionStrategy",
-        "labels"
-      ],
+      "required": ["key", "stateType", "versionStrategy", "labels"],
       "properties": {
         "key": {
           "type": "string",
@@ -479,6 +389,11 @@
         },
         "versionStrategy": {
           "$ref": "#/definitions/versionStrategy"
+        },
+        "xProfile": {
+          "type": "string",
+          "description": "Profile for specialized state behavior (e.g., ServiceTask, HumanTask)",
+          "default": "Default"
         },
         "labels": {
           "type": "array",
