@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://vnext.com/schemas/workflow-definition.schema.json",
+  "$id": "https://vnext.io/schemas/workflow-definition.schema.json",
   "title": "vNext Workflow Definition",
   "description": "Schema for vNext Workflow Component Definition JSON files (sys-flows flow)",
   "type": "object",
@@ -133,7 +133,7 @@
           "type": "array",
           "description": "Shared transitions available across multiple states",
           "items": {
-            "$ref": "#/definitions/transition"
+            "$ref": "#/definitions/sharedTransition"
           }
         },
         "extensions": {
@@ -144,7 +144,7 @@
           }
         },
         "startTransition": {
-          "$ref": "#/definitions/transition"
+          "$ref": "#/definitions/startTransition"
         },
         "states": {
           "type": "array",
@@ -180,7 +180,7 @@
       "enumDescriptions": [
         "Manual trigger",
         "Automatic trigger",
-        "Timeout trigger",
+        "Scheduled trigger",
         "Event trigger"
       ],
       "description": "Type of trigger for the transition"
@@ -461,6 +461,474 @@
         "versionStrategy",
         "triggerType"
       ],
+      "allOf": [
+        {
+          "properties": {
+            "key": {
+              "type": "string",
+              "description": "Transition key",
+              "pattern": "^[a-z0-9-]+$"
+            },
+            "target": {
+              "type": "string",
+              "description": "Target state key",
+              "pattern": "^[a-z0-9-]+$"
+            },
+            "from": {
+              "type": "string",
+              "description": "Source state key (optional for shared transitions)",
+              "pattern": "^[a-z0-9-]+$"
+            },
+            "versionStrategy": {
+              "$ref": "#/definitions/versionStrategy"
+            },
+            "triggerType": {
+              "$ref": "#/definitions/triggerType"
+            },
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/reference"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "rule": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/scriptCode"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "timer": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "location"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Timer rule code"
+                    },
+                    "location": {
+                      "type": "string",
+                      "description": "Location of the code file"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Timer information if the transition should execute automatically"
+            },
+            "labels": {
+              "type": "array",
+              "description": "Multi-language labels",
+              "items": {
+                "$ref": "#/definitions/languageLabel"
+              }
+            },
+            "view": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/reference"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "onExecutionTasks": {
+              "type": "array",
+              "description": "Tasks to execute during transition",
+              "items": {
+                "$ref": "#/definitions/onExecuteTask"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 1
+              }
+            }
+          },
+          "then": {
+            "required": ["rule"],
+            "properties": {
+              "rule": {
+                "$ref": "#/definitions/scriptCode"
+              },
+              "timer": {
+                "type": "null"
+              },
+              "schema": {
+                "type": "null"
+              },
+              "view": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 2
+              }
+            }
+          },
+          "then": {
+            "required": ["timer"],
+            "properties": {
+              "timer": {
+                "type": "object",
+                "required": [
+                  "code",
+                  "location"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "Timer rule code"
+                  },
+                  "location": {
+                    "type": "string",
+                    "description": "Location of the code file"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "rule": {
+                "type": "null"
+              },
+              "schema": {
+                "type": "null"
+              },
+              "view": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "anyOf": [
+                  { "const": 0 },
+                  { "const": 3 }
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "timer": {
+                "type": "null"
+              },
+              "rule": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 0
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "view": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/reference"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "view": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "sharedTransition": {
+      "type": "object",
+      "required": [
+        "key",
+        "target",
+        "versionStrategy",
+        "triggerType"
+      ],
+      "allOf": [
+        {
+          "properties": {
+            "key": {
+              "type": "string",
+              "description": "Transition key",
+              "pattern": "^[a-z0-9-]+$"
+            },
+            "target": {
+              "type": "string",
+              "description": "Target state key",
+              "pattern": "^[a-z0-9-]+$"
+            },
+            "from": {
+              "type": "string",
+              "description": "Source state key (optional for shared transitions)",
+              "pattern": "^[a-z0-9-]+$"
+            },
+            "versionStrategy": {
+              "$ref": "#/definitions/versionStrategy"
+            },
+            "triggerType": {
+              "$ref": "#/definitions/triggerType"
+            },
+            "availableIn": {
+              "type": "array",
+              "description": "States where this shared transition is available",
+              "items": {
+                "type": "string"
+              }
+            },
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/reference"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "rule": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/scriptCode"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "timer": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "location"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Timer rule code"
+                    },
+                    "location": {
+                      "type": "string",
+                      "description": "Location of the code file"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Timer information if the transition should execute automatically"
+            },
+            "labels": {
+              "type": "array",
+              "description": "Multi-language labels",
+              "items": {
+                "$ref": "#/definitions/languageLabel"
+              }
+            },
+            "view": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/reference"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "onExecutionTasks": {
+              "type": "array",
+              "description": "Tasks to execute during transition",
+              "items": {
+                "$ref": "#/definitions/onExecuteTask"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 1
+              }
+            }
+          },
+          "then": {
+            "required": ["rule"],
+            "properties": {
+              "rule": {
+                "$ref": "#/definitions/scriptCode"
+              },
+              "timer": {
+                "type": "null"
+              },
+              "schema": {
+                "type": "null"
+              },
+              "view": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 2
+              }
+            }
+          },
+          "then": {
+            "required": ["timer"],
+            "properties": {
+              "timer": {
+                "type": "object",
+                "required": [
+                  "code",
+                  "location"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "Timer rule code"
+                  },
+                  "location": {
+                    "type": "string",
+                    "description": "Location of the code file"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "rule": {
+                "type": "null"
+              },
+              "schema": {
+                "type": "null"
+              },
+              "view": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "anyOf": [
+                  { "const": 0 },
+                  { "const": 3 }
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "timer": {
+                "type": "null"
+              },
+              "rule": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 0
+              }
+            }
+          },
+          "then": {
+            "required": ["availableIn"],
+            "properties": {
+              "availableIn": {
+                "type": "array",
+                "description": "States where this shared transition is available",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "view": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/reference"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "view": {
+                "type": "null"
+              },
+              "availableIn": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "startTransition": {
+      "type": "object",
+      "required": [
+        "key",
+        "target",
+        "triggerType",
+        "versionStrategy"
+      ],
       "properties": {
         "key": {
           "type": "string",
@@ -469,25 +937,29 @@
         },
         "target": {
           "type": "string",
-          "description": "Target state key",
+          "description": "Target state key (must be an Initial state)",
           "pattern": "^[a-z0-9-]+$"
         },
-        "from": {
-          "type": "string",
-          "description": "Source state key (optional for shared transitions)",
-          "pattern": "^[a-z0-9-]+$"
+        "triggerType": {
+          "type": "integer",
+          "const": 0,
+          "description": "Start transition must be manual trigger only"
         },
         "versionStrategy": {
           "$ref": "#/definitions/versionStrategy"
         },
-        "triggerType": {
-          "$ref": "#/definitions/triggerType"
-        },
-        "availableIn": {
+        "labels": {
           "type": "array",
-          "description": "States where this transition is available",
+          "description": "Multi-language labels",
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/languageLabel"
+          }
+        },
+        "onExecutionTasks": {
+          "type": "array",
+          "description": "Tasks to execute during transition",
+          "items": {
+            "$ref": "#/definitions/onExecuteTask"
           }
         },
         "schema": {
@@ -499,68 +971,9 @@
               "type": "null"
             }
           ]
-        },
-        "rule": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/scriptCode"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "timer": {
-          "anyOf": [
-            {
-              "type": "object",
-              "required": [
-                "code",
-                "location"
-              ],
-              "properties": {
-                "code": {
-                  "type": "string",
-                  "description": "Timer rule code"
-                },
-                "location": {
-                  "type": "string",
-                  "description": "Location of the code file"
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Timer information if the transition should execute automatically"
-        },
-        "labels": {
-          "type": "array",
-          "description": "Multi-language labels",
-          "items": {
-            "$ref": "#/definitions/languageLabel"
-          }
-        },
-        "view": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/reference"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "onExecutionTasks": {
-          "type": "array",
-          "description": "Tasks to execute during transition",
-          "items": {
-            "$ref": "#/definitions/onExecuteTask"
-          }
         }
-      }
+      },
+      "additionalProperties": false
     },
     "state": {
       "type": "object",
