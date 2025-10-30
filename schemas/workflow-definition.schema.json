@@ -157,6 +157,33 @@
     }
   },
   "definitions": {
+    "viewDefinition": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "extensions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "loadData": {
+              "type": "boolean"
+            },
+            "view": {
+              "$ref": "#/definitions/reference"
+            }
+          },
+          "required": [
+            "view"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "versionStrategy": {
       "type": "string",
       "enum": [
@@ -539,14 +566,7 @@
               }
             },
             "view": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/reference"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+                  "$ref": "#/definitions/viewDefinition"
             },
             "onExecutionTasks": {
               "type": "array",
@@ -771,14 +791,7 @@
               }
             },
             "view": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/reference"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+              "$ref": "#/definitions/viewDefinition"
             },
             "onExecutionTasks": {
               "type": "array",
