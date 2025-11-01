@@ -382,9 +382,18 @@
           "pattern": "^[a-z0-9-]+$"
         },
         "target": {
-          "type": "string",
-          "description": "Target state key",
-          "pattern": "^[a-z0-9-]+$"
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Target state key",
+              "pattern": "^[a-z0-9-]+$"
+            },
+            {
+              "type": "string",
+              "const": "$self",
+              "description": "Special marker for self-transition in shared transitions"
+            }
+          ]
         },
         "from": {
           "type": "string",
