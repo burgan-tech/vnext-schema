@@ -1,468 +1,836 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://vnext.com/schemas/task-definition.schema.json",
-    "title": "vNext Task Definition",
-    "description": "Schema for vNext Task Component Definition JSON files (sys-tasks flow)",
-    "type": "object",
-    "required": [
-        "key",
-        "version",
-        "domain",
-        "flow",
-        "flowVersion",
-        "tags",
-        "attributes"
-    ],
-    "properties": {
-        "$schema": {
-            "type": "string",
-            "description": "JSON Schema reference"
-        },
-        "key": {
-            "type": "string",
-            "description": "Task key identifier",
-            "pattern": "^[a-z0-9-]+$"
-        },
-        "version": {
-            "type": "string",
-            "description": "Version in Major.Minor.Patch format",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
-        },
-        "domain": {
-            "type": "string",
-            "description": "Domain identifier",
-            "pattern": "^[a-z0-9-]+$"
-        },
-        "flow": {
-            "type": "string",
-            "description": "Flow identifier for tasks",
-            "const": "sys-tasks"
-        },
-        "flowVersion": {
-            "type": "string",
-            "description": "Flow version",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
-        },
-        "tags": {
-            "type": "array",
-            "description": "Task tags",
-            "items": {
-                "type": "string"
-            },
-            "minItems": 1
-        },
-        "attributes": {
-            "type": "object",
-            "description": "Task definition attributes",
-            "required": [
-                "type"
-            ],
-            "properties": {
-                "type": {
-                    "type": "string",
-                    "description": "Task type (TaskType enum value as string)",
-                    "enum": [
-                        "1",
-                        "2",
-                        "3",
-                        "4",
-                        "5",
-                        "6",
-                        "7"
-                    ],
-                    "enumDescriptions": [
-                        "Dapr HTTP Endpoint",
-                        "Dapr Binding",
-                        "Dapr Service",
-                        "Dapr PubSub",
-                        "Human Task",
-                        "HTTP Task",
-                        "Script Task"
-                    ]
-                }
-            },
-            "allOf": [
-                {
-                    "if": {
-                        "properties": {
-                            "type": {
-                                "const": "1"
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "type": {
-                                "const": "1"
-                            },
-                            "config": {
-                                "type": "object",
-                                "description": "Dapr HTTP Endpoint configuration",
-                                "properties": {
-                                    "endpointName": {
-                                        "type": "string",
-                                        "description": "Dapr HTTP endpoint name"
-                                    },
-                                    "path": {
-                                        "type": "string",
-                                        "description": "HTTP endpoint path"
-                                    },
-                                    "method": {
-                                        "type": "string",
-                                        "enum": [
-                                            "GET",
-                                            "POST",
-                                            "PUT",
-                                            "DELETE",
-                                            "PATCH"
-                                        ],
-                                        "description": "HTTP method"
-                                    },
-                                    "headers": {
-                                        "type": "object",
-                                        "description": "HTTP headers"
-                                    }
-                                },
-                                "required": [
-                                    "endpointName",
-                                    "path",
-                                    "method"
-                                ],
-                                "additionalProperties": false
-                            }
-                        },
-                        "required": [
-                            "type",
-                            "config"
-                        ],
-                        "additionalProperties": false
-                    }
-                },
-                {
-                    "if": {
-                        "properties": {
-                            "type": {
-                                "const": "2"
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "type": {
-                                "const": "2"
-                            },
-                            "config": {
-                                "type": "object",
-                                "description": "Dapr Binding configuration",
-                                "properties": {
-                                    "bindingName": {
-                                        "type": "string",
-                                        "description": "Dapr binding name"
-                                    },
-                                    "operation": {
-                                        "type": "string",
-                                        "description": "Binding operation"
-                                    },
-                                    "metadata": {
-                                        "type": "object",
-                                        "description": "Binding metadata"
-                                    },
-                                    "data": {
-                                        "type": "object",
-                                        "description": "Binding data"
-                                    }
-                                },
-                                "required": [
-                                    "bindingName",
-                                    "operation"
-                                ],
-                                "additionalProperties": false
-                            }
-                        },
-                        "required": [
-                            "type",
-                            "config"
-                        ],
-                        "additionalProperties": false
-                    }
-                },
-                {
-                    "if": {
-                        "properties": {
-                            "type": {
-                                "const": "3"
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "type": {
-                                "const": "3"
-                            },
-                            "config": {
-                                "type": "object",
-                                "description": "Dapr Service configuration",
-                                "properties": {
-                                    "appId": {
-                                        "type": "string",
-                                        "description": "Dapr app ID"
-                                    },
-                                    "methodName": {
-                                        "type": "string",
-                                        "description": "Service method name"
-                                    },
-                                    "httpVerb": {
-                                        "type": "string",
-                                        "enum": [
-                                            "GET",
-                                            "POST",
-                                            "PUT",
-                                            "DELETE",
-                                            "PATCH"
-                                        ],
-                                        "description": "HTTP verb"
-                                    },
-                                    "data": {
-                                        "type": "object",
-                                        "description": "Service call data"
-                                    },
-                                    "queryString": {
-                                        "type": "string",
-                                        "description": "Query string parameters"
-                                    },
-                                    "timeoutSeconds": {
-                                        "type": "integer",
-                                        "minimum": 1,
-                                        "description": "Timeout in seconds"
-                                    }
-                                },
-                                "required": [
-                                    "appId",
-                                    "methodName"
-                                ],
-                                "additionalProperties": false
-                            }
-                        },
-                        "required": [
-                            "type",
-                            "config"
-                        ],
-                        "additionalProperties": false
-                    }
-                },
-                {
-                    "if": {
-                        "properties": {
-                            "type": {
-                                "const": "4"
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "type": {
-                                "const": "4"
-                            },
-                            "config": {
-                                "type": "object",
-                                "description": "Dapr PubSub configuration",
-                                "properties": {
-                                    "pubSubName": {
-                                        "type": "string",
-                                        "description": "PubSub component name"
-                                    },
-                                    "topic": {
-                                        "type": "string",
-                                        "description": "Topic name"
-                                    },
-                                    "data": {
-                                        "type": "object",
-                                        "description": "Message data"
-                                    },
-                                    "metadata": {
-                                        "type": "object",
-                                        "description": "Message metadata"
-                                    }
-                                },
-                                "required": [
-                                    "pubSubName",
-                                    "topic"
-                                ],
-                                "additionalProperties": false
-                            }
-                        },
-                        "required": [
-                            "type",
-                            "config"
-                        ],
-                        "additionalProperties": false
-                    }
-                },
-                {
-                    "if": {
-                        "properties": {
-                            "type": {
-                                "const": "5"
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "type": {
-                                "const": "5"
-                            },
-                            "config": {
-                                "type": "object",
-                                "description": "Human Task configuration",
-                                "properties": {
-                                    "title": {
-                                        "type": "string",
-                                        "description": "Task title",
-                                        "minLength": 1
-                                    },
-                                    "instructions": {
-                                        "type": "string",
-                                        "description": "Task instructions",
-                                        "minLength": 1
-                                    },
-                                    "assignedTo": {
-                                        "type": "string",
-                                        "description": "Assigned person/group",
-                                        "minLength": 1
-                                    },
-                                    "dueDate": {
-                                        "type": [
-                                            "string",
-                                            "null"
-                                        ],
-                                        "description": "Due date (ISO 8601 format)",
-                                        "format": "date-time"
-                                    },
-                                    "form": {
-                                        "description": "Form definition in JSON format"
-                                    },
-                                    "reminderIntervalMinutes": {
-                                        "type": "integer",
-                                        "description": "Reminder interval in minutes",
-                                        "minimum": 0
-                                    },
-                                    "escalationTimeoutMinutes": {
-                                        "type": "integer",
-                                        "description": "Escalation timeout in minutes",
-                                        "minimum": 0
-                                    },
-                                    "escalationAssignee": {
-                                        "type": "string",
-                                        "description": "Escalation assignee"
-                                    }
-                                },
-                                "required": [
-                                    "title",
-                                    "instructions",
-                                    "assignedTo"
-                                ],
-                                "additionalProperties": false
-                            }
-                        },
-                        "required": [
-                            "type",
-                            "config"
-                        ],
-                        "additionalProperties": false
-                    }
-                },
-                {
-                    "if": {
-                        "properties": {
-                            "type": {
-                                "const": "6"
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "type": {
-                                "const": "6"
-                            },
-                            "config": {
-                                "type": "object",
-                                "description": "HTTP Task configuration",
-                                "properties": {
-                                    "url": {
-                                        "type": "string",
-                                        "description": "HTTP URL"
-                                    },
-                                    "method": {
-                                        "type": "string",
-                                        "enum": [
-                                            "GET",
-                                            "POST",
-                                            "PUT",
-                                            "DELETE",
-                                            "PATCH"
-                                        ],
-                                        "description": "HTTP method"
-                                    },
-                                    "headers": {
-                                        "type": "object",
-                                        "description": "HTTP headers"
-                                    },
-                                    "body": {
-                                        "type": "object",
-                                        "description": "HTTP request body"
-                                    },
-                                    "timeoutSeconds": {
-                                        "type": "integer",
-                                        "minimum": 1,
-                                        "description": "Timeout in seconds"
-                                    },
-                                    "validateSsl": {
-                                        "type": "boolean",
-                                        "description": "Whether to validate SSL certificates"
-                                    }
-                                },
-                                "required": [
-                                    "url",
-                                    "method"
-                                ],
-                                "additionalProperties": false
-                            }
-                        },
-                        "required": [
-                            "type",
-                            "config"
-                        ],
-                        "additionalProperties": false
-                    }
-                },
-                {
-                    "if": {
-                        "properties": {
-                            "type": {
-                                "const": "7"
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "type": {
-                                "const": "7"
-                            },
-                            "config": {
-                                "type": "object",
-                                "description": "Script Task configuration",
-                                "properties": {}
-                            }
-                        },
-                        "required": [
-                            "type",
-                            "config"
-                        ],
-                        "additionalProperties": false
-                    }
-                }
-            ]
-        }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://vnext.com/schemas/task-definition.schema.json",
+  "title": "vNext Task Definition",
+  "description": "Schema for vNext Task Component Definition JSON files (sys-tasks flow) with advanced Dapr options",
+  "type": "object",
+  "required": [
+    "key",
+    "version",
+    "domain",
+    "flow",
+    "flowVersion",
+    "tags",
+    "attributes"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
     },
-    "additionalProperties": false
+    "key": {
+      "type": "string",
+      "description": "Task key identifier",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "version": {
+      "type": "string",
+      "description": "Version in Major.Minor.Patch format",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "domain": {
+      "type": "string",
+      "description": "Domain identifier",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "flow": {
+      "type": "string",
+      "description": "Flow identifier for tasks",
+      "const": "sys-tasks"
+    },
+    "flowVersion": {
+      "type": "string",
+      "description": "Flow version",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "tags": {
+      "type": "array",
+      "description": "Task tags",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "attributes": {
+      "type": "object",
+      "description": "Task definition attributes",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Task type (TaskType enum value as string)",
+          "enum": ["1", "2", "3", "4", "5", "6", "7"],
+          "enumDescriptions": [
+            "Dapr HTTP Endpoint",
+            "Dapr Binding",
+            "Dapr Service",
+            "Dapr PubSub",
+            "Human Task",
+            "HTTP Task",
+            "Script Task"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "1" } } },
+          "then": {
+            "properties": {
+              "type": { "const": "1" },
+              "config": {
+                "type": "object",
+                "description": "Dapr HTTP Endpoint configuration",
+                "properties": {
+                  "endpointName": {
+                    "type": "string",
+                    "description": "Dapr HTTP endpoint name"
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "HTTP endpoint path"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"],
+                    "description": "HTTP method"
+                  },
+                  "headers": {
+                    "type": "object",
+                    "description": "HTTP headers",
+                    "additionalProperties": {
+                      "type": ["string", "number", "boolean"]
+                    }
+                  },
+                  "query": {
+                    "type": "object",
+                    "description": "Query string key/values",
+                    "additionalProperties": {
+                      "type": ["string", "number", "boolean"]
+                    }
+                  },
+                  "contentType": {
+                    "type": "string",
+                    "description": "Request Content-Type override (e.g., application/json)"
+                  },
+                  "payloadTemplate": {
+                    "type": ["object", "string"],
+                    "description": "Static payload or template expression rendered before send"
+                  },
+                  "dapr": {
+                    "type": "object",
+                    "description": "Advanced Dapr options for HTTP Endpoint",
+                    "allOf": [{ "$ref": "#/$defs/daprCommonOptions" }],
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["endpointName", "path", "method"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["type", "config"],
+            "additionalProperties": false
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "2" } } },
+          "then": {
+            "properties": {
+              "type": { "const": "2" },
+              "config": {
+                "type": "object",
+                "description": "Dapr Binding configuration",
+                "properties": {
+                  "bindingName": {
+                    "type": "string",
+                    "description": "Dapr binding name",
+                    "minLength": 1
+                  },
+                  "operation": {
+                    "type": "string",
+                    "description": "Binding operation",
+                    "minLength": 1
+                  },
+                  "bindingType": {
+                    "type": "string",
+                    "description": "Specific binding type for enhanced validation",
+                    "enum": ["http", "kafka", "redis", "postgresql"]
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "description": "Binding metadata",
+                    "additionalProperties": {
+                      "type": ["string", "number", "boolean"]
+                    }
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Binding data"
+                  },
+                  "direction": {
+                    "type": "string",
+                    "enum": ["input", "output"],
+                    "description": "Binding direction (visual hint; runtime may enforce)"
+                  },
+                  "dapr": {
+                    "type": "object",
+                    "description": "Advanced Dapr options for Binding",
+                    "allOf": [
+                      { "$ref": "#/$defs/daprCommonOptions" },
+                      { "$ref": "#/$defs/bindingOptions" }
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["bindingName", "operation"],
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": { "bindingType": { "const": "http" } }
+                    },
+                    "then": {
+                      "properties": {
+                        "metadata": {
+                          "type": "object",
+                          "properties": {
+                            "url": {
+                              "type": "string",
+                              "format": "uri",
+                              "description": "HTTP endpoint URL"
+                            },
+                            "method": {
+                              "type": "string",
+                              "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"],
+                              "description": "HTTP method",
+                              "default": "POST"
+                            }
+                          },
+                          "required": ["url"],
+                          "additionalProperties": {
+                            "type": ["string", "number", "boolean"]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": { "bindingType": { "const": "kafka" } }
+                    },
+                    "then": {
+                      "properties": {
+                        "metadata": {
+                          "type": "object",
+                          "properties": {
+                            "topic": {
+                              "type": "string",
+                              "description": "Kafka topic name",
+                              "minLength": 1
+                            },
+                            "key": {
+                              "type": "string",
+                              "description": "Message key for partitioning"
+                            },
+                            "partition": {
+                              "type": "number",
+                              "description": "Target partition number",
+                              "minimum": 0
+                            },
+                            "headers": {
+                              "type": "object",
+                              "description": "Kafka message headers",
+                              "additionalProperties": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": ["topic"],
+                          "additionalProperties": {
+                            "type": ["string", "number", "boolean"]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": { "bindingType": { "const": "redis" } }
+                    },
+                    "then": {
+                      "properties": {
+                        "metadata": {
+                          "type": "object",
+                          "properties": {
+                            "key": {
+                              "type": "string",
+                              "description": "Redis key",
+                              "minLength": 1
+                            },
+                            "command": {
+                              "type": "string",
+                              "description": "Redis command",
+                              "enum": ["SET", "GET", "DEL", "HSET", "HGET", "HDEL", "LPUSH", "RPUSH", "LPOP", "RPOP", "SADD", "SREM", "SMEMBERS", "ZADD", "ZREM", "ZRANGE"],
+                              "default": "SET"
+                            },
+                            "ttl": {
+                              "type": "number",
+                              "description": "Time to live in seconds",
+                              "minimum": 0
+                            }
+                          },
+                          "required": ["key"],
+                          "additionalProperties": {
+                            "type": ["string", "number", "boolean"]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": { "bindingType": { "const": "postgresql" } }
+                    },
+                    "then": {
+                      "properties": {
+                        "metadata": {
+                          "type": "object",
+                          "properties": {
+                            "sql": {
+                              "type": "string",
+                              "description": "SQL query or statement",
+                              "minLength": 1
+                            },
+                            "table": {
+                              "type": "string",
+                              "description": "Target table name"
+                            },
+                            "operation": {
+                              "type": "string",
+                              "description": "Database operation type",
+                              "enum": ["exec", "query", "insert", "update", "delete"],
+                              "default": "exec"
+                            }
+                          },
+                          "additionalProperties": {
+                            "type": ["string", "number", "boolean"]
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "required": ["type", "config"],
+            "additionalProperties": false
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "3" } } },
+          "then": {
+            "properties": {
+              "type": { "const": "3" },
+              "config": {
+                "type": "object",
+                "description": "Dapr Service configuration",
+                "properties": {
+                  "appId": {
+                    "type": "string",
+                    "description": "Dapr app ID"
+                  },
+                  "methodName": {
+                    "type": "string",
+                    "description": "Service method name"
+                  },
+                  "httpVerb": {
+                    "type": "string",
+                    "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"],
+                    "description": "HTTP verb (when protocol=http)"
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Service call data"
+                  },
+                  "queryString": {
+                    "type": "string",
+                    "description": "Query string parameters"
+                  },
+                  "timeoutSeconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Timeout in seconds"
+                  },
+                  "protocol": {
+                    "type": "string",
+                    "enum": ["http", "grpc"],
+                    "default": "http",
+                    "description": "Invocation protocol"
+                  },
+                  "dapr": {
+                    "type": "object",
+                    "description": "Advanced Dapr options for Service Invocation",
+                    "allOf": [
+                      { "$ref": "#/$defs/daprCommonOptions" },
+                      { "$ref": "#/$defs/invocationOptions" }
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["appId", "methodName"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["type", "config"],
+            "additionalProperties": false
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "4" } } },
+          "then": {
+            "properties": {
+              "type": { "const": "4" },
+              "config": {
+                "type": "object",
+                "description": "Dapr PubSub configuration",
+                "properties": {
+                  "pubSubName": {
+                    "type": "string",
+                    "description": "PubSub component name"
+                  },
+                  "topic": {
+                    "type": "string",
+                    "description": "Topic name"
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Message data"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "description": "Message metadata",
+                    "additionalProperties": {
+                      "type": ["string", "number", "boolean"]
+                    }
+                  },
+                  "dapr": {
+                    "type": "object",
+                    "description": "Advanced Dapr options for PubSub",
+                    "allOf": [
+                      { "$ref": "#/$defs/daprCommonOptions" },
+                      { "$ref": "#/$defs/pubsubOptions" }
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["pubSubName", "topic"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["type", "config"],
+            "additionalProperties": false
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "5" } } },
+          "then": {
+            "properties": {
+              "type": { "const": "5" },
+              "config": {
+                "type": "object",
+                "description": "Human Task configuration",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Task title",
+                    "minLength": 1
+                  },
+                  "instructions": {
+                    "type": "string",
+                    "description": "Task instructions",
+                    "minLength": 1
+                  },
+                  "assignedTo": {
+                    "type": "string",
+                    "description": "Assigned person/group",
+                    "minLength": 1
+                  },
+                  "dueDate": {
+                    "type": ["string", "null"],
+                    "description": "Due date (ISO 8601 format)",
+                    "format": "date-time"
+                  },
+                  "form": {
+                    "description": "Form definition in JSON format"
+                  },
+                  "reminderIntervalMinutes": {
+                    "type": "integer",
+                    "description": "Reminder interval in minutes",
+                    "minimum": 0
+                  },
+                  "escalationTimeoutMinutes": {
+                    "type": "integer",
+                    "description": "Escalation timeout in minutes",
+                    "minimum": 0
+                  },
+                  "escalationAssignee": {
+                    "type": "string",
+                    "description": "Escalation assignee"
+                  }
+                },
+                "required": ["title", "instructions", "assignedTo"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["type", "config"],
+            "additionalProperties": false
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "6" } } },
+          "then": {
+            "properties": {
+              "type": { "const": "6" },
+              "config": {
+                "type": "object",
+                "description": "HTTP Task configuration",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "HTTP URL"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"],
+                    "description": "HTTP method"
+                  },
+                  "headers": {
+                    "type": "object",
+                    "description": "HTTP headers",
+                    "additionalProperties": {
+                      "type": ["string", "number", "boolean"]
+                    }
+                  },
+                  "body": {
+                    "type": "object",
+                    "description": "HTTP request body"
+                  },
+                  "timeoutSeconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Timeout in seconds"
+                  },
+                  "validateSsl": {
+                    "type": "boolean",
+                    "description": "Whether to validate SSL certificates"
+                  }
+                },
+                "required": ["url", "method"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["type", "config"],
+            "additionalProperties": false
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "7" } } },
+          "then": {
+            "properties": {
+              "type": { "const": "7" },
+              "config": {
+                "type": "object",
+                "description": "Script Task configuration",
+                "properties": {}
+              }
+            },
+            "required": ["type", "config"],
+            "additionalProperties": false
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "retryPolicy": {
+      "type": "object",
+      "description": "Exponential backoff retry policy",
+      "properties": {
+        "maxRetries": { "type": "integer", "minimum": 0 },
+        "initialIntervalMs": { "type": "integer", "minimum": 0 },
+        "maxIntervalMs": { "type": "integer", "minimum": 0 },
+        "multiplier": { "type": "number", "minimum": 1 },
+        "retryOnStatusCodes": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 100, "maximum": 599 }
+        }
+      },
+      "additionalProperties": false
+    },
+    "circuitBreaker": {
+      "type": "object",
+      "description": "Circuit breaker configuration",
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "failureRateThreshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "slowCallDurationThresholdMs": { "type": "integer", "minimum": 0 },
+        "slowCallRateThreshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "slidingWindowSize": { "type": "integer", "minimum": 1 },
+        "minimumNumberOfCalls": { "type": "integer", "minimum": 1 },
+        "waitDurationInOpenStateMs": { "type": "integer", "minimum": 0 },
+        "permittedCallsInHalfOpenState": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "authOptions": {
+      "type": "object",
+      "description": "Auth and security options",
+      "properties": {
+        "apiTokenSecretRef": {
+          "type": "string",
+          "description": "Reference to secret holding Dapr API token"
+        },
+        "mtlsRequired": {
+          "type": "boolean",
+          "description": "Require mTLS for inter-service traffic"
+        },
+        "oauthTokenRef": {
+          "type": "string",
+          "description": "Secret reference for OAuth/Bearer token"
+        }
+      },
+      "additionalProperties": false
+    },
+    "cloudEventOptions": {
+      "type": "object",
+      "description": "CloudEvent envelope overrides",
+      "properties": {
+        "id": { "type": "string" },
+        "source": { "type": "string" },
+        "type": { "type": "string" },
+        "subject": { "type": "string" },
+        "datacontenttype": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "daprCommonOptions": {
+      "type": "object",
+      "description": "Common Dapr advanced options",
+      "properties": {
+        "resiliencyPolicyRef": {
+          "type": "string",
+          "description": "Named Dapr resiliency policy to apply (if managed centrally)"
+        },
+        "retry": { "$ref": "#/$defs/retryPolicy" },
+        "circuitBreaker": { "$ref": "#/$defs/circuitBreaker" },
+        "auth": { "$ref": "#/$defs/authOptions" },
+        "tracing": {
+          "type": "object",
+          "description": "Tracing overrides",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "attributes": {
+              "type": "object",
+              "additionalProperties": {
+                "type": ["string", "number", "boolean"]
+              }
+            },
+            "baggage": {
+              "type": "object",
+              "additionalProperties": { "type": "string" }
+            }
+          },
+          "additionalProperties": false
+        },
+        "idempotency": {
+          "type": "object",
+          "description": "Idempotency controls",
+          "properties": {
+            "keyExpression": {
+              "type": "string",
+              "description": "Template/expression to compute idempotency key"
+            },
+            "ttlSeconds": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "headers": {
+          "type": "object",
+          "description": "Extra Dapr/HTTP headers",
+          "additionalProperties": { "type": ["string", "number", "boolean"] }
+        },
+        "metadataOverrides": {
+          "type": "object",
+          "description": "Component metadata overrides",
+          "additionalProperties": { "type": ["string", "number", "boolean"] }
+        },
+        "onFailure": {
+          "type": "object",
+          "description": "Failure routing",
+          "properties": {
+            "deadLetter": {
+              "type": "object",
+              "description": "Send failed payloads to another sink",
+              "properties": {
+                "type": { "type": "string", "enum": ["pubsub", "binding"] },
+                "component": { "type": "string" },
+                "target": {
+                  "type": "string",
+                  "description": "topic (pubsub) or operation/name (binding)"
+                },
+                "metadata": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": ["string", "number", "boolean"]
+                  }
+                }
+              },
+              "required": ["type", "component", "target"],
+              "additionalProperties": false
+            },
+            "captureResponse": {
+              "type": "boolean",
+              "description": "Include downstream error payload in task output"
+            },
+            "maxSinks": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Guard for fan-out on failure pipelines"
+            }
+          },
+          "additionalProperties": false
+        },
+        "concurrency": {
+          "type": "object",
+          "description": "Concurrency and back-pressure",
+          "properties": {
+            "maxInFlight": { "type": "integer", "minimum": 1 },
+            "semaphoreKey": {
+              "type": "string",
+              "description": "Bucket key for shared concurrency (e.g., per-customer)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "bindingOptions": {
+      "type": "object",
+      "description": "Binding specific advanced options",
+      "properties": {
+        "bulk": {
+          "type": "object",
+          "description": "Bulk operations (if supported by binding)",
+          "properties": {
+            "enabled": { "type": "boolean", "default": false },
+            "maxItems": { "type": "integer", "minimum": 1 },
+            "maxConcurrency": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "invocationOptions": {
+      "type": "object",
+      "description": "Service invocation options",
+      "properties": {
+        "consistency": {
+          "type": "string",
+          "enum": ["eventual", "strong"],
+          "description": "Read consistency (where applicable)",
+          "default": "eventual"
+        },
+        "http": {
+          "type": "object",
+          "description": "HTTP invocation extras",
+          "properties": {
+            "query": {
+              "type": "object",
+              "additionalProperties": {
+                "type": ["string", "number", "boolean"]
+              }
+            },
+            "headers": {
+              "type": "object",
+              "additionalProperties": {
+                "type": ["string", "number", "boolean"]
+              }
+            },
+            "contentType": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "grpc": {
+          "type": "object",
+          "description": "gRPC invocation extras",
+          "properties": {
+            "deadlineMs": { "type": "integer", "minimum": 0 },
+            "metadata": {
+              "type": "object",
+              "additionalProperties": {
+                "type": ["string", "number", "boolean"]
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "pubsubOptions": {
+      "type": "object",
+      "description": "PubSub advanced options",
+      "properties": {
+        "cloudEvent": { "$ref": "#/$defs/cloudEventOptions" },
+        "orderingKey": {
+          "type": "string",
+          "description": "Partition/ordering key (Kafka key, etc.)"
+        },
+        "rawPayload": {
+          "type": "boolean",
+          "description": "Bypass CloudEvent wrapping where supported"
+        },
+        "ttlInSeconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Message Time-To-Live (where supported)"
+        },
+        "bulkPublish": {
+          "type": "object",
+          "description": "Bulk publish options",
+          "properties": {
+            "enabled": { "type": "boolean", "default": false },
+            "maxMessages": { "type": "integer", "minimum": 1 },
+            "maxConcurrency": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
+        },
+        "deadLetter": {
+          "type": "object",
+          "description": "Dead-letter routing (topic & component)",
+          "properties": {
+            "pubSubName": { "type": "string" },
+            "topic": { "type": "string" },
+            "metadata": {
+              "type": "object",
+              "additionalProperties": {
+                "type": ["string", "number", "boolean"]
+              }
+            }
+          },
+          "required": ["pubSubName", "topic"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
 }
