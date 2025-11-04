@@ -68,7 +68,10 @@
                         "4",
                         "5",
                         "6",
-                        "7"
+                        "7",
+                        "8",
+                        "9",
+                        "10"
                     ],
                     "enumDescriptions": [
                         "Dapr HTTP Endpoint",
@@ -77,7 +80,10 @@
                         "Dapr PubSub",
                         "Human Task",
                         "HTTP Task",
-                        "Script Task"
+                        "Script Task",
+                        "Condition Task",
+                        "Timer Task",
+                        "Notification Task"
                     ]
                 }
             },
@@ -452,6 +458,41 @@
                                 "type": "object",
                                 "description": "Script Task configuration",
                                 "properties": {}
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "config"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                 {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "10"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "type": {
+                                "const": "10"
+                            },
+                            "config": {
+                                "type": "object",
+                                "description": "Notification Binding configuration",
+                                "properties": {
+                                    "metadata": {
+                                        "type": "object",
+                                        "description": "Binding metadata"
+                                    }
+                                },
+                                "required": [
+                                    "metadata"
+                                ],
+                                "additionalProperties": false
                             }
                         },
                         "required": [
