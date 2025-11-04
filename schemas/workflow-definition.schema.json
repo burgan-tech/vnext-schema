@@ -349,7 +349,8 @@
           "type": "object",
           "required": [
             "type",
-            "process"
+            "process",
+            "mapping"
           ],
           "properties": {
             "type": {
@@ -362,93 +363,21 @@
               "maxLength": 10
             },
             "process": {
-              "type": "object",
-              "properties": {
-                "key": {
-                  "type": "string",
-                  "description": "Key value of the referenced record (readable identifier)",
-                  "pattern": "^[a-zA-Z0-9\\-]+$",
-                  "maxLength": 255
-                },
-                "domain": {
-                  "type": "string",
-                  "description": "Domain where the referenced record is located (required for cross-domain references)",
-                  "pattern": "^[a-zA-Z\\-]+$",
-                  "maxLength": 100,
-                  "examples": [
-                    "core",
-                    "idm",
-                    "banking",
-                    "payment"
-                  ]
-                },
-                "flow": {
-                  "type": "string",
-                  "description": "Flow name where the referenced record is located",
-                  "pattern": "^[a-z\\-]+$",
-                  "maxLength": 100
-                },
-                "version": {
-                  "type": "string",
-                  "pattern": "^\\d+\\.\\d+\\.\\d+$",
-                  "description": "Version information of the referenced record (semantic versioning MAJOR.MINOR.PATCH format)",
-                  "maxLength": 50
-                }
-              },
-              "required": [
-                "key",
-                "domain",
-                "flow",
-                "version"
-              ],
-              "additionalProperties": false,
-              "examples": [
-                {
-                  "key": "user-authentication-workflow",
-                  "domain": "idm",
-                  "flow": "user-authentication",
-                  "version": "1.0.0"
-                },
-                {
-                  "key": "user-login-state",
-                  "domain": "core",
-                  "flow": "authentication",
-                  "version": "2.1.0"
-                },
-                {
-                  "key": "payment-validation-task",
-                  "domain": "banking",
-                  "flow": "payment-process",
-                  "version": "1.2.3"
-                }
-              ],
+              "$ref": "#/definitions/reference",
               "description": "SubFlow process reference"
             },
             "mapping": {
-              "anyOf": [
-                {
-                  "type": "object",
-                  "required": [
-                    "code",
-                    "location"
-                  ],
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "description": "SubFlow mapping code"
-                    },
-                    "location": {
-                      "type": "string",
-                      "description": "Location of the mapping code file"
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "null"
+              "$ref": "#/definitions/scriptCode"
+            },
+            "viewOverrides": {
+              "type": "object",
+              "description": "Dictionary of view overrides for subflow views. Key is the original view key, value is the reference to the new view definition.",
+              "patternProperties": {
+                "^[a-zA-Z0-9\\-]+$": {
+                  "$ref": "#/definitions/reference"
                 }
-              ],
-              "description": "Mapping definition for data exchange with SubFlow"
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
