@@ -327,21 +327,71 @@
       ]
     },
     "scriptCode": {
-      "type": "object",
-      "required": [
-        "code",
-        "location"
-      ],
-      "properties": {
-        "code": {
-          "type": "string",
-          "description": "Script code content"
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "G",
+              "description": "Global mapping - code and location not required"
+            },
+            "code": {
+              "type": "string",
+              "description": "Script code content"
+            },
+            "location": {
+              "type": "string",
+              "description": "Location of the script file"
+            }
+          },
+          "additionalProperties": false
         },
-        "location": {
-          "type": "string",
-          "description": "Location of the script file"
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "oneOf": [
+                {
+                  "const": "L",
+                  "description": "Local mapping - code and location is required"
+                }
+              ],
+              "description": "Task type"
+            },
+            "code": {
+              "type": "string",
+              "description": "Script code content"
+            },
+            "location": {
+              "type": "string",
+              "description": "Location of the script file"
+            }
+          },
+          "required": [
+            "code",
+            "location"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "Script code content"
+            },
+            "location": {
+              "type": "string",
+              "description": "Location of the script file"
+            }
+          },
+          "required": [
+            "code",
+            "location"
+          ],
+          "additionalProperties": false
         }
-      }
+      ]
     },
     "subFlow": {
       "anyOf": [

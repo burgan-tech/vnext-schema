@@ -310,6 +310,14 @@
                 "code": {
                     "type": "string"
                 }
+                ,
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "G",
+                        "L"
+                    ]
+                }
             }
         }
     }
