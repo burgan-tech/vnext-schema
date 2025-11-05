@@ -1009,14 +1009,7 @@
           }
         },
         "view": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/reference"
-            },
-            {
-              "type": "null"
-            }
-          ]
+           "$ref": "#/definitions/viewDefinition"
         },
         "subFlow": {
           "anyOf": [
