@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://vnext.com/schemas/component-base.schema.json",
+  "title": "vNext Component Base",
+  "description": "Base schema definition for all vNext components",
+  "type": "object",
+  "required": [
+    "key",
+    "version",
+    "domain",
+    "flow",
+    "flowVersion",
+    "tags",
+    "attributes"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference",
+      "format": "uri"
+    },
+    "key": {
+      "type": "string",
+      "description": "Component key identifier",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "version": {
+      "type": "string",
+      "description": "Version in Major.Minor.Patch format",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "domain": {
+      "type": "string",
+      "description": "Domain identifier",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "flow": {
+      "type": "string",
+      "description": "Flow identifier",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "flowVersion": {
+      "type": "string",
+      "description": "Flow version",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "tags": {
+      "type": "array",
+      "description": "Component tags",
+      "items": {
+        "type": "string"
+      }
+    },
+    "attributes": {
+      "type": "object",
+      "description": "Component-specific attributes"
+    }
+  }
+}
+
