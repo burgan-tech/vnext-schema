@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://vnext.com/schemas/extension-definition.schema.json",
+    "$id": "https://vnext.io/schemas/extension-definition.schema.json",
     "title": "vNext Extension Definition",
     "description": "Schema for vNext Extension Component Definition JSON files (sys-extensions flow)",
     "allOf": [
