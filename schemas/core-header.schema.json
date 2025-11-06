@@ -2,264 +2,333 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://vnext.com/schemas/core-header.schema.json",
   "title": "HTTP Headers",
-  "description": "Runtime HTTP request headers and metadata available in all transition mappings. Automatically populated by platform from incoming requests.",
+  "description": "Schema for vNext Header Component Definition JSON files (sys-schemas flow)",
   "type": "object",
+  "required": [
+    "key",
+    "version",
+    "domain",
+    "flow",
+    "flowVersion",
+    "tags",
+    "attributes"
+  ],
   "properties": {
-    "acceptLanguage": {
+    "$schema": {
       "type": "string",
-      "description": "Client's preferred display language (Accept-Language header). Example: 'en-US', 'tr-TR'.",
-      "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+      "description": "JSON Schema reference"
     },
-    "client": {
+    "key": {
+      "type": "string",
+      "description": "Header schema key identifier",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "version": {
+      "type": "string",
+      "description": "Version in Major.Minor.Patch format",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "domain": {
+      "type": "string",
+      "description": "Domain identifier",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "flow": {
+      "type": "string",
+      "description": "Flow identifier for schemas",
+      "const": "sys-schemas"
+    },
+    "flowVersion": {
+      "type": "string",
+      "description": "Flow version",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "tags": {
+      "type": "array",
+      "description": "Header schema tags",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "attributes": {
       "type": "object",
-      "description": "Client connection information (IP address and port).",
+      "description": "Header schema attributes",
+      "required": [
+        "type",
+        "schema"
+      ],
       "properties": {
-        "ipAddress": {
+        "type": {
           "type": "string",
-          "description": "Client's IP address (IPv4 or IPv6). Example: '192.168.1.100', '2001:db8::1'.",
-          "oneOf": [
-            {
-              "format": "ipv4"
+          "description": "Schema type",
+          "const": "headers"
+        },
+        "schema": {
+          "type": "object",
+          "description": "HTTP headers schema definition",
+          "properties": {
+            "acceptLanguage": {
+              "type": "string",
+              "description": "Client's preferred display language (Accept-Language header). Example: 'en-US', 'tr-TR'.",
+              "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
             },
-            {
-              "format": "ipv6"
+            "client": {
+              "type": "object",
+              "description": "Client connection information (IP address and port).",
+              "properties": {
+                "ipAddress": {
+                  "type": "string",
+                  "description": "Client's IP address (IPv4 or IPv6). Example: '192.168.1.100', '2001:db8::1'.",
+                  "oneOf": [
+                    {
+                      "format": "ipv4"
+                    },
+                    {
+                      "format": "ipv6"
+                    }
+                  ]
+                },
+                "port": {
+                  "type": "integer",
+                  "description": "Client's source port number. Example: 54321.",
+                  "minimum": 1,
+                  "maximum": 65535
+                }
+              }
+            },
+            "geolocation": {
+              "type": "object",
+              "description": "Client's geographic location if device location sharing is enabled.",
+              "properties": {
+                "latitude": {
+                  "type": "number",
+                  "description": "Latitude coordinate.",
+                  "minimum": -90,
+                  "maximum": 90
+                },
+                "longitude": {
+                  "type": "number",
+                  "description": "Longitude coordinate.",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "accuracy": {
+                  "type": "number",
+                  "description": "Accuracy in meters.",
+                  "minimum": 0
+                },
+                "altitude": {
+                  "type": "number",
+                  "description": "Altitude in meters above sea level."
+                },
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "When location was captured."
+                }
+              }
+            },
+            "traceparent": {
+              "type": "object",
+              "description": "W3C Trace Context for distributed tracing. Replaces X-Request-Id. Format: {version}-{trace-id}-{parent-id}-{trace-flags}",
+              "properties": {
+                "raw": {
+                  "type": "string",
+                  "description": "Raw traceparent header value. Example: '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01'"
+                },
+                "version": {
+                  "type": "string",
+                  "description": "Trace context version. Typically '00'.",
+                  "pattern": "^[0-9a-f]{2}$"
+                },
+                "traceId": {
+                  "type": "string",
+                  "description": "Unique trace ID for the entire operation chain. 32 hex characters.",
+                  "pattern": "^[0-9a-f]{32}$"
+                },
+                "parentId": {
+                  "type": "string",
+                  "description": "Parent span ID. 16 hex characters.",
+                  "pattern": "^[0-9a-f]{16}$"
+                },
+                "traceFlags": {
+                  "type": "string",
+                  "description": "Trace flags (sampled, etc.). 2 hex characters.",
+                  "pattern": "^[0-9a-f]{2}$"
+                }
+              }
+            },
+            "userAgent": {
+              "type": "object",
+              "description": "Parsed User-Agent information. Format: {application-name}/{version} ({platform}; {device-info}) {engine}",
+              "properties": {
+                "raw": {
+                  "type": "string",
+                  "description": "Raw User-Agent header. Example: 'amorphie-ib-mobile/2.2.1 (Android 13; Galaxy S22) WebKit/537.36'"
+                },
+                "applicationName": {
+                  "type": "string",
+                  "description": "Application name (client-id recommended). Example: 'amorphie-ib-mobile', 'amorphie-cc-web'",
+                  "pattern": "^[a-z0-9-]+$"
+                },
+                "version": {
+                  "type": "string",
+                  "description": "Application version. Example: '2.2.1', '0.8.1'",
+                  "pattern": "^\\d+(\\.\\d+)*$"
+                },
+                "platform": {
+                  "type": "string",
+                  "description": "Operating system/platform. Example: 'Android 13', 'Windows 10', 'macOS 13.6'"
+                },
+                "deviceInfo": {
+                  "type": "string",
+                  "description": "Device model or browser. Example: 'Galaxy S22', 'Chrome 117', 'Safari 17'"
+                },
+                "engine": {
+                  "type": "string",
+                  "description": "Rendering engine. Example: 'WebKit/537.36', 'WebKit/605.1.15'"
+                }
+              }
+            },
+            "device": {
+              "type": "object",
+              "description": "Parsed X-Device header. Format: {device-id},{installation-id}",
+              "properties": {
+                "raw": {
+                  "type": "string",
+                  "description": "Raw X-Device header. Example: '32941871-b1e8-722e-bfef-6aa0221970b5,77941871-a1e8-712e-bfef-6aa0221970a8'"
+                },
+                "deviceId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Unique device identifier from hardware."
+                },
+                "installationId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Unique identifier for this app installation."
+                }
+              }
+            },
+            "workflow": {
+              "type": "object",
+              "description": "Parsed X-Workflow header. Format: {runtime-version},{domain},{workflow},{workflow-version},{instance-id}",
+              "properties": {
+                "raw": {
+                  "type": "string",
+                  "description": "Raw X-Workflow header. Example: 'vnext,account,new-saving-account,1.1,77941871-a1e8-712e-bfef-6aa0221970a8'"
+                },
+                "runtimeVersion": {
+                  "type": "string",
+                  "description": "Workflow engine version.",
+                  "enum": [
+                    "legacy",
+                    "vnext"
+                  ],
+                  "enumDescriptions": [
+                    "Legacy workflow engine",
+                    "vNext workflow engine"
+                  ]
+                },
+                "domain": {
+                  "type": "string",
+                  "description": "Workflow domain. Example: 'account', 'idm', 'payment'",
+                  "pattern": "^[a-z0-9-]+$"
+                },
+                "workflow": {
+                  "type": "string",
+                  "description": "Workflow key. Example: 'new-saving-account', 'device-register'",
+                  "pattern": "^[a-z0-9-]+$"
+                },
+                "workflowVersion": {
+                  "type": "string",
+                  "description": "Workflow version. Example: '1.1', '1.0.0'",
+                  "pattern": "^\\d+(\\.\\d+)*$"
+                },
+                "instanceId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Unique workflow instance ID."
+                }
+              }
+            },
+            "actor": {
+              "type": "object",
+              "description": "Parsed X-Actor header. Format: {user-id},{user-reference},{scope-id},{scope-reference},{consent-id}",
+              "properties": {
+                "raw": {
+                  "type": "string",
+                  "description": "Raw X-Actor header. Example: '01941871-005f-7140-a321-93d38f385dc2,38512019001,01941871-a1e8-712e-bfef-6aa0221970a8,38512019001,02941871-c2f9-823f-c432-94e49f486ed3'"
+                },
+                "user": {
+                  "type": "string",
+                  "description": "User business reference (e.g., national ID '38512019001', employee number, username). Extracted from position 2 of X-Actor header.",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "description": "Scope (customer) business reference (e.g., customer number '38512019001', CIF). Extracted from position 4 of X-Actor header.",
+                  "minLength": 1
+                },
+                "consentId": {
+                  "type": "string",
+                  "description": "Consent fact ID (ULID) that authorizes this operation. Extracted from position 5 of X-Actor header.",
+                  "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+                }
+              }
+            },
+            "requestSource": {
+              "type": "object",
+              "description": "Parsed X-Request-Source header. Format: {component-type}:{target-info}",
+              "properties": {
+                "raw": {
+                  "type": "string",
+                  "description": "Raw X-Request-Source header. Example: 'router-navigation:dashboard-home', 'workflow-transition:loan-application'"
+                },
+                "componentType": {
+                  "type": "string",
+                  "enum": [
+                    "router-navigation",
+                    "workflow-transition",
+                    "dynamic-view-render",
+                    "static-view-load",
+                    "webview-request",
+                    "search-query",
+                    "data-manager-fetch",
+                    "user-action",
+                    "background-sync",
+                    "cache-refresh"
+                  ],
+                  "description": "Component that initiated the request."
+                },
+                "targetInfo": {
+                  "type": "string",
+                  "description": "Context-specific target information. Example: route name, workflow name, view key, action type, etc.",
+                  "minLength": 1
+                }
+              }
+            },
+            "ifNoneMatch": {
+              "type": "string",
+              "description": "ETag value from client cache (If-None-Match header). ULID format. Used for cache validation.",
+              "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+            },
+            "requestTimestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When the request was received by the server (ISO-8601)."
+            },
+            "serverTimestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Current server time when processing the request (ISO-8601)."
             }
-          ]
-        },
-        "port": {
-          "type": "integer",
-          "description": "Client's source port number. Example: 54321.",
-          "minimum": 1,
-          "maximum": 65535
+          },
+          "additionalProperties": false
         }
-      }
-    },
-    "geolocation": {
-      "type": "object",
-      "description": "Client's geographic location if device location sharing is enabled.",
-      "properties": {
-        "latitude": {
-          "type": "number",
-          "description": "Latitude coordinate.",
-          "minimum": -90,
-          "maximum": 90
-        },
-        "longitude": {
-          "type": "number",
-          "description": "Longitude coordinate.",
-          "minimum": -180,
-          "maximum": 180
-        },
-        "accuracy": {
-          "type": "number",
-          "description": "Accuracy in meters.",
-          "minimum": 0
-        },
-        "altitude": {
-          "type": "number",
-          "description": "Altitude in meters above sea level."
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "date-time",
-          "description": "When location was captured."
-        }
-      }
-    },
-    "traceparent": {
-      "type": "object",
-      "description": "W3C Trace Context for distributed tracing. Replaces X-Request-Id. Format: {version}-{trace-id}-{parent-id}-{trace-flags}",
-      "properties": {
-        "raw": {
-          "type": "string",
-          "description": "Raw traceparent header value. Example: '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01'"
-        },
-        "version": {
-          "type": "string",
-          "description": "Trace context version. Typically '00'.",
-          "pattern": "^[0-9a-f]{2}$"
-        },
-        "traceId": {
-          "type": "string",
-          "description": "Unique trace ID for the entire operation chain. 32 hex characters.",
-          "pattern": "^[0-9a-f]{32}$"
-        },
-        "parentId": {
-          "type": "string",
-          "description": "Parent span ID. 16 hex characters.",
-          "pattern": "^[0-9a-f]{16}$"
-        },
-        "traceFlags": {
-          "type": "string",
-          "description": "Trace flags (sampled, etc.). 2 hex characters.",
-          "pattern": "^[0-9a-f]{2}$"
-        }
-      }
-    },
-    "userAgent": {
-      "type": "object",
-      "description": "Parsed User-Agent information. Format: {application-name}/{version} ({platform}; {device-info}) {engine}",
-      "properties": {
-        "raw": {
-          "type": "string",
-          "description": "Raw User-Agent header. Example: 'amorphie-ib-mobile/2.2.1 (Android 13; Galaxy S22) WebKit/537.36'"
-        },
-        "applicationName": {
-          "type": "string",
-          "description": "Application name (client-id recommended). Example: 'amorphie-ib-mobile', 'amorphie-cc-web'",
-          "pattern": "^[a-z0-9-]+$"
-        },
-        "version": {
-          "type": "string",
-          "description": "Application version. Example: '2.2.1', '0.8.1'",
-          "pattern": "^\\d+(\\.\\d+)*$"
-        },
-        "platform": {
-          "type": "string",
-          "description": "Operating system/platform. Example: 'Android 13', 'Windows 10', 'macOS 13.6'"
-        },
-        "deviceInfo": {
-          "type": "string",
-          "description": "Device model or browser. Example: 'Galaxy S22', 'Chrome 117', 'Safari 17'"
-        },
-        "engine": {
-          "type": "string",
-          "description": "Rendering engine. Example: 'WebKit/537.36', 'WebKit/605.1.15'"
-        }
-      }
-    },
-    "device": {
-      "type": "object",
-      "description": "Parsed X-Device header. Format: {device-id},{installation-id}",
-      "properties": {
-        "raw": {
-          "type": "string",
-          "description": "Raw X-Device header. Example: '32941871-b1e8-722e-bfef-6aa0221970b5,77941871-a1e8-712e-bfef-6aa0221970a8'"
-        },
-        "deviceId": {
-          "type": "string",
-          "format": "uuid",
-          "description": "Unique device identifier from hardware."
-        },
-        "installationId": {
-          "type": "string",
-          "format": "uuid",
-          "description": "Unique identifier for this app installation."
-        }
-      }
-    },
-    "workflow": {
-      "type": "object",
-      "description": "Parsed X-Workflow header. Format: {runtime-version},{domain},{workflow},{workflow-version},{instance-id}",
-      "properties": {
-        "raw": {
-          "type": "string",
-          "description": "Raw X-Workflow header. Example: 'vnext,account,new-saving-account,1.1,77941871-a1e8-712e-bfef-6aa0221970a8'"
-        },
-        "runtimeVersion": {
-          "type": "string",
-          "description": "Workflow engine version.",
-          "enum": [
-            "legacy",
-            "vnext"
-          ],
-          "enumDescriptions": [
-            "Legacy workflow engine",
-            "vNext workflow engine"
-          ]
-        },
-        "domain": {
-          "type": "string",
-          "description": "Workflow domain. Example: 'account', 'idm', 'payment'",
-          "pattern": "^[a-z0-9-]+$"
-        },
-        "workflow": {
-          "type": "string",
-          "description": "Workflow key. Example: 'new-saving-account', 'device-register'",
-          "pattern": "^[a-z0-9-]+$"
-        },
-        "workflowVersion": {
-          "type": "string",
-          "description": "Workflow version. Example: '1.1', '1.0.0'",
-          "pattern": "^\\d+(\\.\\d+)*$"
-        },
-        "instanceId": {
-          "type": "string",
-          "format": "uuid",
-          "description": "Unique workflow instance ID."
-        }
-      }
-    },
-    "actor": {
-      "type": "object",
-      "description": "Parsed X-Actor header. Format: {user-id},{user-reference},{scope-id},{scope-reference},{consent-id}",
-      "properties": {
-        "raw": {
-          "type": "string",
-          "description": "Raw X-Actor header. Example: '01941871-005f-7140-a321-93d38f385dc2,38512019001,01941871-a1e8-712e-bfef-6aa0221970a8,38512019001,02941871-c2f9-823f-c432-94e49f486ed3'"
-        },
-        "user": {
-          "type": "string",
-          "description": "User business reference (e.g., national ID '38512019001', employee number, username). Extracted from position 2 of X-Actor header.",
-          "minLength": 1
-        },
-        "scope": {
-          "type": "string",
-          "description": "Scope (customer) business reference (e.g., customer number '38512019001', CIF). Extracted from position 4 of X-Actor header.",
-          "minLength": 1
-        },
-        "consentId": {
-          "type": "string",
-          "description": "Consent fact ID (ULID) that authorizes this operation. Extracted from position 5 of X-Actor header.",
-          "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
-        }
-      }
-    },
-    "requestSource": {
-      "type": "object",
-      "description": "Parsed X-Request-Source header. Format: {component-type}:{target-info}",
-      "properties": {
-        "raw": {
-          "type": "string",
-          "description": "Raw X-Request-Source header. Example: 'router-navigation:dashboard-home', 'workflow-transition:loan-application'"
-        },
-        "componentType": {
-          "type": "string",
-          "enum": [
-            "router-navigation",
-            "workflow-transition",
-            "dynamic-view-render",
-            "static-view-load",
-            "webview-request",
-            "search-query",
-            "data-manager-fetch",
-            "user-action",
-            "background-sync",
-            "cache-refresh"
-          ],
-          "description": "Component that initiated the request."
-        },
-        "targetInfo": {
-          "type": "string",
-          "description": "Context-specific target information. Example: route name, workflow name, view key, action type, etc.",
-          "minLength": 1
-        }
-      }
-    },
-    "ifNoneMatch": {
-      "type": "string",
-      "description": "ETag value from client cache (If-None-Match header). ULID format. Used for cache validation.",
-      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
-    },
-    "requestTimestamp": {
-      "type": "string",
-      "format": "date-time",
-      "description": "When the request was received by the server (ISO-8601)."
-    },
-    "serverTimestamp": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Current server time when processing the request (ISO-8601)."
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
