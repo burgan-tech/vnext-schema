@@ -53,7 +53,6 @@
       "type": "object",
       "required": [
         "type",
-        "startTransition",
         "states"
       ],
       "properties": {
