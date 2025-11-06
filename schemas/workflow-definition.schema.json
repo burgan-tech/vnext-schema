@@ -658,7 +658,7 @@
               "view": {
                 "anyOf": [
                   {
-                    "$ref": "#/definitions/reference"
+                    "$ref": "#/definitions/viewDefinition"
                   },
                   {
                     "type": "null"
