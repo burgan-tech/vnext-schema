@@ -6,7 +6,8 @@ const schemas = {
   viewDefinition: require('./schemas/view-definition.schema.json'),
   functionDefinition: require('./schemas/function-definition.schema.json'),
   extensionDefinition: require('./schemas/extension-definition.schema.json'),
-  schemaDefinition: require('./schemas/schema-definition.schema.json')
+  schemaDefinition: require('./schemas/schema-definition.schema.json'),
+  coreHeader: require('./schemas/core-header.schema.json')
 };
 
 // Export schemas individually
@@ -21,6 +22,7 @@ module.exports = {
   functionDefinition: schemas.functionDefinition,
   extensionDefinition: schemas.extensionDefinition,
   schemaDefinition: schemas.schemaDefinition,
+  coreHeader: schemas.coreHeader,
   
   // Helper function to get schema by type
   getSchema: function(type) {
@@ -31,13 +33,14 @@ module.exports = {
       'view': schemas.viewDefinition,
       'function': schemas.functionDefinition,
       'extension': schemas.extensionDefinition,
-      'schema': schemas.schemaDefinition
+      'schema': schemas.schemaDefinition,
+      'header': schemas.coreHeader
     };
     return schemaMap[type] || null;
   },
   
   // Get all available schema types
   getAvailableTypes: function() {
-    return ['core', 'workflow', 'task', 'view', 'function', 'extension', 'schema'];
+    return ['core', 'workflow', 'task', 'view', 'function', 'extension', 'schema', 'header'];
   }
 }; 
