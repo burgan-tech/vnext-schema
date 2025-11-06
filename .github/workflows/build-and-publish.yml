@@ -199,7 +199,7 @@ jobs:
             console.log('Available schema types:', schemas.getAvailableTypes());
             
             // Test that all expected schemas are present
-            const expectedSchemas = ['core', 'workflow', 'task', 'view', 'function', 'extension', 'schema'];
+            const expectedSchemas = ['core', 'workflow', 'task', 'view', 'function', 'extension', 'schema', 'header'];
             for (const type of expectedSchemas) {
               const schema = schemas.getSchema(type);
               if (!schema) {
@@ -472,6 +472,7 @@ jobs:
           - Function Definition
           - Extension Definition
           - Schema Definition
+          - Core Header
           
           ### 📚 Usage
           ```javascript
@@ -528,6 +529,7 @@ jobs:
         echo "- Function Definition" >> $GITHUB_STEP_SUMMARY
         echo "- Extension Definition" >> $GITHUB_STEP_SUMMARY
         echo "- Schema Definition" >> $GITHUB_STEP_SUMMARY
+        echo "- Core Header" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
         if [ "${{ steps.publish.outputs.published }}" == "true" ]; then
