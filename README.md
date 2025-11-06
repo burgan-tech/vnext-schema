@@ -1,6 +1,6 @@
-# @vnext/schema-definitions
+# @burgan-tech/vnext-schema
 
-JSON Schema definitions for vNext vNext Workflow components validation.
+JSON Schema definitions for vNext Workflow components validation.
 
 ## Overview
 
@@ -15,11 +15,12 @@ This package provides comprehensive JSON Schema definitions used by the vNext ec
 - **Function Definition**: Schema for function component definitions (`sys-functions`)
 - **Extension Definition**: Schema for extension component definitions (`sys-extensions`)
 - **Schema Definition**: Meta-schema for schema definitions (`sys-schemas`)
+- **Core Header**: Schema for runtime HTTP headers and metadata (`sys-schemas`)
 
 ## Installation
 
 ```bash
-npm install @vnext/schema
+npm install @burgan-tech/vnext-schema
 ```
 
 ## Usage
@@ -47,17 +48,20 @@ For detailed CLI usage and workflow development guide, please refer to the [@vne
 If you need to access the schemas programmatically:
 
 ```javascript
-const schemas = require('@vnext/schema');
+const schemas = require('@burgan-tech/vnext-schema');
 
 // Get specific schema
 const workflowSchema = schemas.workflowDefinition;
 const taskSchema = schemas.taskDefinition;
+const headerSchema = schemas.coreHeader;
 
 // Get schema by type
 const coreSchema = schemas.getSchema('core');
+const headerSchemaByType = schemas.getSchema('header');
 
 // Get all available schema types
 const availableTypes = schemas.getAvailableTypes();
+// Returns: ['core', 'workflow', 'task', 'view', 'function', 'extension', 'schema', 'header']
 ```
 
 ## Schema Structure
