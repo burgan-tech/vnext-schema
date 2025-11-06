@@ -222,64 +222,7 @@
             "description": "Version strategy for updates"
         },
         "reference": {
-            "description": "Generic reference - can be either explicit reference or ref",
-            "oneOf": [
-                {
-                    "type": "object",
-                    "description": "Explicit reference",
-                    "required": [
-                        "key",
-                        "domain",
-                        "flow",
-                        "version"
-                    ],
-                    "properties": {
-                        "key": {
-                            "type": "string"
-                        },
-                        "id": {
-                            "type": "string",
-                            "format": "uuid"
-                        },
-                        "domain": {
-                            "type": "string"
-                        },
-                        "flow": {
-                            "type": "string"
-                        },
-                        "version": {
-                            "type": "string",
-                            "pattern": "^\\d+\\.\\d+\\.\\d+$"
-                        }
-                    },
-                    "anyOf": [
-                        {
-                            "required": [
-                                "key"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "id"
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "type": "object",
-                    "description": "Reference using ref",
-                    "required": [
-                        "ref"
-                    ],
-                    "properties": {
-                        "ref": {
-                            "type": "string",
-                            "description": "Reference to component file"
-                        }
-                    },
-                    "additionalProperties": false
-                }
-            ]
+            "$ref": "reference.schema.json"
         },
         "taskReference": {
             "type": "object",
