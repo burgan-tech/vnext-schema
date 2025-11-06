@@ -3,64 +3,35 @@
     "$id": "https://vnext.com/schemas/view-definition.schema.json",
     "title": "vNext View Definition",
     "description": "Schema for vNext View Component Definition JSON files (sys-views flow)",
-    "type": "object",
-    "required": [
-        "key",
-        "version",
-        "domain",
-        "flow",
-        "flowVersion",
-        "tags",
-        "attributes"
-    ],
-    "properties": {
-        "$schema": {
-            "type": "string",
-            "description": "JSON Schema reference",
-            "format": "uri"
+    "allOf": [
+        {
+            "$ref": "component-base.schema.json"
         },
-        "key": {
-            "type": "string",
-            "description": "View key identifier",
-            "pattern": "^[a-z0-9-]+$"
-        },
-        "version": {
-            "type": "string",
-            "description": "Version in Major.Minor.Patch format",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
-        },
-        "domain": {
-            "type": "string",
-            "description": "Domain identifier",
-            "pattern": "^[a-z0-9-]+$"
-        },
-        "flow": {
-            "type": "string",
-            "description": "Flow identifier for views",
-            "const": "sys-views"
-        },
-        "flowVersion": {
-            "type": "string",
-            "description": "Flow version",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
-        },
-        "tags": {
-            "type": "array",
-            "description": "View tags",
-            "items": {
-                "type": "string"
-            },
-            "minItems": 1
-        },
-        "attributes": {
+        {
             "type": "object",
-            "description": "View definition attributes",
-            "required": [
-                "type",
-                "target",
-                "content"
-            ],
             "properties": {
+                "flow": {
+                    "type": "string",
+                    "description": "Flow identifier for views",
+                    "const": "sys-views"
+                },
+                "tags": {
+                    "type": "array",
+                    "description": "View tags",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                },
+                "attributes": {
+                    "type": "object",
+                    "description": "View definition attributes",
+                    "required": [
+                        "type",
+                        "target",
+                        "content"
+                    ],
+                    "properties": {
                 "type": {
                     "type": "integer",
                     "description": "View content type",
@@ -185,6 +156,8 @@
             },
             "additionalProperties": false
         }
-    },
+            }
+        }
+    ],
     "additionalProperties": false
 }

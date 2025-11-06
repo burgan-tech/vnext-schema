@@ -3,61 +3,33 @@
     "$id": "https://vnext.com/schemas/task-definition.schema.json",
     "title": "vNext Task Definition",
     "description": "Schema for vNext Task Component Definition JSON files (sys-tasks flow)",
-    "type": "object",
-    "required": [
-        "key",
-        "version",
-        "domain",
-        "flow",
-        "flowVersion",
-        "tags",
-        "attributes"
-    ],
-    "properties": {
-        "$schema": {
-            "type": "string",
-            "description": "JSON Schema reference"
+    "allOf": [
+        {
+            "$ref": "component-base.schema.json"
         },
-        "key": {
-            "type": "string",
-            "description": "Task key identifier",
-            "pattern": "^[a-z0-9-]+$"
-        },
-        "version": {
-            "type": "string",
-            "description": "Version in Major.Minor.Patch format",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
-        },
-        "domain": {
-            "type": "string",
-            "description": "Domain identifier",
-            "pattern": "^[a-z0-9-]+$"
-        },
-        "flow": {
-            "type": "string",
-            "description": "Flow identifier for tasks",
-            "const": "sys-tasks"
-        },
-        "flowVersion": {
-            "type": "string",
-            "description": "Flow version",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
-        },
-        "tags": {
-            "type": "array",
-            "description": "Task tags",
-            "items": {
-                "type": "string"
-            },
-            "minItems": 1
-        },
-        "attributes": {
+        {
             "type": "object",
-            "description": "Task definition attributes",
-            "required": [
-                "type"
-            ],
             "properties": {
+                "flow": {
+                    "type": "string",
+                    "description": "Flow identifier for tasks",
+                    "const": "sys-tasks"
+                },
+                "tags": {
+                    "type": "array",
+                    "description": "Task tags",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                },
+                "attributes": {
+                    "type": "object",
+                    "description": "Task definition attributes",
+                    "required": [
+                        "type"
+                    ],
+                    "properties": {
                 "type": {
                     "type": "string",
                     "description": "Task type (TaskType enum value as string)",
@@ -463,6 +435,8 @@
                 }
             ]
         }
-    },
+            }
+        }
+    ],
     "additionalProperties": false
 }

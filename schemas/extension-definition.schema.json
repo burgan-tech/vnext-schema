@@ -3,64 +3,35 @@
     "$id": "https://vnext.com/schemas/extension-definition.schema.json",
     "title": "vNext Extension Definition",
     "description": "Schema for vNext Extension Component Definition JSON files (sys-extensions flow)",
-    "type": "object",
-    "required": [
-        "key",
-        "version",
-        "domain",
-        "flow",
-        "flowVersion",
-        "tags",
-        "attributes"
-    ],
-    "properties": {
-        "$schema": {
-            "type": "string",
-            "description": "JSON Schema reference",
-            "format": "uri"
+    "allOf": [
+        {
+            "$ref": "component-base.schema.json"
         },
-        "key": {
-            "type": "string",
-            "description": "Extension key identifier",
-            "pattern": "^[a-z0-9-]+$"
-        },
-        "version": {
-            "type": "string",
-            "description": "Version in Major.Minor.Patch format",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
-        },
-        "domain": {
-            "type": "string",
-            "description": "Domain identifier",
-            "pattern": "^[a-z0-9-]+$"
-        },
-        "flow": {
-            "type": "string",
-            "description": "Flow identifier for extensions",
-            "const": "sys-extensions"
-        },
-        "flowVersion": {
-            "type": "string",
-            "description": "Flow version",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
-        },
-        "tags": {
-            "type": "array",
-            "description": "Extension tags",
-            "items": {
-                "type": "string"
-            },
-            "minItems": 1
-        },
-        "attributes": {
+        {
             "type": "object",
-            "description": "Extension definition attributes",
-            "required": [
-                "type",
-                "scope",
-                "task"
-            ],
             "properties": {
+                "flow": {
+                    "type": "string",
+                    "description": "Flow identifier for extensions",
+                    "const": "sys-extensions"
+                },
+                "tags": {
+                    "type": "array",
+                    "description": "Extension tags",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                },
+                "attributes": {
+                    "type": "object",
+                    "description": "Extension definition attributes",
+                    "required": [
+                        "type",
+                        "scope",
+                        "task"
+                    ],
+                    "properties": {
                 "type": {
                     "type": "integer",
                     "description": "Extension type (ExtensionType enum value)",
@@ -116,54 +87,7 @@
                             "minimum": 1
                         },
                         "task": {
-                            "description": "Task reference - can be either explicit reference or $ref",
-                            "oneOf": [
-                                {
-                                    "type": "object",
-                                    "description": "Explicit task reference",
-                                    "required": [
-                                        "key",
-                                        "domain",
-                                        "flow",
-                                        "version"
-                                    ],
-                                    "properties": {
-                                        "key": {
-                                            "type": "string",
-                                            "description": "Task key"
-                                        },
-                                        "domain": {
-                                            "type": "string",
-                                            "description": "Task domain"
-                                        },
-                                        "flow": {
-                                            "type": "string",
-                                            "description": "Task workflow",
-                                            "const": "sys-tasks"
-                                        },
-                                        "version": {
-                                            "type": "string",
-                                            "description": "Task version",
-                                            "pattern": "^\\d+\\.\\d+\\.\\d+$"
-                                        }
-                                    },
-                                    "additionalProperties": false
-                                },
-                                {
-                                    "type": "object",
-                                    "description": "Task reference using ref",
-                                    "required": [
-                                        "ref"
-                                    ],
-                                    "properties": {
-                                        "ref": {
-                                            "type": "string",
-                                            "description": "Reference to task file"
-                                        }
-                                    },
-                                    "additionalProperties": false
-                                }
-                            ]
+                            "$ref": "task-reference.schema.json"
                         },
                         "mapping": {
                             "type": "object",
@@ -218,6 +142,8 @@
             },
             "additionalProperties": false
         }
-    },
+            }
+        }
+    ],
     "additionalProperties": false
 }

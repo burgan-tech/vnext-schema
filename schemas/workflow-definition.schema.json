@@ -3,158 +3,136 @@
   "$id": "https://vnext.com/schemas/workflow-definition.schema.json",
   "title": "vNext Workflow Definition",
   "description": "Schema for vNext Workflow Component Definition JSON files (sys-flows flow)",
-  "type": "object",
-  "required": [
-    "key",
-    "flow",
-    "domain",
-    "version",
-    "tags",
-    "attributes"
-  ],
-  "properties": {
-    "$schema": {
-      "type": "string",
-      "description": "JSON Schema reference"
+  "allOf": [
+    {
+      "$ref": "component-base.schema.json"
     },
-    "key": {
-      "type": "string",
-      "description": "Workflow key identifier",
-      "pattern": "^[a-z0-9-]+$"
-    },
-    "flow": {
-      "type": "string",
-      "description": "Flow identifier",
-      "pattern": "^[a-z0-9-]+$"
-    },
-    "flowVersion": {
-      "type": "string",
-      "description": "Flow version",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$"
-    },
-    "domain": {
-      "type": "string",
-      "description": "Domain identifier",
-      "pattern": "^[a-z0-9-]+$"
-    },
-    "version": {
-      "type": "string",
-      "description": "Version in Major.Minor.Patch format",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$"
-    },
-    "tags": {
-      "type": "array",
-      "description": "Workflow tags",
-      "items": {
-        "type": "string"
-      }
-    },
-    "attributes": {
+    {
       "type": "object",
       "required": [
-        "type",
-        "states"
+        "key",
+        "flow",
+        "domain",
+        "version",
+        "tags",
+        "attributes"
       ],
       "properties": {
-        "type": {
-          "type": "string",
-          "description": "Workflow type",
-          "enum": [
-            "C",
-            "F",
-            "S",
-            "P"
-          ],
-          "enumDescriptions": [
-            "Core",
-            "Flow",
-            "SubFlow",
-            "Sub Process"
-          ]
+        "tags": {
+          "type": "array",
+          "description": "Workflow tags",
+          "items": {
+            "type": "string"
+          }
         },
-        "timeout": {
-          "anyOf": [
-            {
-              "type": "object",
-              "description": "Timeout configuration for the workflow",
-              "required": [
-                "key",
-                "target",
-                "versionStrategy",
-                "timer"
+        "attributes": {
+          "type": "object",
+          "required": [
+            "type",
+            "states"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "Workflow type",
+              "enum": [
+                "C",
+                "F",
+                "S",
+                "P"
               ],
-              "properties": {
-                "key": {
-                  "type": "string",
-                  "description": "Timeout key identifier",
-                  "pattern": "^[a-z0-9-]+$"
+              "enumDescriptions": [
+                "Core",
+                "Flow",
+                "SubFlow",
+                "Sub Process"
+              ]
+            },
+            "timeout": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "description": "Timeout configuration for the workflow",
+                  "required": [
+                    "key",
+                    "target",
+                    "versionStrategy",
+                    "timer"
+                  ],
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "description": "Timeout key identifier",
+                      "pattern": "^[a-z0-9-]+$"
+                    },
+                    "target": {
+                      "type": "string",
+                      "description": "Target state for timeout",
+                      "pattern": "^[a-z0-9-]+$"
+                    },
+                    "versionStrategy": {
+                      "$ref": "#/definitions/versionStrategy"
+                    },
+                    "timer": {
+                      "$ref": "#/definitions/timerConfig"
+                    }
+                  }
                 },
-                "target": {
-                  "type": "string",
-                  "description": "Target state for timeout",
-                  "pattern": "^[a-z0-9-]+$"
-                },
-                "versionStrategy": {
-                  "$ref": "#/definitions/versionStrategy"
-                },
-                "timer": {
-                  "$ref": "#/definitions/timerConfig"
+                {
+                  "type": "null"
                 }
+              ]
+            },
+            "labels": {
+              "type": "array",
+              "description": "Multi-language labels",
+              "items": {
+                "$ref": "#/definitions/languageLabel"
               }
             },
-            {
-              "type": "null"
+            "functions": {
+              "type": "array",
+              "description": "Functions used in the workflow",
+              "items": {
+                "$ref": "#/definitions/reference"
+              }
+            },
+            "features": {
+              "type": "array",
+              "description": "Features (extensions) used in the workflow",
+              "items": {
+                "$ref": "#/definitions/reference"
+              }
+            },
+            "sharedTransitions": {
+              "type": "array",
+              "description": "Shared transitions available across multiple states",
+              "items": {
+                "$ref": "#/definitions/transition"
+              }
+            },
+            "extensions": {
+              "type": "array",
+              "description": "Extensions used in the workflow",
+              "items": {
+                "$ref": "#/definitions/reference"
+              }
+            },
+            "startTransition": {
+              "$ref": "#/definitions/transition"
+            },
+            "states": {
+              "type": "array",
+              "description": "States in the workflow",
+              "items": {
+                "$ref": "#/definitions/state"
+              }
             }
-          ]
-        },
-        "labels": {
-          "type": "array",
-          "description": "Multi-language labels",
-          "items": {
-            "$ref": "#/definitions/languageLabel"
-          }
-        },
-        "functions": {
-          "type": "array",
-          "description": "Functions used in the workflow",
-          "items": {
-            "$ref": "#/definitions/reference"
-          }
-        },
-        "features": {
-          "type": "array",
-          "description": "Features (extensions) used in the workflow",
-          "items": {
-            "$ref": "#/definitions/reference"
-          }
-        },
-        "sharedTransitions": {
-          "type": "array",
-          "description": "Shared transitions available across multiple states",
-          "items": {
-            "$ref": "#/definitions/transition"
-          }
-        },
-        "extensions": {
-          "type": "array",
-          "description": "Extensions used in the workflow",
-          "items": {
-            "$ref": "#/definitions/reference"
-          }
-        },
-        "startTransition": {
-          "$ref": "#/definitions/transition"
-        },
-        "states": {
-          "type": "array",
-          "description": "States in the workflow",
-          "items": {
-            "$ref": "#/definitions/state"
           }
         }
       }
     }
-  },
+  ],
   "definitions": {
     "versionStrategy": {
       "type": "string",
@@ -237,64 +215,7 @@
       }
     },
     "reference": {
-      "description": "Generic reference - can be either explicit reference or ref",
-      "oneOf": [
-        {
-          "type": "object",
-          "description": "Explicit reference",
-          "required": [
-            "key",
-            "domain",
-            "flow",
-            "version"
-          ],
-          "properties": {
-            "key": {
-              "type": "string"
-            },
-            "id": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "domain": {
-              "type": "string"
-            },
-            "flow": {
-              "type": "string"
-            },
-            "version": {
-              "type": "string",
-              "pattern": "^\\d+\\.\\d+\\.\\d+$"
-            }
-          },
-          "anyOf": [
-            {
-              "required": [
-                "key"
-              ]
-            },
-            {
-              "required": [
-                "id"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "object",
-          "description": "Reference using ref",
-          "required": [
-            "ref"
-          ],
-          "properties": {
-            "ref": {
-              "type": "string",
-              "description": "Reference to component file"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
+      "$ref": "reference.schema.json"
     },
     "scriptCode": {
       "type": "object",
