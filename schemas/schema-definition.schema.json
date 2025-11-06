@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://vnext.com/schemas/schema-definition.schema.json",
+    "$id": "https://vnext.io/schemas/schema-definition.schema.json",
     "title": "vNext Schema Definition",
     "description": "Schema for vNext Schema Component Definition JSON files (sys-schemas flow)",
     "type": "object",
