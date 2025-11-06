@@ -33,7 +33,25 @@
                     "properties": {
                 "type": {
                     "type": "string",
-                    "description": "Schema type identifier"
+                    "description": "Schema type identifier",
+                    "enum": [
+                        "workflow",
+                        "task",
+                        "function",
+                        "view",
+                        "schema",
+                        "extension",
+                        "headers"
+                    ],
+                    "enumDescriptions": [
+                        "Workflow component definition",
+                        "Task component definition",
+                        "Function component definition",
+                        "View component definition",
+                        "Schema component definition",
+                        "Extension component definition",
+                        "Headers schema definition"
+                    ]
                 },
                 "schema": {
                     "type": "object",
