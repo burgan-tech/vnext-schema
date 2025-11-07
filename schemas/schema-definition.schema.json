@@ -3,34 +3,62 @@
     "$id": "https://vnext.io/schemas/schema-definition.schema.json",
     "title": "vNext Schema Definition",
     "description": "Schema for vNext Schema Component Definition JSON files (sys-schemas flow)",
-    "allOf": [
-        {
-            "$ref": "component-base.schema.json"
+    "type": "object",
+    "required": [
+        "key",
+        "version",
+        "domain",
+        "flow",
+        "flowVersion",
+        "tags",
+        "attributes"
+    ],
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "JSON Schema reference"
         },
-        {
+        "key": {
+            "type": "string",
+            "description": "Schema key identifier",
+            "pattern": "^[a-z0-9-]+$"
+        },
+        "version": {
+            "type": "string",
+            "description": "Version in Major.Minor.Patch format",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "domain": {
+            "type": "string",
+            "description": "Domain identifier",
+            "pattern": "^[a-z0-9-]+$"
+        },
+        "flow": {
+            "type": "string",
+            "description": "Flow identifier for schemas",
+            "const": "sys-schemas"
+        },
+        "flowVersion": {
+            "type": "string",
+            "description": "Flow version",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "tags": {
+            "type": "array",
+            "description": "Schema tags",
+            "items": {
+                "type": "string"
+            },
+            "minItems": 1
+        },
+        "attributes": {
             "type": "object",
+            "description": "Schema definition attributes",
+            "required": [
+                "type",
+                "schema"
+            ],
             "properties": {
-                "flow": {
-                    "type": "string",
-                    "description": "Flow identifier for schemas",
-                    "const": "sys-schemas"
-                },
-                "tags": {
-                    "type": "array",
-                    "description": "Schema tags",
-                    "items": {
-                        "type": "string"
-                    },
-                    "minItems": 1
-                },
-                "attributes": {
-                    "type": "object",
-                    "description": "Schema definition attributes",
-                    "required": [
-                        "type",
-                        "schema"
-                    ],
-                    "properties": {
                 "type": {
                     "type": "string",
                     "description": "Schema type identifier",
@@ -220,8 +248,6 @@
             },
             "additionalProperties": false
         }
-            }
-        }
-    ],
+    },
     "additionalProperties": false
 }
