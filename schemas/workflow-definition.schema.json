@@ -553,6 +553,17 @@
               "items": {
                 "$ref": "#/definitions/onExecuteTask"
               }
+            },
+            "mapping": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/scriptCode"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Input mapping for the transition"
             }
           }
         },
@@ -577,6 +588,9 @@
                 "type": "null"
               },
               "view": {
+                "type": "null"
+              },
+              "mapping": {
                 "type": "null"
               }
             }
@@ -618,6 +632,9 @@
                 "type": "null"
               },
               "view": {
+                "type": "null"
+              },
+              "mapping": {
                 "type": "null"
               }
             }
@@ -778,6 +795,17 @@
               "items": {
                 "$ref": "#/definitions/onExecuteTask"
               }
+            },
+            "mapping": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/scriptCode"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Input mapping for the transition"
             }
           }
         },
@@ -802,6 +830,9 @@
                 "type": "null"
               },
               "view": {
+                "type": "null"
+              },
+              "mapping": {
                 "type": "null"
               }
             }
@@ -843,6 +874,9 @@
                 "type": "null"
               },
               "view": {
+                "type": "null"
+              },
+              "mapping": {
                 "type": "null"
               }
             }
@@ -953,6 +987,17 @@
           "items": {
             "$ref": "#/definitions/onExecuteTask"
           }
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Input mapping for the transition"
         },
         "schema": {
           "anyOf": [
