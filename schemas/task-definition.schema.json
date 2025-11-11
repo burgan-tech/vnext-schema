@@ -123,6 +123,10 @@
                                             "PATCH"
                                         ],
                                         "description": "HTTP method"
+                                    },
+                                    "body": {
+                                        "type": "object",
+                                        "description": "Service call body"
                                     }
                                 },
                                 "required": [
@@ -467,7 +471,7 @@
                         "additionalProperties": false
                     }
                 },
-                 {
+                {
                     "if": {
                         "properties": {
                             "type": {
