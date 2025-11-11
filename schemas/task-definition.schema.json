@@ -123,10 +123,6 @@
                                             "PATCH"
                                         ],
                                         "description": "HTTP method"
-                                    },
-                                    "headers": {
-                                        "type": "object",
-                                        "description": "HTTP headers"
                                     }
                                 },
                                 "required": [
@@ -228,9 +224,13 @@
                                         ],
                                         "description": "HTTP verb"
                                     },
-                                    "data": {
+                                    "body": {
                                         "type": "object",
-                                        "description": "Service call data"
+                                        "description": "Service call body"
+                                    },
+                                    "headers": {
+                                        "type": "object",
+                                        "description": "Service call headers"
                                     },
                                     "queryString": {
                                         "type": "string",
