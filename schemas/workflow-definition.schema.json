@@ -712,8 +712,8 @@
             },
             "target": {
               "type": "string",
-              "description": "Target state key",
-              "pattern": "^[a-z0-9-]+$"
+              "description": "Target state key. Can be a state key or special keyword like $self",
+              "pattern": "^(\\$self|[a-z0-9-]+)$"
             },
             "from": {
               "type": "string",
