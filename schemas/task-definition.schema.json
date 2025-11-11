@@ -124,9 +124,9 @@
                                         ],
                                         "description": "HTTP method"
                                     },
-                                    "headers": {
+                                    "body": {
                                         "type": "object",
-                                        "description": "HTTP headers"
+                                        "description": "Service call body"
                                     }
                                 },
                                 "required": [
@@ -228,9 +228,13 @@
                                         ],
                                         "description": "HTTP verb"
                                     },
-                                    "data": {
+                                    "body": {
                                         "type": "object",
-                                        "description": "Service call data"
+                                        "description": "Service call body"
+                                    },
+                                    "headers": {
+                                        "type": "object",
+                                        "description": "Service call headers"
                                     },
                                     "queryString": {
                                         "type": "string",
@@ -467,7 +471,7 @@
                         "additionalProperties": false
                     }
                 },
-                 {
+                {
                     "if": {
                         "properties": {
                             "type": {
