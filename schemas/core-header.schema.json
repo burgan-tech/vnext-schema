@@ -51,6 +51,10 @@
       },
       "minItems": 1
     },
+    "_comment": {
+      "type": "string",
+      "description": "Comment about the header"
+    },
     "attributes": {
       "type": "object",
       "description": "Header schema attributes",

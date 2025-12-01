@@ -51,6 +51,10 @@
             },
             "minItems": 1
         },
+        "_comment": {
+            "type": "string",
+            "description": "Comment about the schema"
+        },
         "attributes": {
             "type": "object",
             "description": "Schema definition attributes",

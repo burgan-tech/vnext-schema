@@ -51,6 +51,10 @@
             },
             "minItems": 1
         },
+        "_comment": {
+            "type": "string",
+            "description": "Comment about the task"
+        },
         "attributes": {
             "type": "object",
             "description": "Task definition attributes",
@@ -92,7 +96,6 @@
                         "Trigger Transition Task",
                         "Get Instance Data Task",
                         "SubProcess Task"
-
                     ]
                 }
             },

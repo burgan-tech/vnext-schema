@@ -49,6 +49,10 @@
         "type": "string"
       }
     },
+    "_comment": {
+      "type": "string",
+      "description": "Comment about the workflow"
+    },
     "attributes": {
       "type": "object",
       "required": [
@@ -84,6 +88,10 @@
                 "timer"
               ],
               "properties": {
+                "_comment": {
+                  "type": "string",
+                  "description": "Comment about the timeout"
+                },
                 "key": {
                   "type": "string",
                   "description": "Timeout key identifier",
@@ -144,6 +152,17 @@
         },
         "startTransition": {
           "$ref": "#/definitions/startTransition"
+        },
+        "cancel": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/cancelTransition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Cancel transition definition. Only manual trigger (triggerType: 0) is allowed."
         },
         "states": {
           "type": "array",
@@ -282,8 +301,7 @@
               "type": "string"
             },
             "id": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             },
             "domain": {
               "type": "string"
@@ -445,6 +463,10 @@
         "mapping"
       ],
       "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Comment about the task"
+        },
         "order": {
           "type": "integer",
           "description": "Execution order",
@@ -469,6 +491,10 @@
       "allOf": [
         {
           "properties": {
+            "_comment": {
+              "type": "string",
+              "description": "Comment about the transition"
+            },
             "key": {
               "type": "string",
               "description": "Transition key",
@@ -704,6 +730,10 @@
       "allOf": [
         {
           "properties": {
+            "_comment": {
+              "type": "string",
+              "description": "Comment about the shared transition"
+            },
             "key": {
               "type": "string",
               "description": "Transition key",
@@ -1011,6 +1041,92 @@
       },
       "additionalProperties": false
     },
+    "cancelTransition": {
+      "type": "object",
+      "required": [
+        "key",
+        "target",
+        "versionStrategy",
+        "triggerType",
+        "labels"
+      ],
+      "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Comment about the cancel transition"
+        },
+        "key": {
+          "type": "string",
+          "description": "Cancel transition key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "target": {
+          "type": "string",
+          "description": "Target state key when cancel is executed",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "from": {
+          "type": "string",
+          "description": "Source state key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "versionStrategy": {
+          "$ref": "#/definitions/versionStrategy"
+        },
+        "triggerType": {
+          "type": "integer",
+          "const": 0,
+          "description": "Cancel transition must be manual trigger only"
+        },
+        "availableIn": {
+          "type": "array",
+          "description": "List of states where this cancel transition can be used",
+          "items": {
+            "type": "string"
+          }
+        },
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/reference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Data schema reference that must be sent to execute the cancel transition"
+        },
+        "labels": {
+          "type": "array",
+          "description": "Multi-language cancel transition labels",
+          "items": {
+            "$ref": "#/definitions/languageLabel"
+          }
+        },
+        "view": {
+          "$ref": "#/definitions/viewDefinition"
+        },
+        "onExecutionTasks": {
+          "type": "array",
+          "description": "Tasks to execute during cancel transition",
+          "items": {
+            "$ref": "#/definitions/onExecuteTask"
+          }
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional mapping definition for cancel transition input data transformation"
+        }
+      },
+      "additionalProperties": false
+    },
     "state": {
       "type": "object",
       "required": [
@@ -1029,11 +1145,16 @@
       "then": {
         "properties": {
           "transitions": {
+            "type": "array",
             "maxItems": 1
           }
         }
       },
       "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Comment about the state"
+        },
         "key": {
           "type": "string",
           "description": "State key",
