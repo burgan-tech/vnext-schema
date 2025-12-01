@@ -248,6 +248,25 @@
       ],
       "description": "Type of workflow state"
     },
+    "stateSubType": {
+      "type": "integer",
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "enumDescriptions": [
+        "No specific subtype",
+        "Successful completion",
+        "Error condition",
+        "Manually terminated",
+        "Temporarily suspended"
+      ],
+      "description": "Subtype of workflow state",
+      "default": 0
+    },
     "languageLabel": {
       "type": "object",
       "required": [
@@ -1162,6 +1181,9 @@
         },
         "stateType": {
           "$ref": "#/definitions/stateType"
+        },
+        "subType": {
+          "$ref": "#/definitions/stateSubType"
         },
         "versionStrategy": {
           "$ref": "#/definitions/versionStrategy"
