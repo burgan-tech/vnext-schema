@@ -52,6 +52,10 @@
             },
             "minItems": 1
         },
+        "_comment": {
+            "type": "string",
+            "description": "Comment about the function"
+        },
         "attributes": {
             "type": "object",
             "description": "Function definition attributes",
@@ -83,6 +87,10 @@
                         "mapping"
                     ],
                     "properties": {
+                        "_comment": {
+                            "type": "string",
+                            "description": "Comment about the task"
+                        },
                         "order": {
                             "type": "integer",
                             "description": "Task execution order",

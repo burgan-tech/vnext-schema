@@ -4,31 +4,31 @@ const Ajv = require('ajv');
 
 const ajv = new Ajv({ allErrors: true, verbose: true });
 
-// Schema dosyalarının bulunduğu dizin
+// Schema files directory
 const schemasDir = path.join(__dirname, '../schemas');
 
-// Test fonksiyonu
+// Test function
 function validateSchemas() {
-  console.log('🔍 JSON Schema doğrulama başlıyor...\n');
+  console.log('🔍 JSON Schema validation starting...\n');
   
   let allValid = true;
   const schemaFiles = fs.readdirSync(schemasDir).filter(file => file.endsWith('.schema.json'));
   
   schemaFiles.forEach(file => {
     const filePath = path.join(schemasDir, file);
-    console.log(`📄 ${file} doğrulanıyor...`);
+    console.log(`📄 ${file} validating...`);
     
     try {
       const schemaContent = fs.readFileSync(filePath, 'utf8');
       const schema = JSON.parse(schemaContent);
       
-      // JSON Schema'nın kendisinin geçerli olup olmadığını kontrol et
+      // Check if the JSON Schema is valid
       const isValid = ajv.validateSchema(schema);
       
       if (isValid) {
-        console.log(`✅ ${file} - Geçerli`);
+        console.log(`✅ ${file} - Valid`);
       } else {
-        console.log(`❌ ${file} - Geçersiz:`);
+        console.log(`❌ ${file} - Invalid:`);
         if (ajv.errors) {
           ajv.errors.forEach(error => {
             console.log(`   - ${error.instancePath}: ${error.message}`);
@@ -37,7 +37,7 @@ function validateSchemas() {
         allValid = false;
       }
     } catch (error) {
-      console.log(`❌ ${file} - Parse hatası: ${error.message}`);
+      console.log(`❌ ${file} - Parse error: ${error.message}`);
       allValid = false;
     }
     
@@ -45,15 +45,15 @@ function validateSchemas() {
   });
   
   if (allValid) {
-    console.log('🎉 Tüm schema dosyaları geçerli!');
+    console.log('🎉 All schema files are valid!');
     process.exit(0);
   } else {
-    console.log('💥 Bazı schema dosyalarında hatalar bulundu.');
+    console.log('💥 Some schema files have errors.');
     process.exit(1);
   }
 }
 
-// Test dosyaları dizinini oluştur
+// Test files directory
 if (!fs.existsSync(path.dirname(__filename))) {
   fs.mkdirSync(path.dirname(__filename), { recursive: true });
 }

@@ -68,6 +68,10 @@
             },
             "minItems": 1
         },
+        "_comment": {
+            "type": "string",
+            "description": "Comment about the core"
+        },
         "attributes": {
             "type": "object",
             "description": "Schema attributes - structure varies by schema type"
