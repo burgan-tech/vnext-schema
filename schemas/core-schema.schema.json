@@ -306,21 +306,34 @@
         },
         "mappingReference": {
             "type": "object",
+            "required": [
+                "code"
+            ],
             "properties": {
-                "location": {
-                    "type": "string",
-                    "pattern": "^\\./.+\\.csx$"
-                },
-                "code": {
-                    "type": "string"
-                }
-                ,
                 "type": {
                     "type": "string",
-                    "enum": [
-                        "G",
-                        "L"
-                    ]
+                    "enum": ["G", "L"],
+                    "enumDescriptions": [
+                        "Global",
+                        "Local"
+                    ],
+                    "default": "L",
+                    "description": "Mapping type - Global or Local"
+                },
+                "location": {
+                    "type": "string",
+                    "pattern": "^\\./.+\\.csx$",
+                    "description": "Code file location"
+                },
+                "code": {
+                    "type": "string",
+                    "description": "Mapping code content"
+                },
+                "encoding": {
+                    "type": "string",
+                    "description": "Code encoding format",
+                    "enum": ["B64", "NAT"],
+                    "default": "B64"
                 }
             }
         }
