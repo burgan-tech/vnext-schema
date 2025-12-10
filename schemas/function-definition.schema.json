@@ -149,9 +149,6 @@
                         "mapping": {
                             "type": "object",
                             "description": "Function mapping code",
-                            "required": [
-                                "code"
-                            ],
                             "properties": {
                                 "type": {
                                     "type": "string",
@@ -180,7 +177,20 @@
                                     "default": "B64"
                                 }
                             },
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "if": {
+                                "properties": {
+                                    "type": {
+                                        "const": "G"
+                                    }
+                                }
+                            },
+                            "then": {
+                                "required": []
+                            },
+                            "else": {
+                                "required": ["code"]
+                            }
                         }
                     },
                     "additionalProperties": false

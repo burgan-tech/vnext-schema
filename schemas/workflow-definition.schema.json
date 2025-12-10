@@ -390,10 +390,20 @@
           "default": "B64"
         }
       },
-      "required": [
-        "code"
-      ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "type": {
+            "const": "G"
+          }
+        }
+      },
+      "then": {
+        "required": []
+      },
+      "else": {
+        "required": ["code"]
+      }
     },
     "subFlow": {
       "anyOf": [

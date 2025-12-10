@@ -306,9 +306,6 @@
         },
         "mappingReference": {
             "type": "object",
-            "required": [
-                "code"
-            ],
             "properties": {
                 "type": {
                     "type": "string",
@@ -335,6 +332,19 @@
                     "enum": ["B64", "NAT"],
                     "default": "B64"
                 }
+            },
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "G"
+                    }
+                }
+            },
+            "then": {
+                "required": []
+            },
+            "else": {
+                "required": ["code"]
             }
         }
     }
