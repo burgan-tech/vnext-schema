@@ -149,11 +149,17 @@
                         "mapping": {
                             "type": "object",
                             "description": "Function mapping code",
-                            "required": [
-                                "location",
-                                "code"
-                            ],
                             "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "enum": ["G", "L"],
+                                    "enumDescriptions": [
+                                        "Global",
+                                        "Local"
+                                    ],
+                                    "default": "L",
+                                    "description": "Mapping type - Global or Local"
+                                },
                                 "location": {
                                     "type": "string",
                                     "description": "Code file location",
@@ -163,9 +169,28 @@
                                     "type": "string",
                                     "description": "Mapping code content",
                                     "minLength": 1
+                                },
+                                "encoding": {
+                                    "type": "string",
+                                    "description": "Code encoding format",
+                                    "enum": ["B64", "NAT"],
+                                    "default": "B64"
                                 }
                             },
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "if": {
+                                "properties": {
+                                    "type": {
+                                        "const": "G"
+                                    }
+                                }
+                            },
+                            "then": {
+                                "required": []
+                            },
+                            "else": {
+                                "required": ["code"]
+                            }
                         }
                     },
                     "additionalProperties": false
