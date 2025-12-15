@@ -49,6 +49,10 @@
         "type": "string"
       }
     },
+    "_comment": {
+      "type": "string",
+      "description": "Comment about the workflow"
+    },
     "attributes": {
       "type": "object",
       "required": [
@@ -84,6 +88,10 @@
                 "timer"
               ],
               "properties": {
+                "_comment": {
+                  "type": "string",
+                  "description": "Comment about the timeout"
+                },
                 "key": {
                   "type": "string",
                   "description": "Timeout key identifier",
@@ -144,6 +152,17 @@
         },
         "startTransition": {
           "$ref": "#/definitions/startTransition"
+        },
+        "cancel": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/cancelTransition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Cancel transition definition. Only manual trigger (triggerType: 0) is allowed."
         },
         "states": {
           "type": "array",
@@ -229,6 +248,25 @@
       ],
       "description": "Type of workflow state"
     },
+    "stateSubType": {
+      "type": "integer",
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "enumDescriptions": [
+        "No specific subtype",
+        "Successful completion",
+        "Error condition",
+        "Manually terminated",
+        "Temporarily suspended"
+      ],
+      "description": "Subtype of workflow state",
+      "default": 0
+    },
     "languageLabel": {
       "type": "object",
       "required": [
@@ -282,8 +320,7 @@
               "type": "string"
             },
             "id": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             },
             "domain": {
               "type": "string"
@@ -326,71 +363,47 @@
       ]
     },
     "scriptCode": {
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "const": "G",
-              "description": "Global mapping - code and location not required"
-            },
-            "code": {
-              "type": "string",
-              "description": "Script code content"
-            },
-            "location": {
-              "type": "string",
-              "description": "Location of the script file"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "oneOf": [
-                {
-                  "const": "L",
-                  "description": "Local mapping - code and location is required"
-                }
-              ],
-              "description": "Task type"
-            },
-            "code": {
-              "type": "string",
-              "description": "Script code content"
-            },
-            "location": {
-              "type": "string",
-              "description": "Location of the script file"
-            }
-          },
-          "required": [
-            "code",
-            "location"
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["G", "L"],
+          "enumDescriptions": [
+            "Global",
+            "Local"
           ],
-          "additionalProperties": false
+          "default": "L",
+          "description": "Script type - Global or Local"
         },
-        {
-          "type": "object",
-          "properties": {
-            "code": {
-              "type": "string",
-              "description": "Script code content"
-            },
-            "location": {
-              "type": "string",
-              "description": "Location of the script file"
-            }
-          },
-          "required": [
-            "code",
-            "location"
-          ],
-          "additionalProperties": false
+        "code": {
+          "type": "string",
+          "description": "Script code content"
+        },
+        "location": {
+          "type": "string",
+          "description": "Location of the script file"
+        },
+        "encoding": {
+          "type": "string",
+          "description": "Code encoding format",
+          "enum": ["B64", "NAT"],
+          "default": "B64"
         }
-      ]
+      },
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "type": {
+            "const": "G"
+          }
+        }
+      },
+      "then": {
+        "required": []
+      },
+      "else": {
+        "required": ["code"]
+      }
     },
     "subFlow": {
       "anyOf": [
@@ -445,6 +458,10 @@
         "mapping"
       ],
       "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Comment about the task"
+        },
         "order": {
           "type": "integer",
           "description": "Execution order",
@@ -469,6 +486,10 @@
       "allOf": [
         {
           "properties": {
+            "_comment": {
+              "type": "string",
+              "description": "Comment about the transition"
+            },
             "key": {
               "type": "string",
               "description": "Transition key",
@@ -513,22 +534,7 @@
             "timer": {
               "anyOf": [
                 {
-                  "type": "object",
-                  "required": [
-                    "code",
-                    "location"
-                  ],
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "description": "Timer rule code"
-                    },
-                    "location": {
-                      "type": "string",
-                      "description": "Location of the code file"
-                    }
-                  },
-                  "additionalProperties": false
+                  "$ref": "#/definitions/scriptCode"
                 },
                 {
                   "type": "null"
@@ -552,6 +558,17 @@
               "items": {
                 "$ref": "#/definitions/onExecuteTask"
               }
+            },
+            "mapping": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/scriptCode"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Input mapping for the transition"
             }
           }
         },
@@ -577,6 +594,9 @@
               },
               "view": {
                 "type": "null"
+              },
+              "mapping": {
+                "type": "null"
               }
             }
           }
@@ -593,22 +613,7 @@
             "required": ["timer"],
             "properties": {
               "timer": {
-                "type": "object",
-                "required": [
-                  "code",
-                  "location"
-                ],
-                "properties": {
-                  "code": {
-                    "type": "string",
-                    "description": "Timer rule code"
-                  },
-                  "location": {
-                    "type": "string",
-                    "description": "Location of the code file"
-                  }
-                },
-                "additionalProperties": false
+                "$ref": "#/definitions/scriptCode"
               },
               "rule": {
                 "type": "null"
@@ -617,6 +622,9 @@
                 "type": "null"
               },
               "view": {
+                "type": "null"
+              },
+              "mapping": {
                 "type": "null"
               }
             }
@@ -687,6 +695,10 @@
       "allOf": [
         {
           "properties": {
+            "_comment": {
+              "type": "string",
+              "description": "Comment about the shared transition"
+            },
             "key": {
               "type": "string",
               "description": "Transition key",
@@ -694,8 +706,8 @@
             },
             "target": {
               "type": "string",
-              "description": "Target state key",
-              "pattern": "^[a-z0-9-]+$"
+              "description": "Target state key. Can be a state key or special keyword like $self",
+              "pattern": "^(\\$self|[a-z0-9-]+)$"
             },
             "from": {
               "type": "string",
@@ -738,22 +750,7 @@
             "timer": {
               "anyOf": [
                 {
-                  "type": "object",
-                  "required": [
-                    "code",
-                    "location"
-                  ],
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "description": "Timer rule code"
-                    },
-                    "location": {
-                      "type": "string",
-                      "description": "Location of the code file"
-                    }
-                  },
-                  "additionalProperties": false
+                  "$ref": "#/definitions/scriptCode"
                 },
                 {
                   "type": "null"
@@ -777,6 +774,17 @@
               "items": {
                 "$ref": "#/definitions/onExecuteTask"
               }
+            },
+            "mapping": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/scriptCode"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Input mapping for the transition"
             }
           }
         },
@@ -802,6 +810,9 @@
               },
               "view": {
                 "type": "null"
+              },
+              "mapping": {
+                "type": "null"
               }
             }
           }
@@ -818,22 +829,7 @@
             "required": ["timer"],
             "properties": {
               "timer": {
-                "type": "object",
-                "required": [
-                  "code",
-                  "location"
-                ],
-                "properties": {
-                  "code": {
-                    "type": "string",
-                    "description": "Timer rule code"
-                  },
-                  "location": {
-                    "type": "string",
-                    "description": "Location of the code file"
-                  }
-                },
-                "additionalProperties": false
+                "$ref": "#/definitions/scriptCode"
               },
               "rule": {
                 "type": "null"
@@ -842,6 +838,9 @@
                 "type": "null"
               },
               "view": {
+                "type": "null"
+              },
+              "mapping": {
                 "type": "null"
               }
             }
@@ -953,6 +952,17 @@
             "$ref": "#/definitions/onExecuteTask"
           }
         },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Input mapping for the transition"
+        },
         "schema": {
           "anyOf": [
             {
@@ -962,6 +972,92 @@
               "type": "null"
             }
           ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "cancelTransition": {
+      "type": "object",
+      "required": [
+        "key",
+        "target",
+        "versionStrategy",
+        "triggerType",
+        "labels"
+      ],
+      "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Comment about the cancel transition"
+        },
+        "key": {
+          "type": "string",
+          "description": "Cancel transition key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "target": {
+          "type": "string",
+          "description": "Target state key when cancel is executed",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "from": {
+          "type": "string",
+          "description": "Source state key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "versionStrategy": {
+          "$ref": "#/definitions/versionStrategy"
+        },
+        "triggerType": {
+          "type": "integer",
+          "const": 0,
+          "description": "Cancel transition must be manual trigger only"
+        },
+        "availableIn": {
+          "type": "array",
+          "description": "List of states where this cancel transition can be used",
+          "items": {
+            "type": "string"
+          }
+        },
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/reference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Data schema reference that must be sent to execute the cancel transition"
+        },
+        "labels": {
+          "type": "array",
+          "description": "Multi-language cancel transition labels",
+          "items": {
+            "$ref": "#/definitions/languageLabel"
+          }
+        },
+        "view": {
+          "$ref": "#/definitions/viewDefinition"
+        },
+        "onExecutionTasks": {
+          "type": "array",
+          "description": "Tasks to execute during cancel transition",
+          "items": {
+            "$ref": "#/definitions/onExecuteTask"
+          }
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional mapping definition for cancel transition input data transformation"
         }
       },
       "additionalProperties": false
@@ -984,11 +1080,16 @@
       "then": {
         "properties": {
           "transitions": {
+            "type": "array",
             "maxItems": 1
           }
         }
       },
       "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Comment about the state"
+        },
         "key": {
           "type": "string",
           "description": "State key",
@@ -996,6 +1097,9 @@
         },
         "stateType": {
           "$ref": "#/definitions/stateType"
+        },
+        "subType": {
+          "$ref": "#/definitions/stateSubType"
         },
         "versionStrategy": {
           "$ref": "#/definitions/versionStrategy"
