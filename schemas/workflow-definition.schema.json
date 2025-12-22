@@ -230,6 +230,10 @@
       ],
       "description": "Type of trigger for the transition"
     },
+    "triggerKind": {
+      "type": "integer",
+      "description": "Kind of trigger for automatic transitions"
+    },
     "stateType": {
       "type": "integer",
       "enum": [
@@ -511,6 +515,9 @@
             "triggerType": {
               "$ref": "#/definitions/triggerType"
             },
+            "triggerKind": {
+              "$ref": "#/definitions/triggerKind"
+            },
             "schema": {
               "anyOf": [
                 {
@@ -577,6 +584,51 @@
             "properties": {
               "triggerType": {
                 "const": 1
+              },
+              "triggerKind": {
+                "const": 10
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rule": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/scriptCode"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "timer": {
+                "type": "null"
+              },
+              "schema": {
+                "type": "null"
+              },
+              "view": {
+                "type": "null"
+              },
+              "mapping": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 1
+              }
+            },
+            "not": {
+              "properties": {
+                "triggerKind": {
+                  "const": 10
+                }
               }
             }
           },
@@ -720,6 +772,9 @@
             "triggerType": {
               "$ref": "#/definitions/triggerType"
             },
+            "triggerKind": {
+              "$ref": "#/definitions/triggerKind"
+            },
             "availableIn": {
               "type": "array",
               "description": "States where this shared transition is available",
@@ -793,6 +848,51 @@
             "properties": {
               "triggerType": {
                 "const": 1
+              },
+              "triggerKind": {
+                "const": 10
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rule": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/scriptCode"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "timer": {
+                "type": "null"
+              },
+              "schema": {
+                "type": "null"
+              },
+              "view": {
+                "type": "null"
+              },
+              "mapping": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 1
+              }
+            },
+            "not": {
+              "properties": {
+                "triggerKind": {
+                  "const": 10
+                }
               }
             }
           },
