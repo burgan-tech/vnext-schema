@@ -124,8 +124,7 @@
                                         },
                                         "version": {
                                             "type": "string",
-                                            "description": "Task version",
-                                            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+                                            "description": "Task version"
                                         }
                                     },
                                     "additionalProperties": false
