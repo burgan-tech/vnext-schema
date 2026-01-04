@@ -87,6 +87,8 @@ MIT
 
 For support and questions:
 - GitHub Issues: [https://github.com/burgan-tech/vnext-schema/issues](https://github.com/burgan-tech/vnext-schema/issues)
+
+- 
 - Documentation: Available through [@vnext/cli](https://github.com/vnext/vNext.Cli/pkgs/npm/cli)
 
 ---

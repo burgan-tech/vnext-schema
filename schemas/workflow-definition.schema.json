@@ -57,7 +57,9 @@
       "type": "object",
       "required": [
         "type",
-        "states"
+        "states",
+        "startTransition",
+        "labels"
       ],
       "properties": {
         "type": {
@@ -118,6 +120,7 @@
         "labels": {
           "type": "array",
           "description": "Multi-language labels",
+          "minItems": 1,
           "items": {
             "$ref": "#/definitions/languageLabel"
           }
@@ -166,9 +169,17 @@
         },
         "states": {
           "type": "array",
-          "description": "States in the workflow",
+          "description": "States in the workflow. Only one initial state (stateType: 1) is allowed.",
           "items": {
             "$ref": "#/definitions/state"
+          },
+          "contains": {
+            "properties": {
+              "stateType": {
+                "const": 1
+              }
+            },
+            "required": ["stateType"]
           }
         }
       }
@@ -205,12 +216,16 @@
     "versionStrategy": {
       "type": "string",
       "enum": [
-        "Major",
-        "Minor"
+        "None",
+        "Patch",
+        "Minor",
+        "Major"
       ],
       "enumDescriptions": [
-        "Major version update",
-        "Minor version update"
+        "No version update",
+        "Patch version update",
+        "Minor version update",
+        "Major version update"
       ],
       "description": "Version strategy for updates"
     },
@@ -229,6 +244,19 @@
         "Event trigger"
       ],
       "description": "Type of trigger for the transition"
+    },
+    "triggerKind": {
+      "type": "integer",
+      "enum": [
+        0,
+        10
+      ],
+      "enumDescriptions": [
+        "Not applicable",
+        "Default auto transition"
+      ],
+      "default": 0,
+      "description": "Kind of trigger for automatic transitions"
     },
     "stateType": {
       "type": "integer",
@@ -329,8 +357,7 @@
               "type": "string"
             },
             "version": {
-              "type": "string",
-              "pattern": "^\\d+\\.\\d+\\.\\d+$"
+              "type": "string"
             }
           },
           "anyOf": [
@@ -481,7 +508,8 @@
         "key",
         "target",
         "versionStrategy",
-        "triggerType"
+        "triggerType",
+        "labels"
       ],
       "allOf": [
         {
@@ -497,8 +525,8 @@
             },
             "target": {
               "type": "string",
-              "description": "Target state key",
-              "pattern": "^[a-z0-9-]+$"
+              "description": "Target state key. Can be a state key or special keyword like $self",
+              "pattern": "^(\\$self|[a-z0-9-]+)$"
             },
             "from": {
               "type": "string",
@@ -510,6 +538,9 @@
             },
             "triggerType": {
               "$ref": "#/definitions/triggerType"
+            },
+            "triggerKind": {
+              "$ref": "#/definitions/triggerKind"
             },
             "schema": {
               "anyOf": [
@@ -545,6 +576,7 @@
             "labels": {
               "type": "array",
               "description": "Multi-language labels",
+              "minItems": 1,
               "items": {
                 "$ref": "#/definitions/languageLabel"
               }
@@ -577,6 +609,51 @@
             "properties": {
               "triggerType": {
                 "const": 1
+              },
+              "triggerKind": {
+                "const": 10
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rule": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/scriptCode"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "timer": {
+                "type": "null"
+              },
+              "schema": {
+                "type": "null"
+              },
+              "view": {
+                "type": "null"
+              },
+              "mapping": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 1
+              }
+            },
+            "not": {
+              "properties": {
+                "triggerKind": {
+                  "const": 10
+                }
               }
             }
           },
@@ -690,7 +767,8 @@
         "key",
         "target",
         "versionStrategy",
-        "triggerType"
+        "triggerType",
+        "labels"
       ],
       "allOf": [
         {
@@ -719,6 +797,9 @@
             },
             "triggerType": {
               "$ref": "#/definitions/triggerType"
+            },
+            "triggerKind": {
+              "$ref": "#/definitions/triggerKind"
             },
             "availableIn": {
               "type": "array",
@@ -761,6 +842,7 @@
             "labels": {
               "type": "array",
               "description": "Multi-language labels",
+              "minItems": 1,
               "items": {
                 "$ref": "#/definitions/languageLabel"
               }
@@ -793,6 +875,51 @@
             "properties": {
               "triggerType": {
                 "const": 1
+              },
+              "triggerKind": {
+                "const": 10
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rule": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/scriptCode"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "timer": {
+                "type": "null"
+              },
+              "schema": {
+                "type": "null"
+              },
+              "view": {
+                "type": "null"
+              },
+              "mapping": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 1
+              }
+            },
+            "not": {
+              "properties": {
+                "triggerKind": {
+                  "const": 10
+                }
               }
             }
           },
@@ -917,7 +1044,8 @@
         "key",
         "target",
         "triggerType",
-        "versionStrategy"
+        "versionStrategy",
+        "labels"
       ],
       "properties": {
         "key": {
@@ -941,6 +1069,7 @@
         "labels": {
           "type": "array",
           "description": "Multi-language labels",
+          "minItems": 1,
           "items": {
             "$ref": "#/definitions/languageLabel"
           }
@@ -1107,6 +1236,7 @@
         "labels": {
           "type": "array",
           "description": "Multi-language labels",
+          "minItems": 1,
           "items": {
             "$ref": "#/definitions/languageLabel"
           }
