@@ -167,6 +167,17 @@
           ],
           "description": "Cancel transition definition. Only manual trigger (triggerType: 0) is allowed."
         },
+         "updateData": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/updateDataTransition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Update  data transition definition. Only manual trigger (triggerType: 0) is allowed."
+        },
         "states": {
           "type": "array",
           "description": "States in the workflow. Only one initial state (stateType: 1) is allowed.",
@@ -1141,6 +1152,92 @@
           "type": "integer",
           "const": 0,
           "description": "Cancel transition must be manual trigger only"
+        },
+        "availableIn": {
+          "type": "array",
+          "description": "List of states where this cancel transition can be used",
+          "items": {
+            "type": "string"
+          }
+        },
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/reference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Data schema reference that must be sent to execute the cancel transition"
+        },
+        "labels": {
+          "type": "array",
+          "description": "Multi-language cancel transition labels",
+          "items": {
+            "$ref": "#/definitions/languageLabel"
+          }
+        },
+        "view": {
+          "$ref": "#/definitions/viewDefinition"
+        },
+        "onExecutionTasks": {
+          "type": "array",
+          "description": "Tasks to execute during cancel transition",
+          "items": {
+            "$ref": "#/definitions/onExecuteTask"
+          }
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional mapping definition for cancel transition input data transformation"
+        }
+      },
+      "additionalProperties": false
+    },
+     "updateDataTransition": {
+      "type": "object",
+      "required": [
+        "key",
+        "target",
+        "versionStrategy",
+        "triggerType",
+        "labels"
+      ],
+      "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Comment about the update data transition"
+        },
+        "key": {
+          "type": "string",
+          "description": "Cancel transition key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "target": {
+          "type": "string",
+          "const": "$self",
+          "description": "Target state key when update data is executed (must be $self)"
+        },
+        "from": {
+          "type": "string",
+          "description": "Source state key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "versionStrategy": {
+          "$ref": "#/definitions/versionStrategy"
+        },
+        "triggerType": {
+          "type": "integer",
+          "const": 0,
+          "description": "update data transition must be manual trigger only"
         },
         "availableIn": {
           "type": "array",
