@@ -521,6 +521,17 @@
         },
         "mapping": {
           "$ref": "#/definitions/scriptCode"
+        },
+        "errorBoundary": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/errorBoundary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Task-level error boundary. Provides the most specific error handling for this task."
         }
       }
     },
@@ -1382,6 +1393,17 @@
           "items": {
             "$ref": "#/definitions/onExecuteTask"
           }
+        },
+        "errorBoundary": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/errorBoundary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "State-level error boundary. Applied when no task-level boundary handles the error."
         }
       }
     },
