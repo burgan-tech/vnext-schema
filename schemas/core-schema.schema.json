@@ -28,11 +28,12 @@
         "version": {
             "type": "string",
             "description": "Version in Major.Minor.Patch format",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$",
             "examples": [
                 "1.0.0",
                 "1.1.0",
-                "2.0.0"
+                "2.0.0",
+                "2.0.0-alpha.1"
             ]
         },
         "domain": {
@@ -58,7 +59,7 @@
         "flowVersion": {
             "type": "string",
             "description": "Flow version",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
         },
         "tags": {
             "type": "array",

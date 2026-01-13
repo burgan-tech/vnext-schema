@@ -26,7 +26,7 @@
     "version": {
       "type": "string",
       "description": "Version in Major.Minor.Patch format",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
     },
     "domain": {
       "type": "string",
@@ -41,7 +41,7 @@
     "flowVersion": {
       "type": "string",
       "description": "Flow version",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
     },
     "tags": {
       "type": "array",
