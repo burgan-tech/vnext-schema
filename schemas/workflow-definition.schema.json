@@ -30,7 +30,7 @@
     "flowVersion": {
       "type": "string",
       "description": "Flow version",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
     },
     "domain": {
       "type": "string",
@@ -40,7 +40,7 @@
     "version": {
       "type": "string",
       "description": "Version in Major.Minor.Patch format",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
     },
     "tags": {
       "type": "array",
@@ -152,6 +152,17 @@
           "items": {
             "$ref": "#/definitions/reference"
           }
+        },
+        "errorBoundary": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/errorBoundary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Global error boundary for the workflow. Applied when no task or state-level boundary handles the error."
         },
         "startTransition": {
           "$ref": "#/definitions/startTransition"
@@ -1371,6 +1382,138 @@
           "items": {
             "$ref": "#/definitions/onExecuteTask"
           }
+        }
+      }
+    },
+    "errorAction": {
+      "type": "integer",
+      "enum": [0, 1, 2, 3, 4, 5],
+      "enumDescriptions": [
+        "Abort - Abort execution, optionally trigger error transition",
+        "Retry - Retry with configured retry policy",
+        "Rollback - Rollback to compensation state",
+        "Ignore - Ignore error and continue",
+        "Notify - Send notification and optionally transition",
+        "Log - Log only, does not affect flow"
+      ],
+      "description": "Action to take when an error is caught by an error boundary"
+    },
+    "backoffType": {
+      "type": "integer",
+      "enum": [0, 1],
+      "enumDescriptions": [
+        "Fixed - Fixed delay between retries",
+        "Exponential - Exponential backoff between retries"
+      ],
+      "default": 1,
+      "description": "Backoff strategy for retry operations"
+    },
+    "retryPolicy": {
+      "type": "object",
+      "description": "Configures retry behavior for error handling",
+      "properties": {
+        "maxRetries": {
+          "type": "integer",
+          "description": "Maximum number of retry attempts",
+          "minimum": 0,
+          "default": 3
+        },
+        "initialDelay": {
+          "type": "string",
+          "description": "Initial delay before first retry (ISO 8601 duration)",
+          "pattern": "^P(?=\\d|T\\d)(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+(\\.\\d+)?S)?)?$"
+        },
+        "backoffType": {
+          "$ref": "#/definitions/backoffType"
+        },
+        "backoffMultiplier": {
+          "type": "number",
+          "description": "Multiplier for exponential backoff",
+          "minimum": 1,
+          "default": 2.0
+        },
+        "maxDelay": {
+          "type": "string",
+          "description": "Maximum delay between retries (ISO 8601 duration)",
+          "pattern": "^P(?=\\d|T\\d)(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+(\\.\\d+)?S)?)?$"
+        },
+        "useJitter": {
+          "type": "boolean",
+          "description": "Whether to add random jitter to retry delays",
+          "default": true
+        }
+      }
+    },
+    "errorHandlerRule": {
+      "type": "object",
+      "description": "A single error handling rule within an error boundary",
+      "required": ["action"],
+      "properties": {
+        "action": {
+          "$ref": "#/definitions/errorAction"
+        },
+        "errorTypes": {
+          "type": "array",
+          "description": "Exception type names to match (e.g., ValidationException). Empty or '*' matches all.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "errorCodes": {
+          "type": "array",
+          "description": "Error codes to match (e.g., 'Task:400007', '500'). Empty or '*' matches all.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transition": {
+          "type": "string",
+          "description": "Transition key to trigger when this rule matches"
+        },
+        "priority": {
+          "type": "integer",
+          "description": "Rule priority. Lower values evaluated first. Default 100, wildcard 999.",
+          "default": 100
+        },
+        "retryPolicy": {
+          "$ref": "#/definitions/retryPolicy"
+        },
+        "logOnly": {
+          "type": "boolean",
+          "description": "If true, only logs the error without affecting execution flow",
+          "default": false
+        }
+      }
+    },
+    "timeoutPolicy": {
+      "type": "object",
+      "description": "Timeout-specific error handling policy",
+      "properties": {
+        "action": {
+          "$ref": "#/definitions/errorAction"
+        },
+        "defaultRetryPolicy": {
+          "$ref": "#/definitions/retryPolicy"
+        },
+        "transition": {
+          "type": "string",
+          "description": "Transition key to trigger on timeout"
+        }
+      }
+    },
+    "errorBoundary": {
+      "type": "object",
+      "description": "Container for error handling policies",
+      "properties": {
+        "onError": {
+          "type": "array",
+          "description": "Error handling rules evaluated in priority order",
+          "items": {
+            "$ref": "#/definitions/errorHandlerRule"
+          }
+        },
+        "onTimeout": {
+          "$ref": "#/definitions/timeoutPolicy"
         }
       }
     }
