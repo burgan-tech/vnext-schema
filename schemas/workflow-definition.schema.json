@@ -102,7 +102,7 @@
                 "target": {
                   "type": "string",
                   "description": "Target state for timeout",
-                  "pattern": "^[a-z0-9-]+$"
+                  "pattern": "^(\\$self|[a-z0-9-]+)$"
                 },
                 "versionStrategy": {
                   "$ref": "#/definitions/versionStrategy"
@@ -1160,7 +1160,7 @@
         "target": {
           "type": "string",
           "description": "Target state key when cancel is executed",
-          "pattern": "^[a-z0-9-]+$"
+         "pattern": "^(\\$self|[a-z0-9-]+)$"
         },
         "from": {
           "type": "string",
