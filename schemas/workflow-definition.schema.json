@@ -178,6 +178,17 @@
           ],
           "description": "Cancel transition definition. Only manual trigger (triggerType: 0) is allowed."
         },
+        "exit": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/exitTransition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exit transition definition. Only manual trigger (triggerType: 0) is allowed."
+        },
          "updateData": {
           "anyOf": [
             {
@@ -1224,6 +1235,92 @@
       },
       "additionalProperties": false
     },
+     "exitTransition": {
+      "type": "object",
+      "required": [
+        "key",
+        "target",
+        "versionStrategy",
+        "triggerType",
+        "labels"
+      ],
+      "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Comment about the exit transition"
+        },
+        "key": {
+          "type": "string",
+          "description": "Exit transition key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "target": {
+          "type": "string",
+          "description": "Target state key when exit is executed",
+         "pattern": "^(\\$self|[a-z0-9-]+)$"
+        },
+        "from": {
+          "type": "string",
+          "description": "Source state key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "versionStrategy": {
+          "$ref": "#/definitions/versionStrategy"
+        },
+        "triggerType": {
+          "type": "integer",
+          "const": 0,
+          "description": "Exit transition must be manual trigger only"
+        },
+        "availableIn": {
+          "type": "array",
+          "description": "List of states where this exit transition can be used",
+          "items": {
+            "type": "string"
+          }
+        },
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/reference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Data schema reference that must be sent to execute the exit transition"
+        },
+        "labels": {
+          "type": "array",
+          "description": "Multi-language exit transition labels",
+          "items": {
+            "$ref": "#/definitions/languageLabel"
+          }
+        },
+        "view": {
+          "$ref": "#/definitions/viewDefinition"
+        },
+        "onExecutionTasks": {
+          "type": "array",
+          "description": "Tasks to execute during exit transition",
+          "items": {
+            "$ref": "#/definitions/onExecuteTask"
+          }
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional mapping definition for exit transition input data transformation"
+        }
+      },
+      "additionalProperties": false
+    },
      "updateDataTransition": {
       "type": "object",
       "required": [
@@ -1240,7 +1337,7 @@
         },
         "key": {
           "type": "string",
-          "description": "Cancel transition key",
+          "description": "Update data transition key",
           "pattern": "^[a-z0-9-]+$"
         },
         "target": {
@@ -1263,7 +1360,7 @@
         },
         "availableIn": {
           "type": "array",
-          "description": "List of states where this cancel transition can be used",
+          "description": "List of states where this update data transition can be used",
           "items": {
             "type": "string"
           }
@@ -1277,11 +1374,11 @@
               "type": "null"
             }
           ],
-          "description": "Data schema reference that must be sent to execute the cancel transition"
+          "description": "Data schema reference that must be sent to execute the update data transition"
         },
         "labels": {
           "type": "array",
-          "description": "Multi-language cancel transition labels",
+          "description": "Multi-language update data transition labels",
           "items": {
             "$ref": "#/definitions/languageLabel"
           }
@@ -1291,7 +1388,7 @@
         },
         "onExecutionTasks": {
           "type": "array",
-          "description": "Tasks to execute during cancel transition",
+          "description": "Tasks to execute during update data transition",
           "items": {
             "$ref": "#/definitions/onExecuteTask"
           }
@@ -1305,7 +1402,7 @@
               "type": "null"
             }
           ],
-          "description": "Optional mapping definition for cancel transition input data transformation"
+          "description": "Optional mapping definition for update data transition input data transformation"
         }
       },
       "additionalProperties": false
