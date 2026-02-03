@@ -103,6 +103,7 @@
                         }
                     },
                     "then": {
+                        "title": "Dapr HTTP Endpoint Task",
                         "properties": {
                             "type": {
                                 "const": "1"
@@ -159,6 +160,7 @@
                         }
                     },
                     "then": {
+                        "title": "Dapr Binding Task",
                         "properties": {
                             "type": {
                                 "const": "2"
@@ -207,6 +209,7 @@
                         }
                     },
                     "then": {
+                        "title": "Dapr Service Task",
                         "properties": {
                             "type": {
                                 "const": "3"
@@ -271,6 +274,7 @@
                         }
                     },
                     "then": {
+                        "title": "Dapr PubSub Task",
                         "properties": {
                             "type": {
                                 "const": "4"
@@ -319,6 +323,7 @@
                         }
                     },
                     "then": {
+                        "title": "Human Task",
                         "properties": {
                             "type": {
                                 "const": "5"
@@ -392,6 +397,7 @@
                         }
                     },
                     "then": {
+                        "title": "HTTP Task",
                         "properties": {
                             "type": {
                                 "const": "6"
@@ -456,6 +462,7 @@
                         }
                     },
                     "then": {
+                        "title": "Script Task",
                         "properties": {
                             "type": {
                                 "const": "7"
@@ -482,6 +489,7 @@
                         }
                     },
                     "then": {
+                        "title": "Notification Task",
                         "properties": {
                             "type": {
                                 "const": "10"
