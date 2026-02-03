@@ -28,11 +28,12 @@
         "version": {
             "type": "string",
             "description": "Version in Major.Minor.Patch format",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$",
             "examples": [
                 "1.0.0",
                 "1.1.0",
-                "2.0.0"
+                "2.0.0",
+                "2.0.0-alpha.1"
             ]
         },
         "domain": {
@@ -58,7 +59,7 @@
         "flowVersion": {
             "type": "string",
             "description": "Flow version",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
         },
         "tags": {
             "type": "array",
@@ -67,6 +68,10 @@
                 "type": "string"
             },
             "minItems": 1
+        },
+        "_comment": {
+            "type": "string",
+            "description": "Comment about the core"
         },
         "attributes": {
             "type": "object",
@@ -303,13 +308,44 @@
         "mappingReference": {
             "type": "object",
             "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": ["G", "L"],
+                    "enumDescriptions": [
+                        "Global",
+                        "Local"
+                    ],
+                    "default": "L",
+                    "description": "Mapping type - Global or Local"
+                },
                 "location": {
                     "type": "string",
-                    "pattern": "^\\./.+\\.csx$"
+                    "pattern": "^\\./.+\\.csx$",
+                    "description": "Code file location"
                 },
                 "code": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Mapping code content"
+                },
+                "encoding": {
+                    "type": "string",
+                    "description": "Code encoding format",
+                    "enum": ["B64", "NAT"],
+                    "default": "B64"
                 }
+            },
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "G"
+                    }
+                }
+            },
+            "then": {
+                "required": []
+            },
+            "else": {
+                "required": ["code"]
             }
         }
     }

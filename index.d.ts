@@ -7,6 +7,7 @@ export interface SchemaDefinitions {
     functionDefinition: object;
     extensionDefinition: object;
     schemaDefinition: object;
+    coreHeader: object;
   };
   
   // Individual schema exports
@@ -17,9 +18,10 @@ export interface SchemaDefinitions {
   functionDefinition: object;
   extensionDefinition: object;
   schemaDefinition: object;
+  coreHeader: object;
   
   // Helper functions
-  getSchema(type: 'core' | 'workflow' | 'task' | 'view' | 'function' | 'extension' | 'schema'): object | null;
+  getSchema(type: 'core' | 'workflow' | 'task' | 'view' | 'function' | 'extension' | 'schema' | 'header'): object | null;
   getAvailableTypes(): string[];
 }
 

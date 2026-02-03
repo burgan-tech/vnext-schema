@@ -27,7 +27,7 @@
         "version": {
             "type": "string",
             "description": "Version in Major.Minor.Patch format",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
         },
         "domain": {
             "type": "string",
@@ -42,7 +42,7 @@
         "flowVersion": {
             "type": "string",
             "description": "Flow version",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
         },
         "tags": {
             "type": "array",
@@ -51,6 +51,10 @@
                 "type": "string"
             },
             "minItems": 1
+        },
+        "_comment": {
+            "type": "string",
+            "description": "Comment about the extension"
         },
         "attributes": {
             "type": "object",
@@ -143,8 +147,7 @@
                                         },
                                         "version": {
                                             "type": "string",
-                                            "description": "Task version",
-                                            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+                                            "description": "Task version"
                                         }
                                     },
                                     "additionalProperties": false
@@ -168,11 +171,17 @@
                         "mapping": {
                             "type": "object",
                             "description": "Extension mapping code",
-                            "required": [
-                                "location",
-                                "code"
-                            ],
                             "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "enum": ["G", "L"],
+                                    "enumDescriptions": [
+                                        "Global",
+                                        "Local"
+                                    ],
+                                    "default": "L",
+                                    "description": "Mapping type - Global or Local"
+                                },
                                 "location": {
                                     "type": "string",
                                     "description": "Code file location",
@@ -182,9 +191,28 @@
                                     "type": "string",
                                     "description": "Mapping code content",
                                     "minLength": 1
+                                },
+                                "encoding": {
+                                    "type": "string",
+                                    "description": "Code encoding format",
+                                    "enum": ["B64", "NAT"],
+                                    "default": "B64"
                                 }
                             },
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "if": {
+                                "properties": {
+                                    "type": {
+                                        "const": "G"
+                                    }
+                                }
+                            },
+                            "then": {
+                                "required": []
+                            },
+                            "else": {
+                                "required": ["code"]
+                            }
                         }
                     },
                     "additionalProperties": false

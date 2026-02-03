@@ -30,7 +30,7 @@
     "flowVersion": {
       "type": "string",
       "description": "Flow version",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
     },
     "domain": {
       "type": "string",
@@ -40,7 +40,7 @@
     "version": {
       "type": "string",
       "description": "Version in Major.Minor.Patch format",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
     },
     "tags": {
       "type": "array",
@@ -49,12 +49,17 @@
         "type": "string"
       }
     },
+    "_comment": {
+      "type": "string",
+      "description": "Comment about the workflow"
+    },
     "attributes": {
       "type": "object",
       "required": [
         "type",
+        "states",
         "startTransition",
-        "states"
+        "labels"
       ],
       "properties": {
         "type": {
@@ -85,6 +90,10 @@
                 "timer"
               ],
               "properties": {
+                "_comment": {
+                  "type": "string",
+                  "description": "Comment about the timeout"
+                },
                 "key": {
                   "type": "string",
                   "description": "Timeout key identifier",
@@ -93,7 +102,7 @@
                 "target": {
                   "type": "string",
                   "description": "Target state for timeout",
-                  "pattern": "^[a-z0-9-]+$"
+                  "pattern": "^(\\$self|[a-z0-9-]+)$"
                 },
                 "versionStrategy": {
                   "$ref": "#/definitions/versionStrategy"
@@ -111,6 +120,7 @@
         "labels": {
           "type": "array",
           "description": "Multi-language labels",
+          "minItems": 1,
           "items": {
             "$ref": "#/definitions/languageLabel"
           }
@@ -143,14 +153,66 @@
             "$ref": "#/definitions/reference"
           }
         },
+        "errorBoundary": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/errorBoundary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Global error boundary for the workflow. Applied when no task or state-level boundary handles the error."
+        },
         "startTransition": {
           "$ref": "#/definitions/startTransition"
         },
+        "cancel": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/cancelTransition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Cancel transition definition. Only manual trigger (triggerType: 0) is allowed."
+        },
+        "exit": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/exitTransition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exit transition definition. Only manual trigger (triggerType: 0) is allowed."
+        },
+         "updateData": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/updateDataTransition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Update  data transition definition. Only manual trigger (triggerType: 0) is allowed."
+        },
         "states": {
           "type": "array",
-          "description": "States in the workflow",
+          "description": "States in the workflow. Only one initial state (stateType: 1) is allowed.",
           "items": {
             "$ref": "#/definitions/state"
+          },
+          "contains": {
+            "properties": {
+              "stateType": {
+                "const": 1
+              }
+            },
+            "required": ["stateType"]
           }
         }
       }
@@ -187,12 +249,16 @@
     "versionStrategy": {
       "type": "string",
       "enum": [
-        "Major",
-        "Minor"
+        "None",
+        "Patch",
+        "Minor",
+        "Major"
       ],
       "enumDescriptions": [
-        "Major version update",
-        "Minor version update"
+        "No version update",
+        "Patch version update",
+        "Minor version update",
+        "Major version update"
       ],
       "description": "Version strategy for updates"
     },
@@ -212,6 +278,19 @@
       ],
       "description": "Type of trigger for the transition"
     },
+    "triggerKind": {
+      "type": "integer",
+      "enum": [
+        0,
+        10
+      ],
+      "enumDescriptions": [
+        "Not applicable",
+        "Default auto transition"
+      ],
+      "default": 0,
+      "description": "Kind of trigger for automatic transitions"
+    },
     "stateType": {
       "type": "integer",
       "enum": [
@@ -229,6 +308,29 @@
         "Wizard state"
       ],
       "description": "Type of workflow state"
+    },
+    "stateSubType": {
+      "type": "integer",
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "enumDescriptions": [
+        "No specific subtype",
+        "Successful completion",
+        "Error condition",
+        "Manually terminated",
+        "Temporarily suspended",
+        "Busy",
+        "Human"
+      ],
+      "description": "Subtype of workflow state",
+      "default": 0
     },
     "languageLabel": {
       "type": "object",
@@ -283,8 +385,7 @@
               "type": "string"
             },
             "id": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             },
             "domain": {
               "type": "string"
@@ -293,8 +394,7 @@
               "type": "string"
             },
             "version": {
-              "type": "string",
-              "pattern": "^\\d+\\.\\d+\\.\\d+$"
+              "type": "string"
             }
           },
           "anyOf": [
@@ -328,11 +428,17 @@
     },
     "scriptCode": {
       "type": "object",
-      "required": [
-        "code",
-        "location"
-      ],
       "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["G", "L"],
+          "enumDescriptions": [
+            "Global",
+            "Local"
+          ],
+          "default": "L",
+          "description": "Script type - Global or Local"
+        },
         "code": {
           "type": "string",
           "description": "Script code content"
@@ -340,7 +446,27 @@
         "location": {
           "type": "string",
           "description": "Location of the script file"
+        },
+        "encoding": {
+          "type": "string",
+          "description": "Code encoding format",
+          "enum": ["B64", "NAT"],
+          "default": "B64"
         }
+      },
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "type": {
+            "const": "G"
+          }
+        }
+      },
+      "then": {
+        "required": []
+      },
+      "else": {
+        "required": ["code"]
       }
     },
     "subFlow": {
@@ -349,7 +475,8 @@
           "type": "object",
           "required": [
             "type",
-            "process"
+            "process",
+            "mapping"
           ],
           "properties": {
             "type": {
@@ -362,93 +489,21 @@
               "maxLength": 10
             },
             "process": {
-              "type": "object",
-              "properties": {
-                "key": {
-                  "type": "string",
-                  "description": "Key value of the referenced record (readable identifier)",
-                  "pattern": "^[a-zA-Z0-9\\-]+$",
-                  "maxLength": 255
-                },
-                "domain": {
-                  "type": "string",
-                  "description": "Domain where the referenced record is located (required for cross-domain references)",
-                  "pattern": "^[a-zA-Z\\-]+$",
-                  "maxLength": 100,
-                  "examples": [
-                    "core",
-                    "idm",
-                    "banking",
-                    "payment"
-                  ]
-                },
-                "flow": {
-                  "type": "string",
-                  "description": "Flow name where the referenced record is located",
-                  "pattern": "^[a-z\\-]+$",
-                  "maxLength": 100
-                },
-                "version": {
-                  "type": "string",
-                  "pattern": "^\\d+\\.\\d+\\.\\d+$",
-                  "description": "Version information of the referenced record (semantic versioning MAJOR.MINOR.PATCH format)",
-                  "maxLength": 50
-                }
-              },
-              "required": [
-                "key",
-                "domain",
-                "flow",
-                "version"
-              ],
-              "additionalProperties": false,
-              "examples": [
-                {
-                  "key": "user-authentication-workflow",
-                  "domain": "idm",
-                  "flow": "user-authentication",
-                  "version": "1.0.0"
-                },
-                {
-                  "key": "user-login-state",
-                  "domain": "core",
-                  "flow": "authentication",
-                  "version": "2.1.0"
-                },
-                {
-                  "key": "payment-validation-task",
-                  "domain": "banking",
-                  "flow": "payment-process",
-                  "version": "1.2.3"
-                }
-              ],
+              "$ref": "#/definitions/reference",
               "description": "SubFlow process reference"
             },
             "mapping": {
-              "anyOf": [
-                {
-                  "type": "object",
-                  "required": [
-                    "code",
-                    "location"
-                  ],
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "description": "SubFlow mapping code"
-                    },
-                    "location": {
-                      "type": "string",
-                      "description": "Location of the mapping code file"
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "null"
+              "$ref": "#/definitions/scriptCode"
+            },
+            "viewOverrides": {
+              "type": "object",
+              "description": "Dictionary of view overrides for subflow views. Key is the original view key, value is the reference to the new view definition.",
+              "patternProperties": {
+                "^[a-zA-Z0-9\\-]+$": {
+                  "$ref": "#/definitions/reference"
                 }
-              ],
-              "description": "Mapping definition for data exchange with SubFlow"
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -467,6 +522,10 @@
         "mapping"
       ],
       "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Comment about the task"
+        },
         "order": {
           "type": "integer",
           "description": "Execution order",
@@ -477,6 +536,17 @@
         },
         "mapping": {
           "$ref": "#/definitions/scriptCode"
+        },
+        "errorBoundary": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/errorBoundary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Task-level error boundary. Provides the most specific error handling for this task."
         }
       }
     },
@@ -486,11 +556,16 @@
         "key",
         "target",
         "versionStrategy",
-        "triggerType"
+        "triggerType",
+        "labels"
       ],
       "allOf": [
         {
           "properties": {
+            "_comment": {
+              "type": "string",
+              "description": "Comment about the transition"
+            },
             "key": {
               "type": "string",
               "description": "Transition key",
@@ -498,8 +573,8 @@
             },
             "target": {
               "type": "string",
-              "description": "Target state key",
-              "pattern": "^[a-z0-9-]+$"
+              "description": "Target state key. Can be a state key or special keyword like $self",
+              "pattern": "^(\\$self|[a-z0-9-]+)$"
             },
             "from": {
               "type": "string",
@@ -511,6 +586,9 @@
             },
             "triggerType": {
               "$ref": "#/definitions/triggerType"
+            },
+            "triggerKind": {
+              "$ref": "#/definitions/triggerKind"
             },
             "schema": {
               "anyOf": [
@@ -535,22 +613,7 @@
             "timer": {
               "anyOf": [
                 {
-                  "type": "object",
-                  "required": [
-                    "code",
-                    "location"
-                  ],
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "description": "Timer rule code"
-                    },
-                    "location": {
-                      "type": "string",
-                      "description": "Location of the code file"
-                    }
-                  },
-                  "additionalProperties": false
+                  "$ref": "#/definitions/scriptCode"
                 },
                 {
                   "type": "null"
@@ -561,6 +624,7 @@
             "labels": {
               "type": "array",
               "description": "Multi-language labels",
+              "minItems": 1,
               "items": {
                 "$ref": "#/definitions/languageLabel"
               }
@@ -574,6 +638,17 @@
               "items": {
                 "$ref": "#/definitions/onExecuteTask"
               }
+            },
+            "mapping": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/scriptCode"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Input mapping for the transition"
             }
           }
         },
@@ -582,6 +657,51 @@
             "properties": {
               "triggerType": {
                 "const": 1
+              },
+              "triggerKind": {
+                "const": 10
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rule": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/scriptCode"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "timer": {
+                "type": "null"
+              },
+              "schema": {
+                "type": "null"
+              },
+              "view": {
+                "type": "null"
+              },
+              "mapping": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 1
+              }
+            },
+            "not": {
+              "properties": {
+                "triggerKind": {
+                  "const": 10
+                }
               }
             }
           },
@@ -599,6 +719,9 @@
               },
               "view": {
                 "type": "null"
+              },
+              "mapping": {
+                "type": "null"
               }
             }
           }
@@ -615,22 +738,7 @@
             "required": ["timer"],
             "properties": {
               "timer": {
-                "type": "object",
-                "required": [
-                  "code",
-                  "location"
-                ],
-                "properties": {
-                  "code": {
-                    "type": "string",
-                    "description": "Timer rule code"
-                  },
-                  "location": {
-                    "type": "string",
-                    "description": "Location of the code file"
-                  }
-                },
-                "additionalProperties": false
+                "$ref": "#/definitions/scriptCode"
               },
               "rule": {
                 "type": "null"
@@ -639,6 +747,9 @@
                 "type": "null"
               },
               "view": {
+                "type": "null"
+              },
+              "mapping": {
                 "type": "null"
               }
             }
@@ -679,7 +790,7 @@
               "view": {
                 "anyOf": [
                   {
-                    "$ref": "#/definitions/reference"
+                    "$ref": "#/definitions/viewDefinition"
                   },
                   {
                     "type": "null"
@@ -704,11 +815,16 @@
         "key",
         "target",
         "versionStrategy",
-        "triggerType"
+        "triggerType",
+        "labels"
       ],
       "allOf": [
         {
           "properties": {
+            "_comment": {
+              "type": "string",
+              "description": "Comment about the shared transition"
+            },
             "key": {
               "type": "string",
               "description": "Transition key",
@@ -716,8 +832,8 @@
             },
             "target": {
               "type": "string",
-              "description": "Target state key",
-              "pattern": "^[a-z0-9-]+$"
+              "description": "Target state key. Can be a state key or special keyword like $self",
+              "pattern": "^(\\$self|[a-z0-9-]+)$"
             },
             "from": {
               "type": "string",
@@ -729,6 +845,9 @@
             },
             "triggerType": {
               "$ref": "#/definitions/triggerType"
+            },
+            "triggerKind": {
+              "$ref": "#/definitions/triggerKind"
             },
             "availableIn": {
               "type": "array",
@@ -760,22 +879,7 @@
             "timer": {
               "anyOf": [
                 {
-                  "type": "object",
-                  "required": [
-                    "code",
-                    "location"
-                  ],
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "description": "Timer rule code"
-                    },
-                    "location": {
-                      "type": "string",
-                      "description": "Location of the code file"
-                    }
-                  },
-                  "additionalProperties": false
+                  "$ref": "#/definitions/scriptCode"
                 },
                 {
                   "type": "null"
@@ -786,6 +890,7 @@
             "labels": {
               "type": "array",
               "description": "Multi-language labels",
+              "minItems": 1,
               "items": {
                 "$ref": "#/definitions/languageLabel"
               }
@@ -799,6 +904,17 @@
               "items": {
                 "$ref": "#/definitions/onExecuteTask"
               }
+            },
+            "mapping": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/scriptCode"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Input mapping for the transition"
             }
           }
         },
@@ -807,6 +923,51 @@
             "properties": {
               "triggerType": {
                 "const": 1
+              },
+              "triggerKind": {
+                "const": 10
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rule": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/scriptCode"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "timer": {
+                "type": "null"
+              },
+              "schema": {
+                "type": "null"
+              },
+              "view": {
+                "type": "null"
+              },
+              "mapping": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 1
+              }
+            },
+            "not": {
+              "properties": {
+                "triggerKind": {
+                  "const": 10
+                }
               }
             }
           },
@@ -824,6 +985,9 @@
               },
               "view": {
                 "type": "null"
+              },
+              "mapping": {
+                "type": "null"
               }
             }
           }
@@ -840,22 +1004,7 @@
             "required": ["timer"],
             "properties": {
               "timer": {
-                "type": "object",
-                "required": [
-                  "code",
-                  "location"
-                ],
-                "properties": {
-                  "code": {
-                    "type": "string",
-                    "description": "Timer rule code"
-                  },
-                  "location": {
-                    "type": "string",
-                    "description": "Location of the code file"
-                  }
-                },
-                "additionalProperties": false
+                "$ref": "#/definitions/scriptCode"
               },
               "rule": {
                 "type": "null"
@@ -864,6 +1013,9 @@
                 "type": "null"
               },
               "view": {
+                "type": "null"
+              },
+              "mapping": {
                 "type": "null"
               }
             }
@@ -940,7 +1092,8 @@
         "key",
         "target",
         "triggerType",
-        "versionStrategy"
+        "versionStrategy",
+        "labels"
       ],
       "properties": {
         "key": {
@@ -964,6 +1117,7 @@
         "labels": {
           "type": "array",
           "description": "Multi-language labels",
+          "minItems": 1,
           "items": {
             "$ref": "#/definitions/languageLabel"
           }
@@ -975,6 +1129,17 @@
             "$ref": "#/definitions/onExecuteTask"
           }
         },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Input mapping for the transition"
+        },
         "schema": {
           "anyOf": [
             {
@@ -984,6 +1149,264 @@
               "type": "null"
             }
           ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "cancelTransition": {
+      "type": "object",
+      "required": [
+        "key",
+        "target",
+        "versionStrategy",
+        "triggerType",
+        "labels"
+      ],
+      "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Comment about the cancel transition"
+        },
+        "key": {
+          "type": "string",
+          "description": "Cancel transition key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "target": {
+          "type": "string",
+          "description": "Target state key when cancel is executed",
+         "pattern": "^(\\$self|[a-z0-9-]+)$"
+        },
+        "from": {
+          "type": "string",
+          "description": "Source state key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "versionStrategy": {
+          "$ref": "#/definitions/versionStrategy"
+        },
+        "triggerType": {
+          "type": "integer",
+          "const": 0,
+          "description": "Cancel transition must be manual trigger only"
+        },
+        "availableIn": {
+          "type": "array",
+          "description": "List of states where this cancel transition can be used",
+          "items": {
+            "type": "string"
+          }
+        },
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/reference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Data schema reference that must be sent to execute the cancel transition"
+        },
+        "labels": {
+          "type": "array",
+          "description": "Multi-language cancel transition labels",
+          "items": {
+            "$ref": "#/definitions/languageLabel"
+          }
+        },
+        "view": {
+          "$ref": "#/definitions/viewDefinition"
+        },
+        "onExecutionTasks": {
+          "type": "array",
+          "description": "Tasks to execute during cancel transition",
+          "items": {
+            "$ref": "#/definitions/onExecuteTask"
+          }
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional mapping definition for cancel transition input data transformation"
+        }
+      },
+      "additionalProperties": false
+    },
+     "exitTransition": {
+      "type": "object",
+      "required": [
+        "key",
+        "target",
+        "versionStrategy",
+        "triggerType",
+        "labels"
+      ],
+      "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Comment about the exit transition"
+        },
+        "key": {
+          "type": "string",
+          "description": "Exit transition key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "target": {
+          "type": "string",
+          "description": "Target state key when exit is executed",
+         "pattern": "^(\\$self|[a-z0-9-]+)$"
+        },
+        "from": {
+          "type": "string",
+          "description": "Source state key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "versionStrategy": {
+          "$ref": "#/definitions/versionStrategy"
+        },
+        "triggerType": {
+          "type": "integer",
+          "const": 0,
+          "description": "Exit transition must be manual trigger only"
+        },
+        "availableIn": {
+          "type": "array",
+          "description": "List of states where this exit transition can be used",
+          "items": {
+            "type": "string"
+          }
+        },
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/reference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Data schema reference that must be sent to execute the exit transition"
+        },
+        "labels": {
+          "type": "array",
+          "description": "Multi-language exit transition labels",
+          "items": {
+            "$ref": "#/definitions/languageLabel"
+          }
+        },
+        "view": {
+          "$ref": "#/definitions/viewDefinition"
+        },
+        "onExecutionTasks": {
+          "type": "array",
+          "description": "Tasks to execute during exit transition",
+          "items": {
+            "$ref": "#/definitions/onExecuteTask"
+          }
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional mapping definition for exit transition input data transformation"
+        }
+      },
+      "additionalProperties": false
+    },
+     "updateDataTransition": {
+      "type": "object",
+      "required": [
+        "key",
+        "target",
+        "versionStrategy",
+        "triggerType",
+        "labels"
+      ],
+      "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Comment about the update data transition"
+        },
+        "key": {
+          "type": "string",
+          "description": "Update data transition key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "target": {
+          "type": "string",
+          "const": "$self",
+          "description": "Target state key when update data is executed (must be $self)"
+        },
+        "from": {
+          "type": "string",
+          "description": "Source state key",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "versionStrategy": {
+          "$ref": "#/definitions/versionStrategy"
+        },
+        "triggerType": {
+          "type": "integer",
+          "const": 0,
+          "description": "update data transition must be manual trigger only"
+        },
+        "availableIn": {
+          "type": "array",
+          "description": "List of states where this update data transition can be used",
+          "items": {
+            "type": "string"
+          }
+        },
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/reference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Data schema reference that must be sent to execute the update data transition"
+        },
+        "labels": {
+          "type": "array",
+          "description": "Multi-language update data transition labels",
+          "items": {
+            "$ref": "#/definitions/languageLabel"
+          }
+        },
+        "view": {
+          "$ref": "#/definitions/viewDefinition"
+        },
+        "onExecutionTasks": {
+          "type": "array",
+          "description": "Tasks to execute during update data transition",
+          "items": {
+            "$ref": "#/definitions/onExecuteTask"
+          }
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional mapping definition for update data transition input data transformation"
         }
       },
       "additionalProperties": false
@@ -1006,11 +1429,16 @@
       "then": {
         "properties": {
           "transitions": {
+            "type": "array",
             "maxItems": 1
           }
         }
       },
       "properties": {
+        "_comment": {
+          "type": "string",
+          "description": "Comment about the state"
+        },
         "key": {
           "type": "string",
           "description": "State key",
@@ -1019,25 +1447,22 @@
         "stateType": {
           "$ref": "#/definitions/stateType"
         },
+        "subType": {
+          "$ref": "#/definitions/stateSubType"
+        },
         "versionStrategy": {
           "$ref": "#/definitions/versionStrategy"
         },
         "labels": {
           "type": "array",
           "description": "Multi-language labels",
+          "minItems": 1,
           "items": {
             "$ref": "#/definitions/languageLabel"
           }
         },
         "view": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/reference"
-            },
-            {
-              "type": "null"
-            }
-          ]
+           "$ref": "#/definitions/viewDefinition"
         },
         "subFlow": {
           "anyOf": [
@@ -1069,6 +1494,149 @@
           "items": {
             "$ref": "#/definitions/onExecuteTask"
           }
+        },
+        "errorBoundary": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/errorBoundary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "State-level error boundary. Applied when no task-level boundary handles the error."
+        }
+      }
+    },
+    "errorAction": {
+      "type": "integer",
+      "enum": [0, 1, 2, 3, 4, 5],
+      "enumDescriptions": [
+        "Abort - Abort execution, optionally trigger error transition",
+        "Retry - Retry with configured retry policy",
+        "Rollback - Rollback to compensation state",
+        "Ignore - Ignore error and continue",
+        "Notify - Send notification and optionally transition",
+        "Log - Log only, does not affect flow"
+      ],
+      "description": "Action to take when an error is caught by an error boundary"
+    },
+    "backoffType": {
+      "type": "integer",
+      "enum": [0, 1],
+      "enumDescriptions": [
+        "Fixed - Fixed delay between retries",
+        "Exponential - Exponential backoff between retries"
+      ],
+      "default": 1,
+      "description": "Backoff strategy for retry operations"
+    },
+    "retryPolicy": {
+      "type": "object",
+      "description": "Configures retry behavior for error handling",
+      "properties": {
+        "maxRetries": {
+          "type": "integer",
+          "description": "Maximum number of retry attempts",
+          "minimum": 0,
+          "default": 3
+        },
+        "initialDelay": {
+          "type": "string",
+          "description": "Initial delay before first retry (ISO 8601 duration)",
+          "pattern": "^P(?=\\d|T\\d)(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+(\\.\\d+)?S)?)?$"
+        },
+        "backoffType": {
+          "$ref": "#/definitions/backoffType"
+        },
+        "backoffMultiplier": {
+          "type": "number",
+          "description": "Multiplier for exponential backoff",
+          "minimum": 1,
+          "default": 2.0
+        },
+        "maxDelay": {
+          "type": "string",
+          "description": "Maximum delay between retries (ISO 8601 duration)",
+          "pattern": "^P(?=\\d|T\\d)(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+(\\.\\d+)?S)?)?$"
+        },
+        "useJitter": {
+          "type": "boolean",
+          "description": "Whether to add random jitter to retry delays",
+          "default": true
+        }
+      }
+    },
+    "errorHandlerRule": {
+      "type": "object",
+      "description": "A single error handling rule within an error boundary",
+      "required": ["action"],
+      "properties": {
+        "action": {
+          "$ref": "#/definitions/errorAction"
+        },
+        "errorTypes": {
+          "type": "array",
+          "description": "Exception type names to match (e.g., ValidationException). Empty or '*' matches all.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "errorCodes": {
+          "type": "array",
+          "description": "Error codes to match (e.g., 'Task:400007', '500'). Empty or '*' matches all.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transition": {
+          "type": "string",
+          "description": "Transition key to trigger when this rule matches"
+        },
+        "priority": {
+          "type": "integer",
+          "description": "Rule priority. Lower values evaluated first. Default 100, wildcard 999.",
+          "default": 100
+        },
+        "retryPolicy": {
+          "$ref": "#/definitions/retryPolicy"
+        },
+        "logOnly": {
+          "type": "boolean",
+          "description": "If true, only logs the error without affecting execution flow",
+          "default": false
+        }
+      }
+    },
+    "timeoutPolicy": {
+      "type": "object",
+      "description": "Timeout-specific error handling policy",
+      "properties": {
+        "action": {
+          "$ref": "#/definitions/errorAction"
+        },
+        "defaultRetryPolicy": {
+          "$ref": "#/definitions/retryPolicy"
+        },
+        "transition": {
+          "type": "string",
+          "description": "Transition key to trigger on timeout"
+        }
+      }
+    },
+    "errorBoundary": {
+      "type": "object",
+      "description": "Container for error handling policies",
+      "properties": {
+        "onError": {
+          "type": "array",
+          "description": "Error handling rules evaluated in priority order",
+          "items": {
+            "$ref": "#/definitions/errorHandlerRule"
+          }
+        },
+        "onTimeout": {
+          "$ref": "#/definitions/timeoutPolicy"
         }
       }
     }

@@ -27,7 +27,7 @@
         "version": {
             "type": "string",
             "description": "Version in Major.Minor.Patch format",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
         },
         "domain": {
             "type": "string",
@@ -42,7 +42,7 @@
         "flowVersion": {
             "type": "string",
             "description": "Flow version",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
         },
         "tags": {
             "type": "array",
@@ -52,12 +52,15 @@
             },
             "minItems": 1
         },
+        "_comment": {
+            "type": "string",
+            "description": "Comment about the view"
+        },
         "attributes": {
             "type": "object",
             "description": "View definition attributes",
             "required": [
                 "type",
-                "target",
                 "content"
             ],
             "properties": {
@@ -88,24 +91,6 @@
                         {
                             "const": 6,
                             "description": "URN content type"
-                        }
-                    ]
-                },
-                "target": {
-                    "type": "integer",
-                    "description": "View target workflow component type",
-                    "oneOf": [
-                        {
-                            "const": 1,
-                            "description": "State targeted view"
-                        },
-                        {
-                            "const": 2,
-                            "description": "Transition targeted view"
-                        },
-                        {
-                            "const": 3,
-                            "description": "Task targeted view"
                         }
                     ]
                 },
@@ -212,9 +197,7 @@
                                                 },
                                                 "content": {
                                                     "type": "string",
-                                                    "description": "Content of the View to be overridden in Android environment. Can be in Json, Html or Markdown format.",
-                                                    "pattern": "^[a-zA-Z\\-]+$",
-                                                    "maxLength": 100,
+                                                    "description": "Content of the View to be overridden in Android environment.",
                                                     "examples": [
                                                         "core",
                                                         "idm",
@@ -296,7 +279,7 @@
                                                 },
                                                 "content": {
                                                     "type": "string",
-                                                    "description": "Content of the View to be overridden in iOS environment. Can be in Json, Html or Markdown format.",
+                                                    "description": "Content of the View to be overridden in iOS environment.",
                                                     "pattern": "^[a-zA-Z\\-]+$",
                                                     "maxLength": 100,
                                                     "examples": [
@@ -380,7 +363,7 @@
                                                 },
                                                 "content": {
                                                     "type": "string",
-                                                    "description": "Content of the View to be overridden in Web environment. Can be in Json, Html or Markdown format.",
+                                                    "description": "Content of the View to be overridden in Web environment.",
                                                     "pattern": "^[a-zA-Z\\-]+$",
                                                     "maxLength": 100,
                                                     "examples": [
@@ -435,6 +418,10 @@
                         }
                     ],
                     "description": "Views to be overridden on a platform basis"
+                },
+                "_comment": {
+                    "type": "string",
+                    "description": "Comment about the view"
                 }
             },
             "additionalProperties": false

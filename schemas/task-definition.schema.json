@@ -26,7 +26,7 @@
         "version": {
             "type": "string",
             "description": "Version in Major.Minor.Patch format",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
         },
         "domain": {
             "type": "string",
@@ -41,7 +41,7 @@
         "flowVersion": {
             "type": "string",
             "description": "Flow version",
-            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
         },
         "tags": {
             "type": "array",
@@ -50,6 +50,10 @@
                 "type": "string"
             },
             "minItems": 1
+        },
+        "_comment": {
+            "type": "string",
+            "description": "Comment about the task"
         },
         "attributes": {
             "type": "object",
@@ -69,6 +73,8 @@
                         "5",
                         "6",
                         "7",
+                        "8",
+                        "9",
                         "10",
                         "11",
                         "12",
@@ -84,6 +90,8 @@
                         "Human Task",
                         "HTTP Task",
                         "Script Task",
+                        "Condition Task",
+                        "Timer Task",
                         "Notification Task",
                         "Start Flow Task",
                         "Trigger Transition Task",
@@ -131,9 +139,9 @@
                                         ],
                                         "description": "HTTP method"
                                     },
-                                    "headers": {
+                                    "body": {
                                         "type": "object",
-                                        "description": "HTTP headers"
+                                        "description": "Service call body"
                                     }
                                 },
                                 "required": [
@@ -237,9 +245,13 @@
                                         ],
                                         "description": "HTTP verb"
                                     },
-                                    "data": {
+                                    "body": {
                                         "type": "object",
-                                        "description": "Service call data"
+                                        "description": "Service call body"
+                                    },
+                                    "headers": {
+                                        "type": "object",
+                                        "description": "Service call headers"
                                     },
                                     "queryString": {
                                         "type": "string",
