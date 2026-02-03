@@ -76,6 +76,18 @@
                         {
                             "const": 3,
                             "description": "Markdown content type"
+                        },
+                        {
+                            "const": 4,
+                            "description": "Deeplink content type"
+                        },
+                        {
+                            "const": 5,
+                            "description": "Http content type"
+                        },
+                        {
+                            "const": 6,
+                            "description": "URN content type"
                         }
                     ]
                 },
