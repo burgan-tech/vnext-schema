@@ -79,6 +79,18 @@
                         {
                             "const": 3,
                             "description": "Markdown content type"
+                        },
+                        {
+                            "const": 4,
+                            "description": "Deeplink content type"
+                        },
+                        {
+                            "const": 5,
+                            "description": "Http content type"
+                        },
+                        {
+                            "const": 6,
+                            "description": "URN content type"
                         }
                     ]
                 },
@@ -168,14 +180,24 @@
                                                         {
                                                             "const": 3,
                                                             "description": "Markdown content type"
+                                                        },
+                                                        {
+                                                            "const": 4,
+                                                            "description": "Deeplink content type"
+                                                        },
+                                                        {
+                                                            "const": 5,
+                                                            "description": "Http content type"
+                                                        },
+                                                        {
+                                                            "const": 6,
+                                                            "description": "URN content type"
                                                         }
                                                     ]
                                                 },
                                                 "content": {
                                                     "type": "string",
-                                                    "description": "Content of the View to be overridden in Android environment. Can be in JSON, HTML or Markdown format.",
-                                                    "pattern": "^[a-zA-Z\\-]+$",
-                                                    "maxLength": 100,
+                                                    "description": "Content of the View to be overridden in Android environment.",
                                                     "examples": [
                                                         "core",
                                                         "idm",
@@ -240,12 +262,24 @@
                                                         {
                                                             "const": 3,
                                                             "description": "Markdown content type"
+                                                        },
+                                                        {
+                                                            "const": 4,
+                                                            "description": "Deeplink content type"
+                                                        },
+                                                        {
+                                                            "const": 5,
+                                                            "description": "Http content type"
+                                                        },
+                                                        {
+                                                            "const": 6,
+                                                            "description": "URN content type"
                                                         }
                                                     ]
                                                 },
                                                 "content": {
                                                     "type": "string",
-                                                    "description": "Content of the View to be overridden in iOS environment. Can be in JSON, HTML or Markdown format.",
+                                                    "description": "Content of the View to be overridden in iOS environment.",
                                                     "pattern": "^[a-zA-Z\\-]+$",
                                                     "maxLength": 100,
                                                     "examples": [
@@ -276,12 +310,12 @@
                                             "examples": [
                                                 {
                                                     "type": 1,
-                                                    "content": "{ \"widget\": \"MaterialCard\", \"title\": \"Ios Profile\" }",
+                                                    "content": "{ \"widget\": \"MaterialCard\", \"title\": \"iOS Profile\" }",
                                                     "display": "full-page"
                                                 },
                                                 {
                                                     "type": 2,
-                                                    "content": "<div class=\"profile\">Ios Profile</div>",
+                                                    "content": "<div class=\"profile\">iOS Profile</div>",
                                                     "display": "inline"
                                                 }
                                             ]
@@ -312,12 +346,24 @@
                                                         {
                                                             "const": 3,
                                                             "description": "Markdown content type"
+                                                        },
+                                                        {
+                                                            "const": 4,
+                                                            "description": "Deeplink content type"
+                                                        },
+                                                        {
+                                                            "const": 5,
+                                                            "description": "Http content type"
+                                                        },
+                                                        {
+                                                            "const": 6,
+                                                            "description": "URN content type"
                                                         }
                                                     ]
                                                 },
                                                 "content": {
                                                     "type": "string",
-                                                    "description": "Content of the View to be overridden in Web environment. Can be in JSON, HTML or Markdown format.",
+                                                    "description": "Content of the View to be overridden in Web environment.",
                                                     "pattern": "^[a-zA-Z\\-]+$",
                                                     "maxLength": 100,
                                                     "examples": [
