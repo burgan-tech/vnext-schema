@@ -214,6 +214,15 @@
             },
             "required": ["stateType"]
           }
+        },
+        "schema": {
+          "type": "object",
+          "description": "Master schema definition for the workflow to validate the data",
+          "properties": {
+            "schema": {
+              "$ref": "#/definitions/reference"
+            }
+          }
         }
       }
     }
