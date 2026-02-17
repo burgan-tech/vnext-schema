@@ -214,11 +214,43 @@
             },
             "required": ["stateType"]
           }
+        },
+        "schema": {
+          "type": "object",
+          "description": "Master schema definition for the workflow to validate the data",
+          "properties": {
+            "schema": {
+              "$ref": "#/definitions/reference"
+            }
+          }
+        },
+        "queryRoles": {
+          "type": "array",
+          "description": "Root-level query roles for instance access. Used when state has no queryRoles. DENY overrides ALLOW.",
+          "items": {
+            "$ref": "#/definitions/roleGrant"
+          }
         }
       }
     }
   },
   "definitions": {
+    "roleGrant": {
+      "type": "object",
+      "required": ["role", "grant"],
+      "properties": {
+        "role": {
+          "type": "string",
+          "description": "Role name (current: Amorphie roles; future: domain.rolename)"
+        },
+        "grant": {
+          "type": "string",
+          "enum": ["allow", "deny"],
+          "description": "DENY always overrides ALLOW"
+        }
+      },
+      "additionalProperties": false
+    },
     "viewDefinition": {
       "anyOf": [
         {
@@ -649,6 +681,13 @@
                 }
               ],
               "description": "Input mapping for the transition"
+            },
+            "roles": {
+              "type": "array",
+              "description": "Transition roles for authorization. DENY overrides ALLOW; default DENY when no match.",
+              "items": {
+                "$ref": "#/definitions/roleGrant"
+              }
             }
           }
         },
@@ -854,6 +893,13 @@
               "description": "States where this shared transition is available",
               "items": {
                 "type": "string"
+              }
+            },
+            "roles": {
+              "type": "array",
+              "description": "Transition roles for authorization. DENY overrides ALLOW; default DENY when no match.",
+              "items": {
+                "$ref": "#/definitions/roleGrant"
               }
             },
             "schema": {
@@ -1140,6 +1186,13 @@
           ],
           "description": "Input mapping for the transition"
         },
+        "roles": {
+          "type": "array",
+          "description": "Transition roles for authorization. DENY overrides ALLOW; default DENY when no match.",
+          "items": {
+            "$ref": "#/definitions/roleGrant"
+          }
+        },
         "schema": {
           "anyOf": [
             {
@@ -1235,6 +1288,13 @@
             }
           ],
           "description": "Optional mapping definition for cancel transition input data transformation"
+        },
+        "roles": {
+          "type": "array",
+          "description": "Transition roles for authorization. DENY overrides ALLOW; default DENY when no match.",
+          "items": {
+            "$ref": "#/definitions/roleGrant"
+          }
         }
       },
       "additionalProperties": false
@@ -1321,6 +1381,13 @@
             }
           ],
           "description": "Optional mapping definition for exit transition input data transformation"
+        },
+        "roles": {
+          "type": "array",
+          "description": "Transition roles for authorization. DENY overrides ALLOW; default DENY when no match.",
+          "items": {
+            "$ref": "#/definitions/roleGrant"
+          }
         }
       },
       "additionalProperties": false
@@ -1407,6 +1474,13 @@
             }
           ],
           "description": "Optional mapping definition for update data transition input data transformation"
+        },
+        "roles": {
+          "type": "array",
+          "description": "Transition roles for authorization. DENY overrides ALLOW; default DENY when no match.",
+          "items": {
+            "$ref": "#/definitions/roleGrant"
+          }
         }
       },
       "additionalProperties": false
@@ -1505,6 +1579,13 @@
             }
           ],
           "description": "State-level error boundary. Applied when no task-level boundary handles the error."
+        },
+        "queryRoles": {
+          "type": "array",
+          "description": "State-level query roles for instance access. Overrides root queryRoles when present. DENY overrides ALLOW.",
+          "items": {
+            "$ref": "#/definitions/roleGrant"
+          }
         }
       }
     },
