@@ -6,6 +6,7 @@
   "types": "index.d.ts",
   "files": [
     "schemas/",
+    "vocabularies/",
     "index.js",
     "index.d.ts",
     "README.md"
@@ -15,7 +16,10 @@
     "test:coverage": "nyc npm test",
     "lint": "eslint . --fix",
     "validate": "npm run test",
-    "prepublishOnly": "npm run validate && npm run lint"
+    "inject-schema-version": "node scripts/inject-schema-version.js --inject",
+    "restore-schema-version": "node scripts/inject-schema-version.js --restore",
+    "prepublishOnly": "npm run inject-schema-version && npm run validate && npm run lint",
+    "postpublish": "npm run restore-schema-version"
   },
   "keywords": [
     "vnext",
