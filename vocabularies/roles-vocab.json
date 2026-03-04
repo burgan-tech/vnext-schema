@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/roles-vocab.json",
+  "title": "vNext Roles Vocabulary",
+  "description": "Vocabulary for role grant. Reusable in queryRoles, roles arrays, and field-level visibility (e.g. master schema). DENY overrides ALLOW.",
+  "definitions": {
+    "roleGrant": {
+      "type": "object",
+      "required": ["role", "grant"],
+      "description": "Single role grant. Used in roles/queryRoles arrays for allow/deny. DENY always overrides ALLOW.",
+      "properties": {
+        "role": {
+          "type": "string",
+          "description": "Role name (e.g. domain.rolename such as morph-idm.maker, morph-idm.approver)"
+        },
+        "grant": {
+          "type": "string",
+          "enum": ["allow", "deny"],
+          "description": "DENY always overrides ALLOW"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
