@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://vnext.io/schemas/view-definition.schema.json",
+    "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/schemas/view-definition.schema.json",
     "title": "vNext View Definition",
     "description": "Schema for vNext View Component Definition JSON files (sys-views flow)",
     "type": "object",
@@ -95,9 +95,7 @@
                     ]
                 },
                 "content": {
-                    "type": "string",
-                    "description": "View content. Can be in JSON, HTML or Markdown format.",
-                    "minLength": 1
+                    "description": "View content. Type-dependent: string for all types (backward compatible); for type 1 (JSON), 4 (DEEPLINK), 5 (HTTP), 6 (URN) also accepts JSON object or array."
                 },
                 "labels": {
                     "type": "array",
@@ -155,275 +153,44 @@
                         }
                     ]
                 },
-                "platformOverrides": {
-                    "anyOf": [
-                        {
-                            "type": "object",
-                            "properties": {
-                                "android": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "properties": {
-                                                "type": {
-                                                    "type": "integer",
-                                                    "description": "Content type of the View to be overridden in Android environment",
-                                                    "oneOf": [
-                                                        {
-                                                            "const": 1,
-                                                            "description": "JSON content type"
-                                                        },
-                                                        {
-                                                            "const": 2,
-                                                            "description": "HTML content type"
-                                                        },
-                                                        {
-                                                            "const": 3,
-                                                            "description": "Markdown content type"
-                                                        },
-                                                        {
-                                                            "const": 4,
-                                                            "description": "Deeplink content type"
-                                                        },
-                                                        {
-                                                            "const": 5,
-                                                            "description": "Http content type"
-                                                        },
-                                                        {
-                                                            "const": 6,
-                                                            "description": "URN content type"
-                                                        }
-                                                    ]
-                                                },
-                                                "content": {
-                                                    "type": "string",
-                                                    "description": "Content of the View to be overridden in Android environment.",
-                                                    "examples": [
-                                                        "core",
-                                                        "idm",
-                                                        "banking",
-                                                        "payment"
-                                                    ]
-                                                },
-                                                "display": {
-                                                    "type": "string",
-                                                    "description": "Display type of the View.",
-                                                    "pattern": "^[a-z\\-]+$",
-                                                    "maxLength": 100,
-                                                    "examples": [
-                                                        "full-page",
-                                                        "popup",
-                                                        "bottom-sheet",
-                                                        "inline"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "content",
-                                                "display"
-                                            ],
-                                            "additionalProperties": false,
-                                            "examples": [
-                                                {
-                                                    "type": 1,
-                                                    "content": "{ \"widget\": \"MaterialCard\", \"title\": \"Android Profile\" }",
-                                                    "display": "full-page"
-                                                },
-                                                {
-                                                    "type": 2,
-                                                    "content": "<div class=\"profile\">Android Profile</div>",
-                                                    "display": "inline"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "type": "null"
-                                        }
-                                    ],
-                                    "description": "View to be overridden in Android environment"
-                                },
-                                "ios": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "properties": {
-                                                "type": {
-                                                    "type": "integer",
-                                                    "description": "Content type of the View to be overridden in iOS environment",
-                                                    "oneOf": [
-                                                        {
-                                                            "const": 1,
-                                                            "description": "JSON content type"
-                                                        },
-                                                        {
-                                                            "const": 2,
-                                                            "description": "HTML content type"
-                                                        },
-                                                        {
-                                                            "const": 3,
-                                                            "description": "Markdown content type"
-                                                        },
-                                                        {
-                                                            "const": 4,
-                                                            "description": "Deeplink content type"
-                                                        },
-                                                        {
-                                                            "const": 5,
-                                                            "description": "Http content type"
-                                                        },
-                                                        {
-                                                            "const": 6,
-                                                            "description": "URN content type"
-                                                        }
-                                                    ]
-                                                },
-                                                "content": {
-                                                    "type": "string",
-                                                    "description": "Content of the View to be overridden in iOS environment.",
-                                                    "pattern": "^[a-zA-Z\\-]+$",
-                                                    "maxLength": 100,
-                                                    "examples": [
-                                                        "core",
-                                                        "idm",
-                                                        "banking",
-                                                        "payment"
-                                                    ]
-                                                },
-                                                "display": {
-                                                    "type": "string",
-                                                    "description": "Display type of the View.",
-                                                    "pattern": "^[a-z\\-]+$",
-                                                    "maxLength": 100,
-                                                    "examples": [
-                                                        "full-page",
-                                                        "popup",
-                                                        "bottom-sheet",
-                                                        "inline"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "content",
-                                                "display"
-                                            ],
-                                            "additionalProperties": false,
-                                            "examples": [
-                                                {
-                                                    "type": 1,
-                                                    "content": "{ \"widget\": \"MaterialCard\", \"title\": \"iOS Profile\" }",
-                                                    "display": "full-page"
-                                                },
-                                                {
-                                                    "type": 2,
-                                                    "content": "<div class=\"profile\">iOS Profile</div>",
-                                                    "display": "inline"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "type": "null"
-                                        }
-                                    ],
-                                    "description": "View to be overridden in iOS environment"
-                                },
-                                "web": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "properties": {
-                                                "type": {
-                                                    "type": "integer",
-                                                    "description": "Content type of the View to be overridden in Web environment",
-                                                    "oneOf": [
-                                                        {
-                                                            "const": 1,
-                                                            "description": "JSON content type"
-                                                        },
-                                                        {
-                                                            "const": 2,
-                                                            "description": "HTML content type"
-                                                        },
-                                                        {
-                                                            "const": 3,
-                                                            "description": "Markdown content type"
-                                                        },
-                                                        {
-                                                            "const": 4,
-                                                            "description": "Deeplink content type"
-                                                        },
-                                                        {
-                                                            "const": 5,
-                                                            "description": "Http content type"
-                                                        },
-                                                        {
-                                                            "const": 6,
-                                                            "description": "URN content type"
-                                                        }
-                                                    ]
-                                                },
-                                                "content": {
-                                                    "type": "string",
-                                                    "description": "Content of the View to be overridden in Web environment.",
-                                                    "pattern": "^[a-zA-Z\\-]+$",
-                                                    "maxLength": 100,
-                                                    "examples": [
-                                                        "core",
-                                                        "idm",
-                                                        "banking",
-                                                        "payment"
-                                                    ]
-                                                },
-                                                "display": {
-                                                    "type": "string",
-                                                    "description": "Display type of the View.",
-                                                    "pattern": "^[a-z\\-]+$",
-                                                    "maxLength": 100,
-                                                    "examples": [
-                                                        "full-page",
-                                                        "popup",
-                                                        "bottom-sheet",
-                                                        "inline"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "content",
-                                                "display"
-                                            ],
-                                            "additionalProperties": false,
-                                            "examples": [
-                                                {
-                                                    "type": 1,
-                                                    "content": "{ \"widget\": \"MaterialCard\", \"title\": \"Web Profile\" }",
-                                                    "display": "full-page"
-                                                },
-                                                {
-                                                    "type": 2,
-                                                    "content": "<div class=\"profile\">Web Profile</div>",
-                                                    "display": "inline"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "type": "null"
-                                        }
-                                    ],
-                                    "description": "View to be overridden in Web environment"
-                                }
-                            },
-                            "additionalProperties": false
-                        },
-                        {
-                            "type": "null"
-                        }
-                    ],
-                    "description": "Views to be overridden on a platform basis"
-                },
                 "_comment": {
                     "type": "string",
                     "description": "Comment about the view"
                 }
             },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": { "type": { "enum": [1, 4, 5, 6] } },
+                        "required": ["type"]
+                    },
+                    "then": {
+                        "properties": {
+                            "content": {
+                                "oneOf": [
+                                    { "type": "string", "minLength": 1 },
+                                    { "type": "object" },
+                                    { "type": "array" }
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "type": { "enum": [2, 3] } },
+                        "required": ["type"]
+                    },
+                    "then": {
+                        "properties": {
+                            "content": {
+                                "type": "string",
+                                "minLength": 1
+                            }
+                        }
+                    }
+                }
+            ],
             "additionalProperties": false
         }
     },
