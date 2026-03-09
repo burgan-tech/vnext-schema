@@ -59,7 +59,8 @@
             "type": "object",
             "description": "Task definition attributes",
             "required": [
-                "type"
+                "type",
+                "config"
             ],
             "properties": {
                 "type": {
