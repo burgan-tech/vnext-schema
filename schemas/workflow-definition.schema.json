@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/schemas/workflow-definition.schema.json",
   "title": "vNext Workflow Definition",
   "description": "Schema for vNext Workflow Component Definition JSON files (sys-flows flow)",
@@ -214,7 +214,9 @@
               }
             },
             "required": ["stateType"]
-          }
+          },
+          "minContains": 1,
+          "maxContains": 1
         },
         "schema": {
           "type": "object",
@@ -1594,14 +1596,14 @@
       "type": "integer",
       "enum": [0, 1, 2, 3, 4, 5],
       "enumDescriptions": [
-        "Abort - Abort execution, optionally trigger error transition",
-        "Retry - Retry with configured retry policy",
-        "Rollback - Rollback to compensation state",
-        "Ignore - Ignore error and continue",
-        "Notify - Send notification and optionally transition",
-        "Log - Log only, does not affect flow"
+        "Abort (0) - Abort execution. Transition must not be set.",
+        "Retry (1) - Retry with configured retry policy. RetryPolicy is required.",
+        "Rollback (2) - Rollback to compensation state. Transition is required (transition key).",
+        "Ignore (3) - Ignore error and continue",
+        "Notify (4) - Send notification and transition. Transition is required (transition key).",
+        "Log (5) - Log only, does not affect flow"
       ],
-      "description": "Action to take when an error is caught by an error boundary"
+      "description": "Action to take when an error is caught by an error boundary. Constraint: Abort → no transition; Retry → retryPolicy required; Rollback/Notify → transition required."
     },
     "backoffType": {
       "type": "integer",
@@ -1615,17 +1617,18 @@
     },
     "retryPolicy": {
       "type": "object",
-      "description": "Configures retry behavior for error handling",
+      "description": "Configures retry behavior for error handling. Required when error action is Retry. InitialDelay must be a positive duration; MaxDelay must be greater than or equal to InitialDelay. For BackoffType Exponential, backoffMultiplier must be greater than 0.",
+      "required": ["initialDelay"],
       "properties": {
         "maxRetries": {
           "type": "integer",
-          "description": "Maximum number of retry attempts",
+          "description": "Maximum number of retry attempts (0 or greater; values above 100 are discouraged)",
           "minimum": 0,
           "default": 3
         },
         "initialDelay": {
           "type": "string",
-          "description": "Initial delay before first retry (ISO 8601 duration)",
+          "description": "Initial delay before first retry (ISO 8601 duration). Must be greater than zero.",
           "pattern": "^P(?=\\d|T\\d)(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+(\\.\\d+)?S)?)?$"
         },
         "backoffType": {
@@ -1639,7 +1642,7 @@
         },
         "maxDelay": {
           "type": "string",
-          "description": "Maximum delay between retries (ISO 8601 duration)",
+          "description": "Maximum delay between retries (ISO 8601 duration). Must be greater than or equal to initialDelay.",
           "pattern": "^P(?=\\d|T\\d)(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+(\\.\\d+)?S)?)?$"
         },
         "useJitter": {
@@ -1659,25 +1662,28 @@
         },
         "errorTypes": {
           "type": "array",
-          "description": "Exception type names to match (e.g., ValidationException). Empty or '*' matches all.",
+          "description": "Exception type names to match (e.g., ValidationException). Omit or use '*' to match all. Items must not be empty or whitespace.",
           "items": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           }
         },
         "errorCodes": {
           "type": "array",
-          "description": "Error codes to match (e.g., 'Task:400007', '500'). Empty or '*' matches all.",
+          "description": "Error codes to match (e.g., 'Task:400007', '500'). Omit or use '*' to match all. Items must not be empty or whitespace.",
           "items": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           }
         },
         "transition": {
           "type": "string",
-          "description": "Transition key to trigger when this rule matches"
+          "description": "Workflow transition key to trigger when this rule matches. Required when action is Notify or Rollback. Must not be set when action is Abort. Must reference a valid transition key (StartTransition, Cancel, SharedTransitions, or state transition key)."
         },
         "priority": {
           "type": "integer",
-          "description": "Rule priority. Lower values evaluated first. Default 100, wildcard 999.",
+          "description": "Rule priority. Lower values evaluated first. Must be greater than 0. Default 100; use higher values (e.g. 999) for wildcard/fallback rules. Duplicate priorities are allowed but unique values are recommended for deterministic matching.",
+          "minimum": 1,
           "default": 100
         },
         "retryPolicy": {
@@ -1692,7 +1698,7 @@
     },
     "timeoutPolicy": {
       "type": "object",
-      "description": "Timeout-specific error handling policy",
+      "description": "Timeout-specific error handling policy. When action is Retry, defaultRetryPolicy is required. Transition must not be set when action is Abort. Transition must reference a valid workflow state key.",
       "properties": {
         "action": {
           "$ref": "#/definitions/errorAction"
@@ -1702,17 +1708,17 @@
         },
         "transition": {
           "type": "string",
-          "description": "Transition key to trigger on timeout"
+          "description": "State key to transition to on timeout. Must match a workflow state key. Must not be set when action is Abort."
         }
       }
     },
     "errorBoundary": {
       "type": "object",
-      "description": "Container for error handling policies",
+      "description": "Container for error handling policies. Used at workflow level (global), state level, and on task execution (OnExecuteTask, OnEntry, OnExit). OnError rules are evaluated by effective priority (lower first); duplicate priorities are discouraged. OnTimeout applies when the operation times out.",
       "properties": {
         "onError": {
           "type": "array",
-          "description": "Error handling rules evaluated in priority order",
+          "description": "Error handling rules evaluated in priority order (lower value first). Rule transition references workflow transition keys. Empty array is valid (no error rules).",
           "items": {
             "$ref": "#/definitions/errorHandlerRule"
           }
