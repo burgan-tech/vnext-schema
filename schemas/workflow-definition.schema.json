@@ -1656,6 +1656,16 @@
       "type": "object",
       "description": "A single error handling rule within an error boundary",
       "required": ["action"],
+      "if": {
+        "properties": { "action": { "const": 0 } },
+        "required": ["action"]
+      },
+      "then": {
+        "properties": {
+          "transition": { "maxLength": 0 }
+        },
+        "description": "When action is Abort (0), transition must not be set (backend will reject non-empty transition)."
+      },
       "properties": {
         "action": {
           "$ref": "#/definitions/errorAction"
@@ -1699,6 +1709,16 @@
     "timeoutPolicy": {
       "type": "object",
       "description": "Timeout-specific error handling policy. When action is Retry, defaultRetryPolicy is required. Transition must not be set when action is Abort. Transition must reference a valid workflow state key.",
+      "if": {
+        "properties": { "action": { "const": 0 } },
+        "required": ["action"]
+      },
+      "then": {
+        "properties": {
+          "transition": { "maxLength": 0 }
+        },
+        "description": "When action is Abort (0), transition must not be set (backend will reject non-empty transition)."
+      },
       "properties": {
         "action": {
           "$ref": "#/definitions/errorAction"
