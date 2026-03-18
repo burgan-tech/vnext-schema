@@ -505,7 +505,7 @@
               "type": "object",
               "description": "Dictionary of view overrides for subflow views. Key is the original view key, value is the reference to the new view definition.",
               "patternProperties": {
-                "^[a-zA-Z0-9\\-]+$": {
+                "^[a-z0-9\\-]+$": {
                   "$ref": "#/definitions/reference"
                 }
               },
@@ -1798,7 +1798,7 @@
           "type": "object",
           "description": "Dictionary of view overrides. Key is the original view key, value is the new view reference.",
           "patternProperties": {
-            "^[a-zA-Z0-9\\-]+$": {
+            "^[a-z0-9\\-]+$": {
               "$ref": "#/definitions/reference"
             }
           },
@@ -1808,7 +1808,7 @@
           "type": "object",
           "description": "Dictionary of transition overrides. Key is the transition key.",
           "patternProperties": {
-            "^[a-zA-Z0-9\\-]+$": {
+            "^[a-z0-9\\-]+$": {
               "$ref": "#/definitions/subFlowTransitionOverride"
             }
           },
@@ -1818,7 +1818,7 @@
           "type": "object",
           "description": "Dictionary of state overrides. Key is the state key.",
           "patternProperties": {
-            "^[a-zA-Z0-9\\-]+$": {
+            "^[a-z0-9\\-]+$": {
               "$ref": "#/definitions/subFlowStateOverride"
             }
           },

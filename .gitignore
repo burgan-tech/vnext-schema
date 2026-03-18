@@ -272,3 +272,10 @@ secrets.json
 
 # AI docs
 ai-docs/
+
+# Claude
+.claude/worktrees/*
+
+#Cursor
+.cursor/plans/*
+.cursor/*.log
