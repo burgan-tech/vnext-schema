@@ -88,9 +88,6 @@ MIT
 For support and questions:
 - GitHub Issues: [https://github.com/burgan-tech/vnext-schema/issues](https://github.com/burgan-tech/vnext-schema/issues)
 
-- 
-- Documentation: Available through [@vnext/cli](https://github.com/vnext/vNext.Cli/pkgs/npm/cli)
-
 ---
 
 **Note**: This package is part of the vNext ecosystem and is primarily intended for use with the official vNext CLI tools and vNext Workflow platform. 

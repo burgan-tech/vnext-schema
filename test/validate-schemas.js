@@ -1,8 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 const Ajv = require('ajv');
+const Ajv2019 = require('ajv/dist/2019');
 
-const ajv = new Ajv({ allErrors: true, verbose: true });
+function createAjv(schema) {
+  if (schema.$schema && schema.$schema.includes('2019-09')) {
+    return new Ajv2019({ allErrors: true, verbose: true });
+  }
+  return new Ajv({ allErrors: true, verbose: true });
+}
 
 // Schema files directory
 const schemasDir = path.join(__dirname, '../schemas');
@@ -23,8 +29,9 @@ function validateSchemas() {
       const schema = JSON.parse(schemaContent);
       
       // Check if the JSON Schema is valid
+      const ajv = createAjv(schema);
       const isValid = ajv.validateSchema(schema);
-      
+
       if (isValid) {
         console.log(`✅ ${file} - Valid`);
       } else {

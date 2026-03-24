@@ -60,9 +60,18 @@
             "type": "object",
             "description": "Function definition attributes",
             "required": [
-                "scope",
-                "task"
+                "scope"
             ],
+            "anyOf": [
+                { "required": ["task"] },
+                { "required": ["onExecutionTasks"] }
+            ],
+            "if": {
+                "required": ["onExecutionTasks"]
+            },
+            "then": {
+                "required": ["output"]
+            },
             "properties": {
                 "scope": {
                     "type": "string",
@@ -80,7 +89,7 @@
                 },
                 "task": {
                     "type": "object",
-                    "description": "Function execution task",
+                    "description": "Function execution task (legacy single-task; use onExecutionTasks for multi-task)",
                     "required": [
                         "order",
                         "task",
@@ -146,53 +155,93 @@
                             ]
                         },
                         "mapping": {
-                            "type": "object",
-                            "description": "Function mapping code",
-                            "properties": {
-                                "type": {
-                                    "type": "string",
-                                    "enum": ["G", "L"],
-                                    "enumDescriptions": [
-                                        "Global",
-                                        "Local"
-                                    ],
-                                    "default": "L",
-                                    "description": "Mapping type - Global or Local"
-                                },
-                                "location": {
-                                    "type": "string",
-                                    "description": "Code file location",
-                                    "pattern": "^\\./.*\\.csx$"
-                                },
-                                "code": {
-                                    "type": "string",
-                                    "description": "Mapping code content",
-                                    "minLength": 1
-                                },
-                                "encoding": {
-                                    "type": "string",
-                                    "description": "Code encoding format",
-                                    "enum": ["B64", "NAT"],
-                                    "default": "B64"
-                                }
-                            },
-                            "additionalProperties": false,
-                            "if": {
-                                "properties": {
-                                    "type": {
-                                        "const": "G"
-                                    }
-                                }
-                            },
-                            "then": {
-                                "required": []
-                            },
-                            "else": {
-                                "required": ["code"]
-                            }
+                            "$ref": "#/definitions/taskMapping"
                         }
                     },
                     "additionalProperties": false
+                },
+                "onExecutionTasks": {
+                    "type": "array",
+                    "description": "Ordered list of tasks to execute (multi-task execution)",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "order",
+                            "task",
+                            "mapping"
+                        ],
+                        "properties": {
+                            "_comment": {
+                                "type": "string",
+                                "description": "Comment about the task"
+                            },
+                            "order": {
+                                "type": "integer",
+                                "description": "Task execution order",
+                                "minimum": 1
+                            },
+                            "task": {
+                                "description": "Task reference - can be either explicit reference or $ref",
+                                "oneOf": [
+                                    {
+                                        "type": "object",
+                                        "description": "Explicit task reference",
+                                        "required": [
+                                            "key",
+                                            "domain",
+                                            "flow",
+                                            "version"
+                                        ],
+                                        "properties": {
+                                            "key": {
+                                                "type": "string",
+                                                "description": "Task key"
+                                            },
+                                            "domain": {
+                                                "type": "string",
+                                                "description": "Task domain"
+                                            },
+                                            "flow": {
+                                                "type": "string",
+                                                "description": "Task workflow",
+                                                "const": "sys-tasks"
+                                            },
+                                            "version": {
+                                                "type": "string",
+                                                "description": "Task version"
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    {
+                                        "type": "object",
+                                        "description": "Task reference using ref",
+                                        "required": [
+                                            "ref"
+                                        ],
+                                        "properties": {
+                                            "ref": {
+                                                "type": "string",
+                                                "description": "Reference to task file"
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    }
+                                ]
+                            },
+                            "mapping": {
+                                "$ref": "#/definitions/taskMapping"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "output": {
+                    "description": "Output mapping for multi-task execution result. Required when onExecutionTasks is defined.",
+                    "allOf": [
+                        { "$ref": "#/definitions/taskMapping" }
+                    ]
                 },
                 "labels": {
                     "type": "array",
@@ -233,6 +282,52 @@
     },
     "additionalProperties": false,
     "definitions": {
+        "taskMapping": {
+            "type": "object",
+            "description": "Mapping code definition",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": ["G", "L"],
+                    "enumDescriptions": [
+                        "Global",
+                        "Local"
+                    ],
+                    "default": "L",
+                    "description": "Mapping type - Global or Local"
+                },
+                "location": {
+                    "type": "string",
+                    "description": "Code file location",
+                    "pattern": "^\\./.*\\.csx$"
+                },
+                "code": {
+                    "type": "string",
+                    "description": "Mapping code content",
+                    "minLength": 1
+                },
+                "encoding": {
+                    "type": "string",
+                    "description": "Code encoding format",
+                    "enum": ["B64", "NAT"],
+                    "default": "B64"
+                }
+            },
+            "additionalProperties": false,
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "G"
+                    }
+                }
+            },
+            "then": {
+                "required": []
+            },
+            "else": {
+                "required": ["code"]
+            }
+        },
         "roleGrant": {
             "type": "object",
             "required": ["role", "grant"],
