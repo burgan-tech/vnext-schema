@@ -51,8 +51,9 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20.x'
+        node-version: '24'
         registry-url: 'https://registry.npmjs.org'
+        always-auth: false
         cache: 'npm'
     
     - name: Calculate version
@@ -282,10 +283,7 @@ jobs:
       if: ${{ github.event.inputs.registry_target != 'github' }}
       uses: JS-DevTools/npm-publish@v4
       with:
-        token: ${{ secrets.NPM_TOKEN }}
-        registry: https://registry.npmjs.org
         access: public
-        provenance: true
 
     - name: Publish to GitHub Packages
       id: publish-github
