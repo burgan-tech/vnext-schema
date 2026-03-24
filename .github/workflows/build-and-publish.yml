@@ -28,14 +28,19 @@ on:
 permissions:
   contents: write
   packages: write
+  id-token: write
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
     
     outputs:
       version: ${{ steps.version.outputs.version }}
-      published: ${{ steps.publish.outputs.published }}
+      published: ${{ steps.publish-status.outputs.published }}
     
     steps:
     - name: Checkout code
@@ -272,161 +277,41 @@ jobs:
         path: "*.tgz"
         retention-days: 30
     
-    - name: Publish to NPM
+    - name: Publish to NPM (OIDC)
       id: publish
+      if: ${{ github.event.inputs.registry_target != 'github' }}
+      uses: JS-DevTools/npm-publish@v4
+      with:
+        token: ${{ secrets.NPM_TOKEN }}
+        registry: https://registry.npmjs.org
+        access: public
+        provenance: true
+
+    - name: Publish to GitHub Packages
+      id: publish-github
+      if: ${{ github.event.inputs.registry_target == 'github' || github.event.inputs.registry_target == 'both' }}
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        REGISTRY_TARGET="${{ github.event.inputs.registry_target || 'npmjs' }}"
-        PUBLISHED="false"
-        
-        echo "🚀 Publishing package to $REGISTRY_TARGET..."
-        
-        # Function to publish to NPM.js
-        publish_to_npmjs() {
-          echo "📦 Publishing to NPM.js..."
-          
-          if [ -z "$NODE_AUTH_TOKEN" ]; then
-            echo "❌ Error: NPM_TOKEN secret is not configured"
-            echo "Please add your NPM token as a repository secret named 'NPM_TOKEN'"
-            echo "Get your token from: https://www.npmjs.com/settings/tokens"
-            return 1
-          fi
-          
-          # Clear any existing registry configuration
-          npm config delete registry || true
-          npm config delete //npm.pkg.github.com/:_authToken || true
-          
-          # Configure npm registry for NPM.js
-          npm config set registry https://registry.npmjs.org/
-          npm config set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN
-          
-          # Remove publishConfig from package.json temporarily for NPM.js
-          if [ -f package.json.backup ]; then
-            cp package.json.backup package.json
-          else
-            cp package.json package.json.backup
-          fi
-          
-          # Remove the publishConfig section that points to GitHub
-          jq 'del(.publishConfig)' package.json > package.json.tmp && mv package.json.tmp package.json
-          
-          FORCE_FLAG=""
-          if [ "${{ github.event.inputs.force_publish }}" == "true" ]; then
-            echo "⚠️  Force publish enabled"
-            # NPM doesn't have a direct force flag, but we can use --force
-            FORCE_FLAG="--force"
-          fi
-          
-          # Attempt to publish
-          if npm publish $FORCE_FLAG --access public --registry https://registry.npmjs.org/; then
-            echo "✅ Successfully published to NPM.js"
-            return 0
-          else
-            echo "❌ Failed to publish to NPM.js"
-            echo "This might be because the package version already exists"
-            return 1
-          fi
-        }
-        
-        # Function to publish to GitHub Packages
-        publish_to_github() {
-          echo "📦 Publishing to GitHub Packages..."
-          
-          if [ -z "$GITHUB_TOKEN" ]; then
-            echo "❌ Error: GITHUB_TOKEN is not available"
-            return 1
-          fi
-          
-          # Restore original package.json if it was backed up
-          if [ -f package.json.backup ]; then
-            cp package.json.backup package.json
-          fi
-          
-          # Clear any existing registry configuration
-          npm config delete registry || true
-          npm config delete //registry.npmjs.org/:_authToken || true
-          
-          # Configure npm for GitHub Packages
-          npm config set registry https://npm.pkg.github.com
-          npm config set //npm.pkg.github.com/:_authToken $GITHUB_TOKEN
-          
-          # Update package.json to ensure proper scope for GitHub Packages
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
-          if [[ "$PACKAGE_NAME" != @* ]]; then
-            echo "Adding GitHub scope to package name for GitHub Packages..."
-            SCOPED_NAME="@${{ github.repository_owner }}/${PACKAGE_NAME}"
-            jq ".name = \"$SCOPED_NAME\"" package.json > package.json.tmp
-            mv package.json.tmp package.json
-          fi
-          
-          # Ensure publishConfig is set for GitHub Packages
-          jq '.publishConfig = {"registry": "https://npm.pkg.github.com", "access": "public"}' package.json > package.json.tmp && mv package.json.tmp package.json
-          
-          # Attempt to publish
-          if npm publish --registry https://npm.pkg.github.com; then
-            echo "✅ Successfully published to GitHub Packages"
-            return 0
-          else
-            echo "❌ Failed to publish to GitHub Packages"
-            return 1
-          fi
-        }
-        
-        # Publish based on target
-        SUCCESS_COUNT=0
-        TOTAL_ATTEMPTS=0
-        
-        case "$REGISTRY_TARGET" in
-          "npmjs")
-            TOTAL_ATTEMPTS=1
-            if publish_to_npmjs; then
-              SUCCESS_COUNT=1
-              PUBLISHED="true"
-            fi
-            ;;
-          "github")
-            TOTAL_ATTEMPTS=1
-            if publish_to_github; then
-              SUCCESS_COUNT=1
-              PUBLISHED="true"
-            fi
-            ;;
-          "both")
-            TOTAL_ATTEMPTS=2
-            if publish_to_npmjs; then
-              SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-              PUBLISHED="true"
-            fi
-            
-            # Publish to GitHub (this will restore package.json and reconfigure)
-            if publish_to_github; then
-              SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-              PUBLISHED="true"
-            fi
-            ;;
-        esac
-        
-        echo "published=$PUBLISHED" >> $GITHUB_OUTPUT
-        
-        echo "📊 Publication Summary:"
-        echo "   Successfully published: $SUCCESS_COUNT/$TOTAL_ATTEMPTS registries"
-        
-        if [ "$SUCCESS_COUNT" -eq 0 ]; then
-          echo "❌ Failed to publish to any registry"
-          if [ "${{ github.event.inputs.force_publish }}" != "true" ]; then
-            echo "💡 Tip: If you want to republish existing versions, use the 'force_publish' option"
-          fi
-          exit 1
-        elif [ "$SUCCESS_COUNT" -lt "$TOTAL_ATTEMPTS" ]; then
-          echo "⚠️  Some registries failed, but at least one succeeded"
+        npm config set registry https://npm.pkg.github.com
+        npm config set //npm.pkg.github.com/:_authToken $GITHUB_TOKEN
+        jq '.publishConfig = {"registry": "https://npm.pkg.github.com", "access": "public"}' package.json > package.json.tmp && mv package.json.tmp package.json
+        npm publish --registry https://npm.pkg.github.com
+
+    - name: Set publish output
+      id: publish-status
+      if: always()
+      run: |
+        NPM_RESULT="${{ steps.publish.outcome }}"
+        GH_RESULT="${{ steps.publish-github.outcome }}"
+        if [ "$NPM_RESULT" == "success" ] || [ "$GH_RESULT" == "success" ]; then
+          echo "published=true" >> $GITHUB_OUTPUT
         else
-          echo "🎉 Published to all target registries successfully!"
+          echo "published=false" >> $GITHUB_OUTPUT
         fi
     
     - name: Create Git Tag
-      if: steps.publish.outputs.published == 'true'
+      if: steps.publish-status.outputs.published == 'true'
       run: |
         VERSION="${{ steps.version.outputs.version }}"
         TAG="v$VERSION"
@@ -444,7 +329,7 @@ jobs:
         fi
     
     - name: Create GitHub Release
-      if: steps.publish.outputs.published == 'true'
+      if: steps.publish-status.outputs.published == 'true'
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -503,7 +388,7 @@ jobs:
         echo "- **Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Published**: ${{ steps.publish.outputs.published }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Published**: ${{ steps.publish-status.outputs.published }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
         if [ -n "${{ github.event.inputs.version_override }}" ]; then
@@ -532,7 +417,7 @@ jobs:
         echo "- Core Header" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
-        if [ "${{ steps.publish.outputs.published }}" == "true" ]; then
+        if [ "${{ steps.publish-status.outputs.published }}" == "true" ]; then
           echo "### 🎉 Published Successfully!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📋 Installation Instructions" >> $GITHUB_STEP_SUMMARY
