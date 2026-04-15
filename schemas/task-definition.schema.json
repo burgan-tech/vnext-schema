@@ -262,6 +262,21 @@
                                         "type": "integer",
                                         "minimum": 1,
                                         "description": "Timeout in seconds"
+                                    },
+                                    "acceptedStatusCodes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "pattern": "^([1-9][0-9]{2}|[1-9]xx|[1-9][0-9]x)$",
+                                            "description": "Exact status code (e.g. '403') or wildcard pattern (e.g. '4xx', '40x')"
+                                        },
+                                        "description": "HTTP status codes treated as successful even when they are error codes. Supports exact codes ('403', '404') and alias patterns ('4xx', '40x', '5xx', '50x'). When a response matches any entry, the task is considered successful and the ErrorBoundary is not triggered.",
+                                        "examples": [
+                                            ["404"],
+                                            ["403", "404"],
+                                            ["4xx"],
+                                            ["403", "5xx"]
+                                        ]
                                     }
                                 },
                                 "required": [
@@ -450,6 +465,21 @@
                                     "validateSsl": {
                                         "type": "boolean",
                                         "description": "Whether to validate SSL certificates"
+                                    },
+                                    "acceptedStatusCodes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "pattern": "^([1-9][0-9]{2}|[1-9]xx|[1-9][0-9]x)$",
+                                            "description": "Exact status code (e.g. '403') or wildcard pattern (e.g. '4xx', '40x')"
+                                        },
+                                        "description": "HTTP status codes treated as successful even when they are error codes. Supports exact codes ('403', '404') and alias patterns ('4xx', '40x', '5xx', '50x'). When a response matches any entry, the task is considered successful and the ErrorBoundary is not triggered.",
+                                        "examples": [
+                                            ["404"],
+                                            ["403", "404"],
+                                            ["4xx"],
+                                            ["403", "5xx"]
+                                        ]
                                     }
                                 },
                                 "required": [
@@ -592,6 +622,21 @@
                                     "validateSsl": {
                                         "type": "boolean",
                                         "description": "Whether to validate SSL certificates"
+                                    },
+                                    "acceptedStatusCodes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "pattern": "^([1-9][0-9]{2}|[1-9]xx|[1-9][0-9]x)$",
+                                            "description": "Exact status code (e.g. '403') or wildcard pattern (e.g. '4xx', '40x')"
+                                        },
+                                        "description": "HTTP status codes treated as successful even when they are error codes. Supports exact codes ('403', '404') and alias patterns ('4xx', '40x', '5xx', '50x'). When a response matches any entry, the task is considered successful and the ErrorBoundary is not triggered.",
+                                        "examples": [
+                                            ["404"],
+                                            ["403", "404"],
+                                            ["4xx"],
+                                            ["403", "5xx"]
+                                        ]
                                     }
                                 },
                                 "required": [
@@ -681,6 +726,21 @@
                                     "validateSsl": {
                                         "type": "boolean",
                                         "description": "Whether to validate SSL certificates"
+                                    },
+                                    "acceptedStatusCodes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "pattern": "^([1-9][0-9]{2}|[1-9]xx|[1-9][0-9]x)$",
+                                            "description": "Exact status code (e.g. '403') or wildcard pattern (e.g. '4xx', '40x')"
+                                        },
+                                        "description": "HTTP status codes treated as successful even when they are error codes. Supports exact codes ('403', '404') and alias patterns ('4xx', '40x', '5xx', '50x'). When a response matches any entry, the task is considered successful and the ErrorBoundary is not triggered.",
+                                        "examples": [
+                                            ["404"],
+                                            ["403", "404"],
+                                            ["4xx"],
+                                            ["403", "5xx"]
+                                        ]
                                     }
                                 },
                                 "required": [
@@ -754,6 +814,21 @@
                                     "validateSsl": {
                                         "type": "boolean",
                                         "description": "Whether to validate SSL certificates"
+                                    },
+                                    "acceptedStatusCodes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "pattern": "^([1-9][0-9]{2}|[1-9]xx|[1-9][0-9]x)$",
+                                            "description": "Exact status code (e.g. '403') or wildcard pattern (e.g. '4xx', '40x')"
+                                        },
+                                        "description": "HTTP status codes treated as successful even when they are error codes. Supports exact codes ('403', '404') and alias patterns ('4xx', '40x', '5xx', '50x'). When a response matches any entry, the task is considered successful and the ErrorBoundary is not triggered.",
+                                        "examples": [
+                                            ["404"],
+                                            ["403", "404"],
+                                            ["4xx"],
+                                            ["403", "5xx"]
+                                        ]
                                     }
                                 },
                                 "required": [
@@ -833,6 +908,21 @@
                                     "validateSsl": {
                                         "type": "boolean",
                                         "description": "Whether to validate SSL certificates"
+                                    },
+                                    "acceptedStatusCodes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "pattern": "^([1-9][0-9]{2}|[1-9]xx|[1-9][0-9]x)$",
+                                            "description": "Exact status code (e.g. '403') or wildcard pattern (e.g. '4xx', '40x')"
+                                        },
+                                        "description": "HTTP status codes treated as successful even when they are error codes. Supports exact codes ('403', '404') and alias patterns ('4xx', '40x', '5xx', '50x'). When a response matches any entry, the task is considered successful and the ErrorBoundary is not triggered.",
+                                        "examples": [
+                                            ["404"],
+                                            ["403", "404"],
+                                            ["4xx"],
+                                            ["403", "5xx"]
+                                        ]
                                     }
                                 },
                                 "required": [
@@ -917,6 +1007,21 @@
                                     "validateSsl": {
                                         "type": "boolean",
                                         "description": "Whether to validate SSL certificates"
+                                    },
+                                    "acceptedStatusCodes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "pattern": "^([1-9][0-9]{2}|[1-9]xx|[1-9][0-9]x)$",
+                                            "description": "Exact status code (e.g. '403') or wildcard pattern (e.g. '4xx', '40x')"
+                                        },
+                                        "description": "HTTP status codes treated as successful even when they are error codes. Supports exact codes ('403', '404') and alias patterns ('4xx', '40x', '5xx', '50x'). When a response matches any entry, the task is considered successful and the ErrorBoundary is not triggered.",
+                                        "examples": [
+                                            ["404"],
+                                            ["403", "404"],
+                                            ["4xx"],
+                                            ["403", "5xx"]
+                                        ]
                                     }
                                 },
                                 "required": [
