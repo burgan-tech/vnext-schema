@@ -1759,6 +1759,17 @@
         },
         "timer": {
           "$ref": "#/definitions/timerConfig"
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional mapping script for dynamic timeout duration calculation. When provided, the script is executed at runtime to determine the timeout schedule. If the mapping fails, the static timer duration is used as fallback."
         }
       }
     },
