@@ -156,6 +156,10 @@
                 "_comment": {
                     "type": "string",
                     "description": "Comment about the view"
+                },
+                "renderer": {
+                    "type": "string",
+                    "description": "Renderer identifier for the view"
                 }
             },
             "allOf": [
@@ -187,6 +191,17 @@
                                 "type": "string",
                                 "minLength": 1
                             }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "type": { "not": { "const": 1 } } },
+                        "required": ["type"]
+                    },
+                    "then": {
+                        "properties": {
+                            "renderer": false
                         }
                     }
                 }
