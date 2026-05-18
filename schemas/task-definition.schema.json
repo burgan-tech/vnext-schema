@@ -533,21 +533,34 @@
                     },
                     "then": {
                         "title": "Notification Task",
+                        "$comment": "since:0.0.42",
                         "properties": {
                             "type": {
                                 "const": "10"
                             },
                             "config": {
                                 "type": "object",
-                                "description": "Notification Binding configuration",
+                                "description": "Notification Task configuration - Multi-channel notification dispatch via Dapr bindings",
                                 "properties": {
-                                    "metadata": {
-                                        "type": "object",
-                                        "description": "Binding metadata"
+                                    "channels": {
+                                        "type": "array",
+                                        "$comment": "since:0.0.42",
+                                        "description": "Target channel list. Each channel resolves to a vnext-notification-{channel} Dapr binding (e.g. sms, email, push, hub, state).",
+                                        "items": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        "minItems": 1
+                                    },
+                                    "includeStateChannel": {
+                                        "type": "boolean",
+                                        "$comment": "since:0.0.42",
+                                        "description": "When true, the platform-managed state channel is automatically included in the dispatch list (uses State Function data, no mapping needed).",
+                                        "default": true
                                     }
                                 },
                                 "required": [
-                                    "metadata"
+                                    "channels"
                                 ],
                                 "additionalProperties": false
                             }

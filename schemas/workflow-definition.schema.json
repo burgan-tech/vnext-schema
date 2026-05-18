@@ -226,7 +226,7 @@
       "additionalProperties": false
     },
     "viewDefinition": {
-      "anyOf": [
+      "oneOf": [
         {
           "type": "object",
           "properties": {
@@ -245,12 +245,75 @@
           },
           "required": [
             "view"
-          ]
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "rules": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/viewRule"
+              },
+              "minItems": 1
+            },
+            "default": {
+              "type": "object",
+              "properties": {
+                "view": {
+                  "$ref": "#/definitions/reference"
+                },
+                "extensions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "loadData": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "view"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "rules"
+          ],
+          "additionalProperties": false
         },
         {
           "type": "null"
         }
       ]
+    },
+    "viewRule": {
+      "type": "object",
+      "properties": {
+        "rule": {
+          "$ref": "#/definitions/scriptCode"
+        },
+        "view": {
+          "$ref": "#/definitions/reference"
+        },
+        "extensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "loadData": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "rule",
+        "view"
+      ],
+      "additionalProperties": false
     },
     "versionStrategy": {
       "type": "string",
@@ -324,7 +387,9 @@
         3,
         4,
         5,
-        6
+        6,
+        7,
+        8
       ],
       "enumDescriptions": [
         "No specific subtype",
@@ -333,7 +398,9 @@
         "Manually terminated",
         "Temporarily suspended",
         "Busy",
-        "Human"
+        "Human",
+        "Cancelled",
+        "Timeout"
       ],
       "description": "Subtype of workflow state",
       "default": 0
@@ -673,6 +740,17 @@
               "items": {
                 "$ref": "#/definitions/roleGrant"
               }
+            },
+            "annotations": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/annotations"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Key-value annotations for the transition"
             }
           }
         },
@@ -868,10 +946,9 @@
               "$ref": "#/definitions/versionStrategy"
             },
             "triggerType": {
-              "$ref": "#/definitions/triggerType"
-            },
-            "triggerKind": {
-              "$ref": "#/definitions/triggerKind"
+              "type": "integer",
+              "enum": [0, 2, 3],
+              "description": "Trigger type for shared transitions: Manual (0), Scheduled (2), Event (3)"
             },
             "availableIn": {
               "type": "array",
@@ -946,80 +1023,17 @@
                 }
               ],
               "description": "Input mapping for the transition"
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "triggerType": {
-                "const": 1
-              },
-              "triggerKind": {
-                "const": 10
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "rule": {
-                "anyOf": [
-                  {
-                    "$ref": "#/definitions/scriptCode"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "timer": {
-                "type": "null"
-              },
-              "schema": {
-                "type": "null"
-              },
-              "view": {
-                "type": "null"
-              },
-              "mapping": {
-                "type": "null"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "triggerType": {
-                "const": 1
-              }
             },
-            "not": {
-              "properties": {
-                "triggerKind": {
-                  "const": 10
+            "annotations": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/annotations"
+                },
+                {
+                  "type": "null"
                 }
-              }
-            }
-          },
-          "then": {
-            "required": ["rule"],
-            "properties": {
-              "rule": {
-                "$ref": "#/definitions/scriptCode"
-              },
-              "timer": {
-                "type": "null"
-              },
-              "schema": {
-                "type": "null"
-              },
-              "view": {
-                "type": "null"
-              },
-              "mapping": {
-                "type": "null"
-              }
+              ],
+              "description": "Key-value annotations for the transition"
             }
           }
         },
@@ -1083,7 +1097,6 @@
             }
           },
           "then": {
-            "required": ["availableIn"],
             "properties": {
               "availableIn": {
                 "type": "array",
@@ -1093,14 +1106,7 @@
                 }
               },
               "view": {
-                "anyOf": [
-                  {
-                    "$ref": "#/definitions/reference"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
+                "$ref": "#/definitions/viewDefinition"
               }
             }
           },
@@ -1280,6 +1286,17 @@
           "items": {
             "$ref": "#/definitions/roleGrant"
           }
+        },
+        "annotations": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/annotations"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Key-value annotations for the cancel transition"
         }
       },
       "additionalProperties": false
@@ -1373,6 +1390,17 @@
           "items": {
             "$ref": "#/definitions/roleGrant"
           }
+        },
+        "annotations": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/annotations"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Key-value annotations for the exit transition"
         }
       },
       "additionalProperties": false
@@ -1466,6 +1494,17 @@
           "items": {
             "$ref": "#/definitions/roleGrant"
           }
+        },
+        "annotations": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/annotations"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Key-value annotations for the update data transition"
         }
       },
       "additionalProperties": false
@@ -1848,6 +1887,13 @@
         }
       },
       "additionalProperties": false
+    },
+    "annotations": {
+      "type": "object",
+      "description": "Key-value annotations for the transition",
+      "additionalProperties": {
+        "type": "string"
+      }
     }
   }
 }

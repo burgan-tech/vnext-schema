@@ -1,0 +1,66 @@
+---
+description: Schema development consistency rules -- $ref usage, $comment annotations, version tracking, and change summaries
+globs: schemas/**/*.schema.json
+alwaysApply: false
+---
+
+# Schema Development Rules
+
+## $ref First
+
+Reuse definitions via `$ref` instead of duplicating structures. The workflow schema already has deeply nested patterns; every new type that appears in more than one place must be a `#/definitions/` entry.
+
+```json
+// GOOD -- shared definition
+"triggerType": { "$ref": "#/definitions/triggerType" }
+
+// BAD -- inline duplication
+"triggerType": { "type": "integer", "enum": [0, 1, 2, 3], ... }
+```
+
+When the same structure exists across multiple schema files, extract it to `vocabularies/` and reference it with a full `$id` URI.
+
+## $comment Annotation (mandatory)
+
+Every new or modified property MUST have a `$comment` annotation following the DSL:
+
+```
+"$comment": "since:X.X.X"                          -- basic field
+"$comment": "since:X.X.X;experimental"              -- experimental field
+"$comment": "since:X.X.X;values:A=X.X.X,B=Y.Y.Y"  -- enum with per-value versions
+```
+
+Standalone definitions (enum types like `triggerType`, `stateType`) also need `$comment` at the definition root level, not only inside `properties`.
+
+## Version Tracking
+
+Before adding or modifying a field, ASK the user:
+
+> "Which schema version should this field target? (e.g., 0.0.45)"
+
+Use the answer in the `$comment` annotation. Never guess or default to `0.0.1` for new fields.
+
+When adding a new enum value to an existing definition, update only the new value's version in the `values:` DSL -- do not change existing value versions.
+
+## After Every Change
+
+1. Run `npm run generate-features` to regenerate `features.json`
+2. Run `npm test` to validate all schemas and the feature catalog
+3. Provide a short summary to the user covering:
+   - **Changed fields**: list each field with its component, path, and since version
+   - **Feature matrix delta**: a table of added/modified/removed fields (use the feature-catalog-matrix skill format)
+   - **Breaking changes**: explicitly call out any of the following:
+     - Required field removed or made optional
+     - Enum value removed
+     - Type changed (e.g., string -> object)
+     - Pattern or constraint tightened (stricter validation)
+     - `additionalProperties` changed from true/absent to false
+
+## Breaking Change Checklist
+
+When a change is potentially breaking, flag it clearly:
+
+```
+BREAKING: [component].[field] -- [description]
+Example: BREAKING: workflow.triggerType -- removed value 4 (Signal)
+```
