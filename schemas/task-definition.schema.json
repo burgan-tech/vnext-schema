@@ -81,7 +81,8 @@
                         "12",
                         "13",
                         "14",
-                        "15"
+                        "15",
+                        "16"
                     ],
                     "enumDescriptions": [
                         "Dapr HTTP Endpoint",
@@ -98,7 +99,8 @@
                         "Trigger Transition Task",
                         "Get Instance Data Task",
                         "SubProcess Task",
-                        "Get Instances Task"
+                        "Get Instances Task",
+                        "SOAP Task"
                     ]
                 }
             },
@@ -1040,6 +1042,88 @@
                                 "required": [
                                     "domain",
                                     "flow"
+                                ],
+                                "additionalProperties": false
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "config"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "16"
+                            }
+                        }
+                    },
+                    "then": {
+                        "title": "SOAP Task",
+                        "properties": {
+                            "type": {
+                                "const": "16"
+                            },
+                            "config": {
+                                "type": "object",
+                                "description": "SOAP Task configuration - Sends SOAP requests to an external endpoint",
+                                "properties": {
+                                    "url": {
+                                        "type": "string",
+                                        "description": "Target SOAP endpoint URL"
+                                    },
+                                    "soapAction": {
+                                        "type": "string",
+                                        "description": "SOAPAction value. Sent as an HTTP header for SOAP 1.1 and as a Content-Type action parameter for SOAP 1.2."
+                                    },
+                                    "soapVersion": {
+                                        "type": "string",
+                                        "enum": [
+                                            "1.1",
+                                            "1.2"
+                                        ],
+                                        "default": "1.1",
+                                        "description": "SOAP protocol version"
+                                    },
+                                    "body": {
+                                        "type": "string",
+                                        "description": "Raw XML SOAP envelope template"
+                                    },
+                                    "headers": {
+                                        "type": "object",
+                                        "description": "Additional HTTP headers"
+                                    },
+                                    "timeoutSeconds": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "default": 30,
+                                        "description": "Timeout in seconds"
+                                    },
+                                    "validateSsl": {
+                                        "type": "boolean",
+                                        "default": true,
+                                        "description": "Whether to validate SSL certificates"
+                                    },
+                                    "acceptedStatusCodes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "pattern": "^([1-9][0-9]{2}|[1-9]xx|[1-9][0-9]x)$",
+                                            "description": "Exact status code (e.g. '500') or wildcard pattern (e.g. '5xx', '50x')"
+                                        },
+                                        "description": "HTTP status codes treated as successful even when they are error codes. Supports exact codes ('500') and wildcard patterns ('5xx', '50x'). SOAP fault responses are commonly returned with HTTP 500.",
+                                        "examples": [
+                                            ["500"],
+                                            ["5xx"],
+                                            ["50x"]
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "url"
                                 ],
                                 "additionalProperties": false
                             }

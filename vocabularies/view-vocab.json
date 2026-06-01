@@ -1,0 +1,316 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json",
+  "x-stableId": "https://unpkg.com/@burgan-tech/vnext-schema/vocabularies/view-vocab.json",
+  "title": "vNext View Vocabulary",
+  "description": "Vocabulary for vNext platform-owned view and schema extensions. Provides reusable definitions for x-* fields consumed by backend, JSON Schema validators, and UI renderers.",
+  "definitions": {
+    "localizedText": {
+      "type": "object",
+      "description": "Language-code keyed localized text map.",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minProperties": 1
+    },
+    "x-labels": {
+      "$ref": "#/definitions/localizedText"
+    },
+    "x-errorMessages": {
+      "type": "object",
+      "description": "Localized messages keyed by JSON Schema validation keyword.",
+      "properties": {
+        "required": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "minLength": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "maxLength": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "minimum": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "maximum": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "pattern": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "format": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "enum": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "const": {
+          "$ref": "#/definitions/localizedText"
+        }
+      },
+      "additionalProperties": false,
+      "minProperties": 1
+    },
+    "x-enum": {
+      "type": "object",
+      "description": "Localized display labels keyed by enum value.",
+      "additionalProperties": {
+        "$ref": "#/definitions/localizedText"
+      },
+      "minProperties": 1
+    },
+    "filterExpression": {
+      "type": "object",
+      "description": "Dynamic request filter parameter resolved from form, instance, or component parameters.",
+      "required": [
+        "param",
+        "value"
+      ],
+      "properties": {
+        "param": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "x-lov": {
+      "type": "object",
+      "description": "List-of-values data source definition for dropdown and selection components.",
+      "required": [
+        "source",
+        "valueField",
+        "displayField"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "URN of the data source function."
+        },
+        "valueField": {
+          "type": "string",
+          "minLength": 1,
+          "description": "JSONPath expression for the option value."
+        },
+        "displayField": {
+          "type": "string",
+          "minLength": 1,
+          "description": "JSONPath expression for the option display label."
+        },
+        "filter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/filterExpression"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "x-lookup": {
+      "type": "object",
+      "description": "Single-record enrichment source definition.",
+      "required": [
+        "source",
+        "resultField"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "URN of the data source function."
+        },
+        "resultField": {
+          "type": "string",
+          "minLength": 1,
+          "description": "JSONPath expression for the returned object."
+        },
+        "filter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/filterExpression"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "object",
+      "description": "Conditional visibility or enablement expression.",
+      "anyOf": [
+        {
+          "required": [
+            "field",
+            "operator"
+          ]
+        },
+        {
+          "required": [
+            "allOf"
+          ]
+        },
+        {
+          "required": [
+            "anyOf"
+          ]
+        },
+        {
+          "required": [
+            "not"
+          ]
+        }
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "equals",
+            "notEquals",
+            "in",
+            "notIn",
+            "isEmpty",
+            "isNotEmpty",
+            "contains",
+            "greaterThan",
+            "lessThan"
+          ]
+        },
+        "value": {},
+        "allOf": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/condition"
+          },
+          "minItems": 1
+        },
+        "anyOf": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/condition"
+          },
+          "minItems": 1
+        },
+        "not": {
+          "$ref": "#/definitions/condition"
+        }
+      },
+      "additionalProperties": false
+    },
+    "x-conditional": {
+      "type": "object",
+      "description": "Conditional visibility and enablement rules for a schema property.",
+      "properties": {
+        "showIf": {
+          "$ref": "#/definitions/condition"
+        },
+        "hideIf": {
+          "$ref": "#/definitions/condition"
+        },
+        "enableIf": {
+          "$ref": "#/definitions/condition"
+        },
+        "disableIf": {
+          "$ref": "#/definitions/condition"
+        }
+      },
+      "additionalProperties": false,
+      "minProperties": 1
+    },
+    "x-binding": {
+      "type": "string",
+      "description": "Nested component binding requirement.",
+      "enum": [
+        "required",
+        "optional"
+      ]
+    },
+    "x-encryption": {
+      "type": "object",
+      "description": "Encryption metadata for data fields.",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "persisted",
+            "transport"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "x-validation": {
+      "type": "object",
+      "description": "Backend-defined custom validation rule metadata.",
+      "required": [
+        "rule"
+      ],
+      "properties": {
+        "rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parameters": {
+          "type": "object"
+        },
+        "errorMessages": {
+          "$ref": "#/definitions/localizedText"
+        }
+      },
+      "additionalProperties": false
+    },
+    "viewDocument": {
+      "type": "object",
+      "description": "Lightweight vNext view document root contract.",
+      "required": [
+        "$schema",
+        "dataSchema",
+        "view"
+      ],
+      "properties": {
+        "$schema": {
+          "type": "string",
+          "const": "https://amorphie.io/meta/view-vocabulary/1.0"
+        },
+        "dataSchema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lookups": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "uiState": {
+          "type": "object"
+        },
+        "view": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
