@@ -10,18 +10,32 @@ function createAjv(schema) {
   return new Ajv({ allErrors: true, verbose: true });
 }
 
-// Schema files directory
-const schemasDir = path.join(__dirname, '../schemas');
+// Schema files directories
+const schemaDirs = [
+  {
+    path: path.join(__dirname, '../schemas'),
+    filter: file => file.endsWith('.schema.json')
+  },
+  {
+    path: path.join(__dirname, '../vocabularies'),
+    filter: file => file.endsWith('.json')
+  }
+];
 
 // Test function
 function validateSchemas() {
   console.log('🔍 JSON Schema validation starting...\n');
   
   let allValid = true;
-  const schemaFiles = fs.readdirSync(schemasDir).filter(file => file.endsWith('.schema.json'));
+  const schemaFiles = schemaDirs.flatMap(schemaDir => fs
+    .readdirSync(schemaDir.path)
+    .filter(schemaDir.filter)
+    .map(file => ({
+      file,
+      filePath: path.join(schemaDir.path, file)
+    })));
   
-  schemaFiles.forEach(file => {
-    const filePath = path.join(schemasDir, file);
+  schemaFiles.forEach(({ file, filePath }) => {
     console.log(`📄 ${file} validating...`);
     
     try {

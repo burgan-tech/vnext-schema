@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/roles-vocab.json",
+  "x-stableId": "https://unpkg.com/@burgan-tech/vnext-schema/vocabularies/roles-vocab.json",
   "title": "vNext Roles Vocabulary",
   "description": "Vocabulary for role grant. Reusable in queryRoles, roles arrays, and field-level visibility (e.g. master schema). DENY overrides ALLOW.",
   "definitions": {
