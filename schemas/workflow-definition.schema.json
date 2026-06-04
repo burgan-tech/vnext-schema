@@ -161,7 +161,7 @@
           ],
           "description": "Exit transition definition. Only manual trigger (triggerType: 0) is allowed."
         },
-         "updateData": {
+        "updateData": {
           "anyOf": [
             {
               "$ref": "#/definitions/updateDataTransition"
@@ -184,19 +184,23 @@
                 "const": 1
               }
             },
-            "required": ["stateType"]
+            "required": [
+              "stateType"
+            ]
           },
           "minContains": 1,
           "maxContains": 1
         },
         "schema": {
-          "type": "object",
           "description": "Master schema definition for the workflow to validate the data",
-          "properties": {
-            "schema": {
+          "anyOf": [
+            {
               "$ref": "#/definitions/reference"
+            },
+            {
+              "type": "null"
             }
-          }
+          ]
         },
         "queryRoles": {
           "type": "array",
@@ -211,7 +215,10 @@
   "definitions": {
     "roleGrant": {
       "type": "object",
-      "required": ["role", "grant"],
+      "required": [
+        "role",
+        "grant"
+      ],
       "properties": {
         "role": {
           "type": "string",
@@ -219,7 +226,10 @@
         },
         "grant": {
           "type": "string",
-          "enum": ["allow", "deny"],
+          "enum": [
+            "allow",
+            "deny"
+          ],
           "description": "DENY always overrides ALLOW"
         }
       },
@@ -504,7 +514,10 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["G", "L"],
+          "enum": [
+            "G",
+            "L"
+          ],
           "enumDescriptions": [
             "Global",
             "Local"
@@ -523,7 +536,10 @@
         "encoding": {
           "type": "string",
           "description": "Code encoding format",
-          "enum": ["B64", "NAT"],
+          "enum": [
+            "B64",
+            "NAT"
+          ],
           "default": "B64"
         }
       },
@@ -539,7 +555,9 @@
         "required": []
       },
       "else": {
-        "required": ["code"]
+        "required": [
+          "code"
+        ]
       }
     },
     "subFlow": {
@@ -714,7 +732,7 @@
               }
             },
             "view": {
-                  "$ref": "#/definitions/viewDefinition"
+              "$ref": "#/definitions/viewDefinition"
             },
             "onExecutionTasks": {
               "type": "array",
@@ -808,7 +826,9 @@
             }
           },
           "then": {
-            "required": ["rule"],
+            "required": [
+              "rule"
+            ],
             "properties": {
               "rule": {
                 "$ref": "#/definitions/scriptCode"
@@ -837,7 +857,9 @@
             }
           },
           "then": {
-            "required": ["timer"],
+            "required": [
+              "timer"
+            ],
             "properties": {
               "timer": {
                 "$ref": "#/definitions/scriptCode"
@@ -862,8 +884,12 @@
             "properties": {
               "triggerType": {
                 "anyOf": [
-                  { "const": 0 },
-                  { "const": 3 }
+                  {
+                    "const": 0
+                  },
+                  {
+                    "const": 3
+                  }
                 ]
               }
             }
@@ -947,7 +973,11 @@
             },
             "triggerType": {
               "type": "integer",
-              "enum": [0, 2, 3],
+              "enum": [
+                0,
+                2,
+                3
+              ],
               "description": "Trigger type for shared transitions: Manual (0), Scheduled (2), Event (3)"
             },
             "availableIn": {
@@ -1046,7 +1076,9 @@
             }
           },
           "then": {
-            "required": ["timer"],
+            "required": [
+              "timer"
+            ],
             "properties": {
               "timer": {
                 "$ref": "#/definitions/scriptCode"
@@ -1071,8 +1103,12 @@
             "properties": {
               "triggerType": {
                 "anyOf": [
-                  { "const": 0 },
-                  { "const": 3 }
+                  {
+                    "const": 0
+                  },
+                  {
+                    "const": 3
+                  }
                 ]
               }
             }
@@ -1219,7 +1255,7 @@
         "target": {
           "type": "string",
           "description": "Target state key when cancel is executed",
-         "pattern": "^(\\$self|[a-z0-9-]+)$"
+          "pattern": "^(\\$self|[a-z0-9-]+)$"
         },
         "from": {
           "type": "string",
@@ -1301,7 +1337,7 @@
       },
       "additionalProperties": false
     },
-     "exitTransition": {
+    "exitTransition": {
       "type": "object",
       "required": [
         "key",
@@ -1323,7 +1359,7 @@
         "target": {
           "type": "string",
           "description": "Target state key when exit is executed",
-         "pattern": "^(\\$self|[a-z0-9-]+)$"
+          "pattern": "^(\\$self|[a-z0-9-]+)$"
         },
         "from": {
           "type": "string",
@@ -1405,7 +1441,7 @@
       },
       "additionalProperties": false
     },
-     "updateDataTransition": {
+    "updateDataTransition": {
       "type": "object",
       "required": [
         "key",
@@ -1560,7 +1596,7 @@
           }
         },
         "view": {
-           "$ref": "#/definitions/viewDefinition"
+          "$ref": "#/definitions/viewDefinition"
         },
         "subFlow": {
           "anyOf": [
@@ -1610,12 +1646,58 @@
           "items": {
             "$ref": "#/definitions/roleGrant"
           }
+        },
+        "alias": {
+          "type": "array",
+          "description": "Optional role-scoped aliases for the state. Each alias provides alternative multi-language labels for a state, shown to users matching the alias roles.",
+          "items": {
+            "$ref": "#/definitions/stateAlias"
+          }
         }
       }
     },
+    "stateAlias": {
+      "type": "object",
+      "description": "Role-scoped alias for a state, providing alternative multi-language labels for users matching the given roles.",
+      "required": [
+        "name",
+        "roles",
+        "labels"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Alias name"
+        },
+        "roles": {
+          "type": "array",
+          "description": "Roles for which this alias applies. DENY overrides ALLOW.",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/roleGrant"
+          }
+        },
+        "labels": {
+          "type": "array",
+          "description": "Multi-language labels for the alias",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/languageLabel"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "errorAction": {
       "type": "integer",
-      "enum": [0, 1, 2, 3, 4, 5],
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
       "enumDescriptions": [
         "Abort (0) - Abort execution. Transition must not be set.",
         "Retry (1) - Retry with configured retry policy. RetryPolicy is required.",
@@ -1628,7 +1710,10 @@
     },
     "backoffType": {
       "type": "integer",
-      "enum": [0, 1],
+      "enum": [
+        0,
+        1
+      ],
       "enumDescriptions": [
         "Fixed - Fixed delay between retries",
         "Exponential - Exponential backoff between retries"
@@ -1639,7 +1724,9 @@
     "retryPolicy": {
       "type": "object",
       "description": "Configures retry behavior for error handling. Required when error action is Retry. InitialDelay must be a positive duration; MaxDelay must be greater than or equal to InitialDelay. For BackoffType Exponential, backoffMultiplier must be greater than 0.",
-      "required": ["initialDelay"],
+      "required": [
+        "initialDelay"
+      ],
       "properties": {
         "maxRetries": {
           "type": "integer",
@@ -1676,14 +1763,24 @@
     "errorHandlerRule": {
       "type": "object",
       "description": "A single error handling rule within an error boundary",
-      "required": ["action"],
+      "required": [
+        "action"
+      ],
       "if": {
-        "properties": { "action": { "const": 0 } },
-        "required": ["action"]
+        "properties": {
+          "action": {
+            "const": 0
+          }
+        },
+        "required": [
+          "action"
+        ]
       },
       "then": {
         "properties": {
-          "transition": { "maxLength": 0 }
+          "transition": {
+            "maxLength": 0
+          }
         },
         "description": "When action is Abort (0), transition must not be set (backend will reject non-empty transition)."
       },
@@ -1731,12 +1828,20 @@
       "type": "object",
       "description": "Timeout-specific error handling policy. When action is Retry, defaultRetryPolicy is required. Transition must not be set when action is Abort. Transition must reference a valid workflow state key.",
       "if": {
-        "properties": { "action": { "const": 0 } },
-        "required": ["action"]
+        "properties": {
+          "action": {
+            "const": 0
+          }
+        },
+        "required": [
+          "action"
+        ]
       },
       "then": {
         "properties": {
-          "transition": { "maxLength": 0 }
+          "transition": {
+            "maxLength": 0
+          }
         },
         "description": "When action is Abort (0), transition must not be set (backend will reject non-empty transition)."
       },
