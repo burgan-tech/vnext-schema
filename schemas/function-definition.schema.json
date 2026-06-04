@@ -275,6 +275,10 @@
                     "items": {
                         "$ref": "#/definitions/roleGrant"
                     }
+                },
+                "rawResponse": {
+                    "type": "boolean",
+                    "description": "When true, the function returns the task response as-is without wrapping/transformation."
                 }
             },
             "additionalProperties": false
