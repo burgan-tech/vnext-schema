@@ -64,6 +64,34 @@
       },
       "minProperties": 1
     },
+    "x-roles": {
+      "type": "array",
+      "description": "Role-based visibility/permission grants for a view or field. Roles may be domain-qualified names or dynamic expressions. DENY overrides ALLOW.",
+      "items": {
+        "type": "object",
+        "required": [
+          "role",
+          "grant"
+        ],
+        "properties": {
+          "role": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Role name (e.g. morph-idm.initiator) or dynamic expression (e.g. $userBehalfOf.$.context.Instance.Data.initial.customer.ownerUserId)."
+          },
+          "grant": {
+            "type": "string",
+            "enum": [
+              "allow",
+              "deny"
+            ],
+            "description": "DENY always overrides ALLOW"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
     "filterExpression": {
       "type": "object",
       "description": "Dynamic request filter parameter resolved from form, instance, or component parameters.",
