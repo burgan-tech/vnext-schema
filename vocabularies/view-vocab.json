@@ -92,6 +92,38 @@
       },
       "minItems": 1
     },
+    "x-filterOperators": {
+      "type": "array",
+      "description": "Allowed filter operators for this field. Empty or absent means the field is not filterable. Operator semantics depend on the field's JSON type (number/integer: numeric compare; string + gt/lt/ge/le/between: date compare; string + eq/like/startswith/endswith: text compare; boolean: equality; array: includes).",
+      "items": {
+        "type": "string",
+        "enum": [
+          "eq",
+          "ne",
+          "gt",
+          "ge",
+          "lt",
+          "le",
+          "between",
+          "match",
+          "like",
+          "startswith",
+          "endswith",
+          "in",
+          "nin"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "x-sortable": {
+      "type": "boolean",
+      "description": "When true, the field is sortable. Absent means not sortable."
+    },
+    "x-displayFormat": {
+      "type": "string",
+      "minLength": 1,
+      "description": "UI-facing format hint (e.g. yyyy-MM-dd'T'HH:mm:ssXXX)."
+    },
     "filterExpression": {
       "type": "object",
       "description": "Dynamic request filter parameter resolved from form, instance, or component parameters.",

@@ -1,0 +1,96 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/schemas/mapping-definition.schema.json",
+    "title": "vNext Mapping Definition",
+    "description": "Schema for vNext Mapping Component Definition JSON files (sys-mappings flow)",
+    "type": "object",
+    "required": [
+        "key",
+        "version",
+        "domain",
+        "flow",
+        "flowVersion",
+        "tags",
+        "attributes"
+    ],
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "JSON Schema reference",
+            "format": "uri"
+        },
+        "key": {
+            "type": "string",
+            "description": "Mapping key identifier",
+            "pattern": "^[a-z0-9-]+$"
+        },
+        "version": {
+            "type": "string",
+            "description": "Version in Major.Minor.Patch format",
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
+        },
+        "domain": {
+            "type": "string",
+            "description": "Domain identifier",
+            "pattern": "^[a-z0-9-]+$"
+        },
+        "flow": {
+            "type": "string",
+            "description": "Flow identifier for mappings",
+            "const": "sys-mappings"
+        },
+        "flowVersion": {
+            "type": "string",
+            "description": "Flow version",
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
+        },
+        "tags": {
+            "type": "array",
+            "description": "Mapping tags",
+            "items": {
+                "type": "string"
+            },
+            "minItems": 1
+        },
+        "_comment": {
+            "type": "string",
+            "description": "Comment about the mapping"
+        },
+        "attributes": {
+            "type": "object",
+            "description": "Mapping definition attributes",
+            "required": [
+                "name",
+                "code",
+                "encoding"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Mapping helper/class name (e.g. JsonHelper)",
+                    "minLength": 1
+                },
+                "location": {
+                    "type": "string",
+                    "description": "Code file location",
+                    "pattern": "^\\./.*\\.csx$"
+                },
+                "code": {
+                    "type": "string",
+                    "description": "Mapping code content (may be empty when sourced from location)"
+                },
+                "encoding": {
+                    "type": "string",
+                    "description": "Code encoding format. sys-mappings cannot be REF (it is itself the reference target).",
+                    "enum": [
+                        "B64",
+                        "NAT"
+                    ],
+                    "default": "B64"
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false
+}

@@ -79,6 +79,9 @@
             "Sub Process"
           ]
         },
+        "scripts": {
+          "$ref": "#/definitions/scripts"
+        },
         "timeout": {
           "anyOf": [
             {
@@ -526,8 +529,15 @@
           "description": "Script type - Global or Local"
         },
         "code": {
-          "type": "string",
-          "description": "Script code content"
+          "description": "Script code content (string), or a sys-mappings reference when encoding is REF.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/mappingRef"
+            }
+          ]
         },
         "location": {
           "type": "string",
@@ -538,27 +548,111 @@
           "description": "Code encoding format",
           "enum": [
             "B64",
-            "NAT"
+            "NAT",
+            "REF"
           ],
           "default": "B64"
+        },
+        "scripts": {
+          "$ref": "#/definitions/scripts"
         }
       },
       "additionalProperties": false,
-      "if": {
-        "properties": {
-          "type": {
-            "const": "G"
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "G"
+              }
+            }
+          },
+          "then": {
+            "required": []
+          },
+          "else": {
+            "required": [
+              "code"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "encoding": {
+                "const": "REF"
+              }
+            },
+            "required": [
+              "encoding"
+            ]
+          },
+          "then": {
+            "required": [
+              "code"
+            ],
+            "properties": {
+              "code": {
+                "$ref": "#/definitions/mappingRef"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "code": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "mappingRef": {
+      "type": "object",
+      "description": "Reference to a sys-mappings component.",
+      "required": [
+        "key",
+        "version",
+        "domain",
+        "flow"
+      ],
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "flow": {
+          "type": "string",
+          "const": "sys-mappings"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scripts": {
+      "type": "object",
+      "description": "Helper script references and allowed assemblies for mapping execution.",
+      "properties": {
+        "helpers": {
+          "type": "array",
+          "description": "References to sys-mappings helper components.",
+          "items": {
+            "$ref": "#/definitions/mappingRef"
+          }
+        },
+        "allowedAssemblies": {
+          "type": "array",
+          "description": "Allowed .NET assemblies for the script execution context.",
+          "items": {
+            "type": "string"
           }
         }
       },
-      "then": {
-        "required": []
-      },
-      "else": {
-        "required": [
-          "code"
-        ]
-      }
+      "additionalProperties": false
     },
     "subFlow": {
       "anyOf": [
@@ -1270,13 +1364,6 @@
           "const": 0,
           "description": "Cancel transition must be manual trigger only"
         },
-        "availableIn": {
-          "type": "array",
-          "description": "List of states where this cancel transition can be used",
-          "items": {
-            "type": "string"
-          }
-        },
         "schema": {
           "anyOf": [
             {
@@ -1374,13 +1461,6 @@
           "const": 0,
           "description": "Exit transition must be manual trigger only"
         },
-        "availableIn": {
-          "type": "array",
-          "description": "List of states where this exit transition can be used",
-          "items": {
-            "type": "string"
-          }
-        },
         "schema": {
           "anyOf": [
             {
@@ -1477,13 +1557,6 @@
           "type": "integer",
           "const": 0,
           "description": "update data transition must be manual trigger only"
-        },
-        "availableIn": {
-          "type": "array",
-          "description": "List of states where this update data transition can be used",
-          "items": {
-            "type": "string"
-          }
         },
         "schema": {
           "anyOf": [
