@@ -15,6 +15,7 @@ This package provides comprehensive JSON Schema definitions used by the vNext ec
 - **Function Definition**: Schema for function component definitions (`sys-functions`)
 - **Extension Definition**: Schema for extension component definitions (`sys-extensions`)
 - **Schema Definition**: Meta-schema for schema definitions (`sys-schemas`)
+- **Mapping Definition**: Schema for mapping component definitions (`sys-mappings`)
 - **Core Header**: Schema for runtime HTTP headers and metadata (`sys-schemas`)
 
 ## Installation
