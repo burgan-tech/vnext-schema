@@ -238,7 +238,6 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
 | roles | roleGrant[] | No | No | Authorization roles |
-| availableIn | string[] | No | No | States where cancel is available |
 | from | string | No | No | `^[a-z0-9-]+$` |
 | annotations | object | No | Yes | Key-value metadata (since 0.0.42) |
 | _comment | string | No | No | - |
@@ -263,7 +262,6 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
 | roles | roleGrant[] | No | No | Authorization roles |
-| availableIn | string[] | No | No | States where exit is available |
 | from | string | No | No | `^[a-z0-9-]+$` |
 | annotations | object | No | Yes | Key-value metadata (since 0.0.42) |
 | _comment | string | No | No | - |
@@ -288,7 +286,6 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
 | roles | roleGrant[] | No | No | Authorization roles |
-| availableIn | string[] | No | No | States where update is available |
 | from | string | No | No | `^[a-z0-9-]+$` |
 | annotations | object | No | Yes | Key-value metadata (since 0.0.42) |
 | _comment | string | No | No | - |
