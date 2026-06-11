@@ -306,31 +306,117 @@
                     "pattern": "^\\./.*\\.csx$"
                 },
                 "code": {
-                    "type": "string",
-                    "description": "Mapping code content",
-                    "minLength": 1
+                    "description": "Mapping code content (string), or a sys-mappings reference when encoding is REF.",
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        {
+                            "$ref": "#/definitions/mappingRef"
+                        }
+                    ]
                 },
                 "encoding": {
                     "type": "string",
                     "description": "Code encoding format",
-                    "enum": ["B64", "NAT"],
+                    "enum": ["B64", "NAT", "REF"],
                     "default": "B64"
+                },
+                "scripts": {
+                    "$ref": "#/definitions/scripts"
                 }
             },
             "additionalProperties": false,
-            "if": {
-                "properties": {
-                    "type": {
-                        "const": "G"
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "G"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": []
+                    },
+                    "else": {
+                        "required": ["code"]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "encoding": {
+                                "const": "REF"
+                            }
+                        },
+                        "required": ["encoding"]
+                    },
+                    "then": {
+                        "required": ["code"],
+                        "properties": {
+                            "code": {
+                                "$ref": "#/definitions/mappingRef"
+                            }
+                        }
+                    },
+                    "else": {
+                        "properties": {
+                            "code": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "mappingRef": {
+            "type": "object",
+            "description": "Reference to a sys-mappings component.",
+            "required": [
+                "key",
+                "version",
+                "domain",
+                "flow"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "flow": {
+                    "type": "string",
+                    "const": "sys-mappings"
+                }
+            },
+            "additionalProperties": false
+        },
+        "scripts": {
+            "type": "object",
+            "description": "Helper script references and allowed assemblies for mapping execution.",
+            "properties": {
+                "helpers": {
+                    "type": "array",
+                    "description": "References to sys-mappings helper components.",
+                    "items": {
+                        "$ref": "#/definitions/mappingRef"
+                    }
+                },
+                "allowedAssemblies": {
+                    "type": "array",
+                    "description": "Allowed .NET assemblies for the script execution context.",
+                    "items": {
+                        "type": "string"
                     }
                 }
             },
-            "then": {
-                "required": []
-            },
-            "else": {
-                "required": ["code"]
-            }
+            "additionalProperties": false
         },
         "roleGrant": {
             "type": "object",
