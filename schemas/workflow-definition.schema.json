@@ -1726,6 +1726,17 @@
           "items": {
             "$ref": "#/definitions/stateAlias"
           }
+        },
+        "interaction": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/interaction"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional state interaction configuration (e.g. long polling)."
         }
       }
     },
@@ -2072,6 +2083,43 @@
       "additionalProperties": {
         "type": "string"
       }
+    },
+    "interaction": {
+      "type": "object",
+      "description": "State interaction configuration.",
+      "properties": {
+        "longPoll": {
+          "$ref": "#/definitions/longPoll"
+        }
+      },
+      "additionalProperties": false
+    },
+    "longPoll": {
+      "type": "object",
+      "description": "Long polling configuration for the state. The runtime keeps the request open until a transition occurs or the fallback timeout elapses.",
+      "required": [
+        "terminate",
+        "roles"
+      ],
+      "properties": {
+        "terminate": {
+          "type": "boolean",
+          "description": "Whether the long poll terminates the open request when the state is left."
+        },
+        "fallbackTimeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of seconds to hold the request open before falling back."
+        },
+        "roles": {
+          "type": "array",
+          "description": "Roles allowed to use the long poll interaction. DENY overrides ALLOW.",
+          "items": {
+            "$ref": "#/definitions/roleGrant"
+          }
+        }
+      },
+      "additionalProperties": false
     }
   }
 }
