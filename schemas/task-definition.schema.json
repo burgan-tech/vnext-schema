@@ -459,6 +459,10 @@
                                         "type": "object",
                                         "description": "HTTP request body"
                                     },
+                                    "contentType": {
+                                        "type": "string",
+                                        "description": "Content-Type header for the HTTP request body (e.g. application/json)."
+                                    },
                                     "timeoutSeconds": {
                                         "type": "integer",
                                         "minimum": 1,
