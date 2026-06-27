@@ -1737,6 +1737,13 @@
             }
           ],
           "description": "Optional state interaction configuration (e.g. long polling)."
+        },
+        "notifications": {
+          "type": "array",
+          "description": "Notification definitions attached to this state.",
+          "items": {
+            "$ref": "#/definitions/stateNotification"
+          }
         }
       }
     },
@@ -2117,6 +2124,40 @@
           "items": {
             "$ref": "#/definitions/roleGrant"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "stateNotification": {
+      "type": "object",
+      "description": "Notification configuration attached to a state.",
+      "required": [
+        "type",
+        "mapping"
+      ],
+      "properties": {
+        "type": {
+          "type": "integer",
+          "enum": [
+            0
+          ],
+          "enumDescriptions": [
+            "State"
+          ],
+          "description": "Notification type. Currently only State (0) is supported."
+        },
+        "mapping": {
+          "$ref": "#/definitions/scriptCode"
+        },
+        "rule": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false
