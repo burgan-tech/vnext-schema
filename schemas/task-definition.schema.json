@@ -82,7 +82,8 @@
                         "13",
                         "14",
                         "15",
-                        "16"
+                        "16",
+                        "17"
                     ],
                     "enumDescriptions": [
                         "Dapr HTTP Endpoint",
@@ -100,7 +101,8 @@
                         "Get Instance Data Task",
                         "SubProcess Task",
                         "Get Instances Task",
-                        "SOAP Task"
+                        "SOAP Task",
+                        "State Store Task"
                     ]
                 }
             },
@@ -1128,6 +1130,100 @@
                                 },
                                 "required": [
                                     "url"
+                                ],
+                                "additionalProperties": false
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "config"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "17"
+                            }
+                        }
+                    },
+                    "then": {
+                        "title": "State Store Task",
+                        "properties": {
+                            "type": {
+                                "const": "17"
+                            },
+                            "config": {
+                                "type": "object",
+                                "description": "State Store Task configuration - Accesses a Dapr state store component to cache data within the workflow pipeline",
+                                "properties": {
+                                    "command": {
+                                        "type": "string",
+                                        "enum": [
+                                            "get",
+                                            "set",
+                                            "delete"
+                                        ],
+                                        "description": "Command to execute"
+                                    },
+                                    "storeName": {
+                                        "type": "string",
+                                        "description": "Optional Dapr state store component name. When empty, the executing runtime's DAPR_STATE_STORE_NAME configuration value is used."
+                                    },
+                                    "key": {
+                                        "type": "string",
+                                        "description": "Cache key targeted by get, set and single-key delete"
+                                    },
+                                    "keys": {
+                                        "type": "array",
+                                        "description": "Optional list of keys for bulk delete",
+                                        "items": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        "minItems": 1
+                                    },
+                                    "query": {
+                                        "type": "object",
+                                        "description": "Optional Dapr state Query API filter (JSON) for tag/pattern based delete"
+                                    },
+                                    "value": {
+                                        "description": "Value written by set (any JSON value)"
+                                    },
+                                    "ttlInSeconds": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "description": "Optional time-to-live in seconds applied on set (Dapr ttlInSeconds metadata)"
+                                    },
+                                    "etag": {
+                                        "type": "string",
+                                        "description": "Optional ETag for optimistic concurrency on read/write"
+                                    },
+                                    "concurrency": {
+                                        "type": "string",
+                                        "enum": [
+                                            "FirstWrite",
+                                            "LastWrite"
+                                        ],
+                                        "description": "Optional concurrency mode"
+                                    },
+                                    "consistency": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Eventual",
+                                            "Strong"
+                                        ],
+                                        "description": "Optional consistency mode"
+                                    },
+                                    "metadata": {
+                                        "type": "object",
+                                        "description": "Optional additional metadata passed to the Dapr state store operation"
+                                    }
+                                },
+                                "required": [
+                                    "command"
                                 ],
                                 "additionalProperties": false
                             }

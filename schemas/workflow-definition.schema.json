@@ -211,6 +211,17 @@
           "items": {
             "$ref": "#/definitions/roleGrant"
           }
+        },
+        "output": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional output mapping for the workflow. Based on ScriptCode definition."
         }
       }
     }
