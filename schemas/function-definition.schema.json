@@ -279,6 +279,51 @@
                 "rawResponse": {
                     "type": "boolean",
                     "description": "When true, the function returns the task response as-is without wrapping/transformation."
+                },
+                "cache": {
+                    "type": "object",
+                    "description": "Optional read-through cache configuration. When set, the function's response is served from the cache on a hit (tasks skipped) and written to the cache on a miss. Only side-effect-free (read) functions should enable this.",
+                    "properties": {
+                        "keyExpression": {
+                            "description": "Optional Dynamic Expresso expression (a ScriptCode with location 'dynamicExpresso') that computes the cache key from the request/script context and returns a string. Takes precedence over 'key'.",
+                            "allOf": [
+                                { "$ref": "#/definitions/scriptExpression" }
+                            ]
+                        },
+                        "key": {
+                            "type": "string",
+                            "description": "Optional static cache key, used when keyExpression is absent."
+                        },
+                        "storeName": {
+                            "type": "string",
+                            "description": "Optional Dapr state store component name. When empty, the executing runtime's DAPR_STATE_STORE_NAME configuration value is used."
+                        },
+                        "ttlInSeconds": {
+                            "type": "integer",
+                            "description": "Optional time-to-live in seconds for the cached response. Null or non-positive means no expiry."
+                        },
+                        "consistency": {
+                            "type": "string",
+                            "enum": ["Eventual", "Strong"],
+                            "description": "Optional consistency mode: Eventual (default) or Strong."
+                        },
+                        "bypassOnCacheError": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "When true (default), cache read/write failures fall back to executing the function instead of failing the request; when false, a cache error surfaces as a failure."
+                        },
+                        "generationKeyExpression": {
+                            "description": "Optional Dynamic Expresso expression resolving to the state key that holds this config's cache generation stamp. When configured, the runtime folds the stamp into the cache key for generation-namespace invalidation. Takes precedence over generationKey.",
+                            "allOf": [
+                                { "$ref": "#/definitions/scriptExpression" }
+                            ]
+                        },
+                        "generationKey": {
+                            "type": "string",
+                            "description": "Optional static state key holding the cache generation stamp (used when generationKeyExpression is absent)."
+                        }
+                    },
+                    "additionalProperties": false
                 }
             },
             "additionalProperties": false
@@ -414,6 +459,41 @@
                     "items": {
                         "type": "string"
                     }
+                }
+            },
+            "additionalProperties": false
+        },
+        "scriptExpression": {
+            "type": "object",
+            "description": "A ScriptCode expression used by cache key sources. For Dynamic Expresso key expressions, location is 'dynamicExpresso' and code is the expression string.",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": ["G", "L"],
+                    "enumDescriptions": [
+                        "Global",
+                        "Local"
+                    ],
+                    "default": "L",
+                    "description": "Script type - Global or Local"
+                },
+                "location": {
+                    "type": "string",
+                    "description": "Script location. Use 'dynamicExpresso' for Dynamic Expresso expressions."
+                },
+                "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Expression or script code content."
+                },
+                "encoding": {
+                    "type": "string",
+                    "description": "Code encoding format",
+                    "enum": ["B64", "NAT", "REF"],
+                    "default": "B64"
+                },
+                "scripts": {
+                    "$ref": "#/definitions/scripts"
                 }
             },
             "additionalProperties": false
