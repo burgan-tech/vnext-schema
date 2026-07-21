@@ -222,6 +222,17 @@
             }
           ],
           "description": "Optional output mapping for the workflow. Based on ScriptCode definition."
+        },
+        "event": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/event"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional workflow-level event definition. When present, an external event may start a new instance of this workflow (action=start). Independent of any transition-level event."
         }
       }
     }
@@ -522,6 +533,19 @@
           "additionalProperties": false
         }
       ]
+    },
+    "event": {
+      "type": "object",
+      "description": "Event mapping for the event-workflow feature. The referenced mapping script (implements IEventMapping) turns the raw external event payload into an InstanceKey + Body.",
+      "required": [
+        "mapping"
+      ],
+      "properties": {
+        "mapping": {
+          "$ref": "#/definitions/scriptCode"
+        }
+      },
+      "additionalProperties": false
     },
     "scriptCode": {
       "type": "object",
@@ -874,6 +898,17 @@
                 }
               ],
               "description": "Key-value annotations for the transition"
+            },
+            "event": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/event"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional transition-level event definition. When present, this transition can also be triggered by an external event (action=transition). Required when triggerType is Event (3)."
             }
           }
         },
@@ -1039,6 +1074,23 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 3
+              }
+            },
+            "required": [
+              "triggerType"
+            ]
+          },
+          "then": {
+            "required": [
+              "event"
+            ]
+          }
         }
       ]
     },
@@ -1169,6 +1221,17 @@
                 }
               ],
               "description": "Key-value annotations for the transition"
+            },
+            "event": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/event"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional transition-level event definition. When present, this shared transition can also be triggered by an external event (action=transition). Required when triggerType is Event (3)."
             }
           }
         },
@@ -1260,6 +1323,23 @@
                 "type": "null"
               }
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 3
+              }
+            },
+            "required": [
+              "triggerType"
+            ]
+          },
+          "then": {
+            "required": [
+              "event"
+            ]
           }
         }
       ]

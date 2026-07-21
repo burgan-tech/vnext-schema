@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/data-vocab.json",
+  "x-stableId": "https://unpkg.com/@burgan-tech/vnext-schema/vocabularies/data-vocab.json",
+  "title": "vNext Data Context Vocabulary",
+  "description": "Vocabulary for schema-driven context-store binding. Provides reusable definitions for the x-context-source and x-context-target annotations that let a generic client wire a flow's inputs from, and persist its reusable outputs to, the client context-store purely from backend schemas. Backwards compatible: standard JSON Schema validators ignore these unknown x-* keywords, so a schema without them behaves exactly as today.",
+  "definitions": {
+    "contextSlot": {
+      "type": "object",
+      "description": "A context-store data slot. Usable as an x-context-source value (read) and as an x-context-target destination (write). The key template may interpolate {instance} (instance id) and {subject} (active subject); omit {instance} for cross-flow singletons that should live at a stable key.",
+      "required": [
+        "context"
+      ],
+      "properties": {
+        "context": {
+          "type": "object",
+          "required": [
+            "boundary",
+            "key"
+          ],
+          "properties": {
+            "boundary": {
+              "type": "string",
+              "enum": [
+                "device",
+                "user",
+                "subject"
+              ],
+              "description": "Context-store boundary the slot lives in."
+            },
+            "key": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Context-store key template. May interpolate {instance} and {subject}. Available template vars: {instance} (instance id), {subject} (active subject)."
+            },
+            "storage": {
+              "type": "string",
+              "enum": [
+                "memory",
+                "local",
+                "secure"
+              ],
+              "description": "Optional storage tier for the slot."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "identityRef": {
+      "type": "object",
+      "description": "A reference to a context-store identity (source only). Resolves to activeSubject (JWT sub) or activeUser.",
+      "required": [
+        "identity"
+      ],
+      "properties": {
+        "identity": {
+          "type": "string",
+          "enum": [
+            "subject",
+            "user"
+          ],
+          "description": "The context-store identity: 'subject' (active subject / JWT sub, e.g. the logged-in userId) or 'user' (active user)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "constLiteral": {
+      "type": "object",
+      "description": "A literal value baked into the schema (source only). Injected verbatim without prompting the user.",
+      "required": [
+        "const"
+      ],
+      "properties": {
+        "const": {
+          "description": "Any literal JSON value injected verbatim as the resolved input value."
+        }
+      },
+      "additionalProperties": false
+    },
+    "x-context-source": {
+      "description": "Annotation on a property of a transition-input schema. Marks the property as client-resolved rather than user input (the client does not render a form field for it). Resolved from one of: a literal (const), a context-store slot (context), or the context-store identity (identity).",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/constLiteral"
+        },
+        {
+          "$ref": "#/definitions/contextSlot"
+        },
+        {
+          "$ref": "#/definitions/identityRef"
+        }
+      ]
+    },
+    "x-context-target": {
+      "type": "object",
+      "description": "Annotation on a workflow master schema. Maps instance-data field paths (dot-notation; the target key may interpolate {instance}) to context-store slots. The client applies it on every instance read (start result, after each transition), so values that appear only after a transition propagate to the context-store and become available to later flows via x-context-source. Write destinations are context-store slots only (const and identity are source-only).",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/definitions/contextSlot"
+      }
+    }
+  }
+}

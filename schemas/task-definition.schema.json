@@ -83,7 +83,9 @@
                         "14",
                         "15",
                         "16",
-                        "17"
+                        "17",
+                        "18",
+                        "19"
                     ],
                     "enumDescriptions": [
                         "Dapr HTTP Endpoint",
@@ -102,7 +104,9 @@
                         "SubProcess Task",
                         "Get Instances Task",
                         "SOAP Task",
-                        "State Store Task"
+                        "State Store Task",
+                        "Cache Aside Task",
+                        "Get Instance Task"
                     ]
                 }
             },
@@ -1224,6 +1228,262 @@
                                 },
                                 "required": [
                                     "command"
+                                ],
+                                "additionalProperties": false
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "config"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "18"
+                            }
+                        }
+                    },
+                    "then": {
+                        "title": "Cache Aside Task",
+                        "properties": {
+                            "type": {
+                                "const": "18"
+                            },
+                            "config": {
+                                "type": "object",
+                                "description": "Cache Aside Task configuration - Read-through cache pattern: reads from a Dapr state store, and on a cache miss executes the referenced source task, writes the shaped result back with a TTL, and returns it.",
+                                "properties": {
+                                    "key": {
+                                        "type": "string",
+                                        "description": "Static cache key. Optional - a dynamic key may be derived at runtime via an input mapping or the keyExpression."
+                                    },
+                                    "storeName": {
+                                        "type": "string",
+                                        "description": "Optional Dapr state store component name used as the cache. When empty, the executing runtime's DAPR_STATE_STORE_NAME configuration value is used."
+                                    },
+                                    "ttlInSeconds": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "description": "Time-to-live in seconds for cached entries. When absent or 0, the entry has no expiry."
+                                    },
+                                    "consistency": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Eventual",
+                                            "Strong"
+                                        ],
+                                        "description": "Optional consistency mode passed through to the Dapr state store."
+                                    },
+                                    "sourceTask": {
+                                        "type": "object",
+                                        "description": "Reference to the task executed on a cache miss.",
+                                        "properties": {
+                                            "key": {
+                                                "type": "string",
+                                                "description": "Source task key",
+                                                "minLength": 1
+                                            },
+                                            "domain": {
+                                                "type": "string",
+                                                "description": "Source task domain",
+                                                "minLength": 1
+                                            },
+                                            "flow": {
+                                                "type": "string",
+                                                "description": "Source task flow. Defaults to 'sys-tasks' when omitted."
+                                            },
+                                            "version": {
+                                                "type": "string",
+                                                "description": "Source task version",
+                                                "minLength": 1
+                                            }
+                                        },
+                                        "required": [
+                                            "key",
+                                            "domain",
+                                            "version"
+                                        ],
+                                        "additionalProperties": false
+                                    },
+                                    "sourceMapping": {
+                                        "type": "object",
+                                        "description": "Optional mapping (ScriptCode) applied to the raw source result before it is cached and returned.",
+                                        "properties": {
+                                            "type": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "G",
+                                                    "L"
+                                                ],
+                                                "enumDescriptions": [
+                                                    "Global",
+                                                    "Local"
+                                                ],
+                                                "description": "Script type - Global or Local"
+                                            },
+                                            "code": {
+                                                "type": "string",
+                                                "description": "Script code content"
+                                            },
+                                            "location": {
+                                                "type": "string",
+                                                "description": "Location of the script file"
+                                            },
+                                            "encoding": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "B64",
+                                                    "NAT",
+                                                    "REF"
+                                                ],
+                                                "description": "Code encoding format"
+                                            }
+                                        }
+                                    },
+                                    "keyExpression": {
+                                        "type": "object",
+                                        "description": "Optional Dynamic Expresso expression (ScriptCode with location='dynamicExpresso') whose evaluated string result overrides the cache key at runtime.",
+                                        "properties": {
+                                            "type": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "G",
+                                                    "L"
+                                                ],
+                                                "enumDescriptions": [
+                                                    "Global",
+                                                    "Local"
+                                                ],
+                                                "description": "Script type - Global or Local"
+                                            },
+                                            "code": {
+                                                "type": "string",
+                                                "description": "Script code content"
+                                            },
+                                            "location": {
+                                                "type": "string",
+                                                "description": "Location of the script file"
+                                            },
+                                            "encoding": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "B64",
+                                                    "NAT",
+                                                    "REF"
+                                                ],
+                                                "description": "Code encoding format"
+                                            }
+                                        }
+                                    },
+                                    "bypassOnCacheError": {
+                                        "type": "boolean",
+                                        "default": true,
+                                        "description": "When true (default), cache read/write failures fall back to the source task instead of failing the pipeline. When false, cache errors surface as task failure."
+                                    },
+                                    "forceRefresh": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "When true, the cache read is skipped: the source task is always executed and the cache entry overwritten."
+                                    }
+                                },
+                                "required": [
+                                    "sourceTask"
+                                ],
+                                "additionalProperties": false
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "config"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "19"
+                            }
+                        }
+                    },
+                    "then": {
+                        "title": "Get Instance Task",
+                        "properties": {
+                            "type": {
+                                "const": "19"
+                            },
+                            "config": {
+                                "type": "object",
+                                "description": "Get Instance Task configuration - Retrieves a full workflow instance projection (metadata + data) from a workflow instance.",
+                                "properties": {
+                                    "domain": {
+                                        "type": "string",
+                                        "description": "Target workflow domain",
+                                        "minLength": 1
+                                    },
+                                    "flow": {
+                                        "type": "string",
+                                        "description": "Target workflow name",
+                                        "minLength": 1
+                                    },
+                                    "key": {
+                                        "type": "string",
+                                        "description": "Target instance key"
+                                    },
+                                    "instanceId": {
+                                        "type": "string",
+                                        "description": "Target instance ID (GUID format)",
+                                        "format": "uuid"
+                                    },
+                                    "extensions": {
+                                        "type": "array",
+                                        "description": "Data extensions to include for enrichment",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "useDapr": {
+                                        "type": "boolean",
+                                        "description": "Whether to use Dapr service invocation instead of direct HTTP",
+                                        "default": false
+                                    },
+                                    "headers": {
+                                        "type": "object",
+                                        "description": "HTTP headers"
+                                    },
+                                    "timeoutSeconds": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "description": "Timeout in seconds"
+                                    },
+                                    "validateSsl": {
+                                        "type": "boolean",
+                                        "description": "Whether to validate SSL certificates"
+                                    },
+                                    "acceptedStatusCodes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "pattern": "^([1-9][0-9]{2}|[1-9]xx|[1-9][0-9]x)$",
+                                            "description": "Exact status code (e.g. '403') or wildcard pattern (e.g. '4xx', '40x')"
+                                        },
+                                        "description": "HTTP status codes treated as successful even when they are error codes. Supports exact codes ('403', '404') and alias patterns ('4xx', '40x', '5xx', '50x'). When a response matches any entry, the task is considered successful and the ErrorBoundary is not triggered.",
+                                        "examples": [
+                                            ["404"],
+                                            ["403", "404"],
+                                            ["4xx"],
+                                            ["403", "5xx"]
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "domain",
+                                    "flow"
                                 ],
                                 "additionalProperties": false
                             }
