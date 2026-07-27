@@ -85,7 +85,8 @@
                         "16",
                         "17",
                         "18",
-                        "19"
+                        "19",
+                        "20"
                     ],
                     "enumDescriptions": [
                         "Dapr HTTP Endpoint",
@@ -106,7 +107,8 @@
                         "SOAP Task",
                         "State Store Task",
                         "Cache Aside Task",
-                        "Get Instance Task"
+                        "Get Instance Task",
+                        "Dapr Conversation Task"
                     ]
                 }
             },
@@ -1484,6 +1486,73 @@
                                 "required": [
                                     "domain",
                                     "flow"
+                                ],
+                                "additionalProperties": false
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "config"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "20"
+                            }
+                        }
+                    },
+                    "then": {
+                        "title": "Dapr Conversation Task",
+                        "properties": {
+                            "type": {
+                                "const": "20"
+                            },
+                            "config": {
+                                "type": "object",
+                                "description": "Dapr Conversation Task configuration - Invokes an LLM/AI provider through the Dapr Conversation building block.",
+                                "properties": {
+                                    "componentName": {
+                                        "type": "string",
+                                        "description": "Dapr conversation component name (the configured LLM provider), e.g. openai",
+                                        "minLength": 1
+                                    },
+                                    "inputs": {
+                                        "type": "array",
+                                        "description": "Conversation inputs as an array of role/content messages"
+                                    },
+                                    "parameters": {
+                                        "type": "object",
+                                        "description": "Provider-specific string parameters (e.g. model, maxTokens) forwarded to the component"
+                                    },
+                                    "metadata": {
+                                        "type": "object",
+                                        "description": "Dapr component metadata forwarded with the request"
+                                    },
+                                    "contextId": {
+                                        "type": "string",
+                                        "description": "Optional context identifier used to continue a stateful conversation"
+                                    },
+                                    "temperature": {
+                                        "type": "number",
+                                        "description": "Optional sampling temperature"
+                                    },
+                                    "scrubPII": {
+                                        "type": "boolean",
+                                        "description": "When true, requests the provider scrub PII from prompts and responses"
+                                    },
+                                    "timeoutSeconds": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "default": 30,
+                                        "description": "Timeout in seconds"
+                                    }
+                                },
+                                "required": [
+                                    "componentName"
                                 ],
                                 "additionalProperties": false
                             }
