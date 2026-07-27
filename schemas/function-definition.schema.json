@@ -321,6 +321,20 @@
                         "generationKey": {
                             "type": "string",
                             "description": "Optional static state key holding the cache generation stamp (used when generationKeyExpression is absent)."
+                        },
+                        "varyByHeaders": {
+                            "type": "array",
+                            "description": "Optional exact request-header names that vary the cached result.",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "varyByHeaderPrefixes": {
+                            "type": "array",
+                            "description": "Optional request-header name prefixes that vary the cached result.",
+                            "items": {
+                                "type": "string"
+                            }
                         }
                     },
                     "additionalProperties": false

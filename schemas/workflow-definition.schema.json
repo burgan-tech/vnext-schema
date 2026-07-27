@@ -233,11 +233,96 @@
             }
           ],
           "description": "Optional workflow-level event definition. When present, an external event may start a new instance of this workflow (action=start). Independent of any transition-level event."
+        },
+        "config": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/workflowConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional flow-level configuration container (currently function cache tuning). Null means host defaults apply."
         }
       }
     }
   },
   "definitions": {
+    "resourceLockDefinition": {
+      "type": "object",
+      "description": "Defines a distributed resource-lock operation to be executed during a transition. The keyExpression is compiled as an ITransitionMapping and evaluated at runtime to produce the lock key.",
+      "required": [
+        "keyExpression",
+        "action"
+      ],
+      "properties": {
+        "keyExpression": {
+          "$ref": "#/definitions/scriptCode",
+          "description": "Script compiled as ITransitionMapping whose handler returns the lock key string."
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "Acquire",
+            "Release",
+            "Extend"
+          ],
+          "enumDescriptions": [
+            "Acquires a distributed lock on the resource. Fails the transition if the resource is already locked by another owner.",
+            "Releases a previously acquired distributed lock on the resource.",
+            "Extends the TTL of an existing lock held by the same owner."
+          ],
+          "description": "The lock operation to perform."
+        },
+        "ttlSeconds": {
+          "type": "integer",
+          "default": 300,
+          "description": "Time-to-live in seconds for Acquire and Extend operations. Acts as a safety net so abandoned locks expire automatically."
+        },
+        "onConflict": {
+          "type": "string",
+          "enum": [
+            "Abort"
+          ],
+          "enumDescriptions": [
+            "Abort the transition immediately when the lock cannot be acquired."
+          ],
+          "default": "Abort",
+          "description": "Policy applied when the lock cannot be acquired (e.g., resource already locked)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "workflowConfig": {
+      "type": "object",
+      "description": "Flow-level configuration container. Consolidates author-controlled, workflow-scoped settings under a single config object. Null means host defaults apply.",
+      "properties": {
+        "functionCache": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/functionCacheDefinition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional author-controlled cache tuning for the built-in instance functions (data, view, schema, ...). Null means host defaults apply."
+        }
+      },
+      "additionalProperties": false
+    },
+    "functionCacheDefinition": {
+      "type": "object",
+      "description": "Workflow-author-controlled cache tuning for the built-in instance functions (data, view, schema, ...). A single TTL covers all of them.",
+      "properties": {
+        "ttlSeconds": {
+          "type": "integer",
+          "description": "Cache TTL in seconds for this workflow's built-in function responses. Null or non-positive falls back to the host default (InstanceFunctionCache:DefaultTtlSeconds)."
+        }
+      },
+      "additionalProperties": false
+    },
     "roleGrant": {
       "type": "object",
       "required": [
@@ -909,6 +994,17 @@
                 }
               ],
               "description": "Optional transition-level event definition. When present, this transition can also be triggered by an external event (action=transition). Required when triggerType is Event (3)."
+            },
+            "resourceLock": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/resourceLockDefinition"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional distributed resource-lock operation executed during this transition. Valid only for start, state-level, and shared transitions."
             }
           }
         },
@@ -1232,6 +1328,17 @@
                 }
               ],
               "description": "Optional transition-level event definition. When present, this shared transition can also be triggered by an external event (action=transition). Required when triggerType is Event (3)."
+            },
+            "resourceLock": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/resourceLockDefinition"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional distributed resource-lock operation executed during this transition. Valid only for start, state-level, and shared transitions."
             }
           }
         },
@@ -1414,6 +1521,17 @@
               "type": "null"
             }
           ]
+        },
+        "resourceLock": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/resourceLockDefinition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional distributed resource-lock operation executed during this transition. Valid only for start, state-level, and shared transitions."
         }
       },
       "additionalProperties": false
