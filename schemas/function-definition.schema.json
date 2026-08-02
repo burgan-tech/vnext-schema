@@ -280,6 +280,51 @@
                     "type": "boolean",
                     "description": "When true, the function returns the task response as-is without wrapping/transformation."
                 },
+                "verbs": {
+                    "type": "array",
+                    "description": "HTTP verbs this function supports. When omitted or empty, no verb restriction is applied (backward compatible).",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "GET",
+                            "POST",
+                            "PATCH",
+                            "DELETE"
+                        ],
+                        "enumDescriptions": [
+                            "Read without a request body",
+                            "Create or invoke with a request body",
+                            "Partial update with a request body",
+                            "Delete"
+                        ]
+                    }
+                },
+                "inputSchema": {
+                    "description": "Reference to the sys-schemas component describing the request body. When set, the runtime validates the request body against it.",
+                    "allOf": [
+                        { "$ref": "#/definitions/schemaComponentRef" }
+                    ]
+                },
+                "outputSchema": {
+                    "description": "Reference to the sys-schemas component describing the response body. Declarative only - not enforced at runtime.",
+                    "allOf": [
+                        { "$ref": "#/definitions/schemaComponentRef" }
+                    ]
+                },
+                "inputView": {
+                    "description": "Reference to the sys-views component the client renders to collect this function's input.",
+                    "allOf": [
+                        { "$ref": "#/definitions/viewComponentRef" }
+                    ]
+                },
+                "outputView": {
+                    "description": "Reference to the sys-views component the client renders to present this function's output.",
+                    "allOf": [
+                        { "$ref": "#/definitions/viewComponentRef" }
+                    ]
+                },
                 "cache": {
                     "type": "object",
                     "description": "Optional read-through cache configuration. When set, the function's response is served from the cache on a hit (tasks skipped) and written to the cache on a miss. Only side-effect-free (read) functions should enable this.",
@@ -345,6 +390,92 @@
     },
     "additionalProperties": false,
     "definitions": {
+        "componentRef": {
+            "description": "Reference to another component - either an explicit reference or a file $ref.",
+            "oneOf": [
+                {
+                    "type": "object",
+                    "description": "Explicit component reference",
+                    "required": [
+                        "key",
+                        "domain",
+                        "flow",
+                        "version"
+                    ],
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "description": "Component key"
+                        },
+                        "domain": {
+                            "type": "string",
+                            "description": "Component domain"
+                        },
+                        "flow": {
+                            "type": "string",
+                            "description": "Component flow (e.g. sys-schemas, sys-views)"
+                        },
+                        "version": {
+                            "type": "string",
+                            "description": "Component version"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "description": "Component reference using ref",
+                    "required": [
+                        "ref"
+                    ],
+                    "properties": {
+                        "ref": {
+                            "type": "string",
+                            "description": "Reference to component file"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            ]
+        },
+        "schemaComponentRef": {
+            "description": "Reference to a sys-schemas component.",
+            "allOf": [
+                { "$ref": "#/definitions/componentRef" },
+                {
+                    "if": {
+                        "type": "object",
+                        "required": ["flow"]
+                    },
+                    "then": {
+                        "properties": {
+                            "flow": {
+                                "const": "sys-schemas"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "viewComponentRef": {
+            "description": "Reference to a sys-views component.",
+            "allOf": [
+                { "$ref": "#/definitions/componentRef" },
+                {
+                    "if": {
+                        "type": "object",
+                        "required": ["flow"]
+                    },
+                    "then": {
+                        "properties": {
+                            "flow": {
+                                "const": "sys-views"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
         "taskMapping": {
             "type": "object",
             "description": "Mapping code definition",
