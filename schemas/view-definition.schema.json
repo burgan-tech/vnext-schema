@@ -124,32 +124,13 @@
                     }
                 },
                 "display": {
-                    "type": "string",
-                    "description": "View display mode",
+                    "description": "View display mode. String form declares the SDI (single-document) display and is the backward-compatible shape. Object form declares the display per client mode.",
                     "oneOf": [
                         {
-                            "const": "full-page",
-                            "description": "Full page display"
+                            "$ref": "#/definitions/sdiDisplay"
                         },
                         {
-                            "const": "popup",
-                            "description": "Popup/modal display"
-                        },
-                        {
-                            "const": "bottom-sheet",
-                            "description": "Bottom sheet display"
-                        },
-                        {
-                            "const": "top-sheet",
-                            "description": "Top sheet display"
-                        },
-                        {
-                            "const": "drawer",
-                            "description": "Drawer/side menu display"
-                        },
-                        {
-                            "const": "inline",
-                            "description": "Inline display within page"
+                            "$ref": "#/definitions/displayModes"
                         }
                     ]
                 },
@@ -209,5 +190,84 @@
             "additionalProperties": false
         }
     },
-    "additionalProperties": false
+    "additionalProperties": false,
+    "definitions": {
+        "sdiDisplay": {
+            "type": "string",
+            "description": "Display mode for SDI (single-document interface) clients.",
+            "oneOf": [
+                {
+                    "const": "full-page",
+                    "description": "Full page display"
+                },
+                {
+                    "const": "popup",
+                    "description": "Popup/modal display"
+                },
+                {
+                    "const": "bottom-sheet",
+                    "description": "Bottom sheet display"
+                },
+                {
+                    "const": "top-sheet",
+                    "description": "Top sheet display"
+                },
+                {
+                    "const": "drawer",
+                    "description": "Drawer/side menu display"
+                },
+                {
+                    "const": "inline",
+                    "description": "Inline display within page"
+                }
+            ]
+        },
+        "mdiDisplay": {
+            "type": "string",
+            "description": "Display mode for MDI (multi-document interface) clients.",
+            "oneOf": [
+                {
+                    "const": "tab",
+                    "description": "Opens as a tab in the document area"
+                },
+                {
+                    "const": "window",
+                    "description": "Opens as a floating/detached window"
+                },
+                {
+                    "const": "split",
+                    "description": "Opens in a split pane next to the active document"
+                },
+                {
+                    "const": "inline",
+                    "description": "Inline display within the active document"
+                }
+            ]
+        },
+        "displayModes": {
+            "type": "object",
+            "description": "Per-mode display declaration. At least one of sdi or mdi must be present.",
+            "properties": {
+                "sdi": {
+                    "$ref": "#/definitions/sdiDisplay"
+                },
+                "mdi": {
+                    "$ref": "#/definitions/mdiDisplay"
+                }
+            },
+            "anyOf": [
+                {
+                    "required": [
+                        "sdi"
+                    ]
+                },
+                {
+                    "required": [
+                        "mdi"
+                    ]
+                }
+            ],
+            "additionalProperties": false
+        }
+    }
 }
