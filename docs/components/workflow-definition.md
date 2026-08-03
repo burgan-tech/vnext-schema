@@ -237,6 +237,7 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | view | viewDefinition | No | Yes | Single or rule-based |
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
+| availableIn | string[] | No | No | States where cancel is available; empty/absent = every state (since 0.0.79) |
 | roles | roleGrant[] | No | No | Authorization roles |
 | from | string | No | No | `^[a-z0-9-]+$` |
 | annotations | object | No | Yes | Key-value metadata (since 0.0.42) |
@@ -261,12 +262,18 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | view | viewDefinition | No | Yes | Single or rule-based |
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
+| availableIn | string[] | No | No | States where exit is available; empty/absent = every state (since 0.0.79) |
 | roles | roleGrant[] | No | No | Authorization roles |
 | from | string | No | No | `^[a-z0-9-]+$` |
 | annotations | object | No | Yes | Key-value metadata (since 0.0.42) |
 | _comment | string | No | No | - |
 
 **Not available:** rule, timer, triggerKind
+
+**Runtime behavior (since 0.0.79):** `exit` is listed in the State function's `availableTransitions`
+(with `kind: "exit"`, carrying the **configured** `key` — not the `exit` alias), and its `roles` are
+evaluated when that list is filtered per caller and by `/functions/authorize`. Before 0.0.79 `roles`
+was accepted by the schema but never evaluated.
 
 ---
 
@@ -285,6 +292,7 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | view | viewDefinition | No | Yes | Single or rule-based |
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
+| availableIn | string[] | No | No | States where updateData is available; empty/absent = every state (since 0.0.79) |
 | roles | roleGrant[] | No | No | Authorization roles |
 | from | string | No | No | `^[a-z0-9-]+$` |
 | annotations | object | No | Yes | Key-value metadata (since 0.0.42) |
@@ -293,6 +301,13 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 **Unique constraint:** `target` is always `$self` -- update data never changes state.
 
 **Not available:** rule, timer, triggerKind
+
+**Runtime behavior (since 0.0.79):** `updateData` is listed in the State function's
+`availableTransitions` (with `kind: "updateData"` — note the field name, not the `update-parent-data`
+request alias — carrying the **configured** `key`), and its `roles` are evaluated when that list is
+filtered per caller and by `/functions/authorize`. While an instance sits in a `SubFlow` state the
+parent's `updateData` is merged into the subflow's list; that is its primary surface, since it only
+does work in that situation. Before 0.0.79 `roles` was accepted by the schema but never evaluated.
 
 ---
 
