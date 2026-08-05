@@ -227,20 +227,28 @@
             "description": "Display mode for MDI (multi-document interface) clients.",
             "oneOf": [
                 {
-                    "const": "tab",
-                    "description": "Opens as a tab in the document area"
+                    "const": "full-page",
+                    "description": "Full page display"
                 },
                 {
-                    "const": "window",
-                    "description": "Opens as a floating/detached window"
+                    "const": "popup",
+                    "description": "Popup/modal display"
                 },
                 {
-                    "const": "split",
-                    "description": "Opens in a split pane next to the active document"
+                    "const": "bottom-sheet",
+                    "description": "Bottom sheet display"
+                },
+                {
+                    "const": "top-sheet",
+                    "description": "Top sheet display"
+                },
+                {
+                    "const": "drawer",
+                    "description": "Drawer/side menu display"
                 },
                 {
                     "const": "inline",
-                    "description": "Inline display within the active document"
+                    "description": "Inline display within page"
                 }
             ]
         },
