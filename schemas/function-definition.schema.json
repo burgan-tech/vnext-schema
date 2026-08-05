@@ -63,14 +63,26 @@
                 "scope"
             ],
             "anyOf": [
-                { "required": ["task"] },
-                { "required": ["onExecutionTasks"] }
+                {
+                    "required": [
+                        "task"
+                    ]
+                },
+                {
+                    "required": [
+                        "onExecutionTasks"
+                    ]
+                }
             ],
             "if": {
-                "required": ["onExecutionTasks"]
+                "required": [
+                    "onExecutionTasks"
+                ]
             },
             "then": {
-                "required": ["output"]
+                "required": [
+                    "output"
+                ]
             },
             "properties": {
                 "scope": {
@@ -240,7 +252,9 @@
                 "output": {
                     "description": "Output mapping for multi-task execution result. Required when onExecutionTasks is defined.",
                     "allOf": [
-                        { "$ref": "#/definitions/taskMapping" }
+                        {
+                            "$ref": "#/definitions/taskMapping"
+                        }
                     ]
                 },
                 "labels": {
@@ -302,27 +316,35 @@
                     }
                 },
                 "inputSchema": {
-                    "description": "Reference to the sys-schemas component describing the request body. When set, the runtime validates the request body against it.",
+                    "description": "The sys-schemas contract describing the request body. When set, the runtime validates the request body against the entry that wins rule evaluation.",
                     "allOf": [
-                        { "$ref": "#/definitions/schemaComponentRef" }
+                        {
+                            "$ref": "#/definitions/schemaSlot"
+                        }
                     ]
                 },
                 "outputSchema": {
-                    "description": "Reference to the sys-schemas component describing the response body. Declarative only - not enforced at runtime.",
+                    "description": "The sys-schemas contract describing the response body. Declarative only - not enforced at runtime.",
                     "allOf": [
-                        { "$ref": "#/definitions/schemaComponentRef" }
+                        {
+                            "$ref": "#/definitions/schemaSlot"
+                        }
                     ]
                 },
                 "inputView": {
-                    "description": "Reference to the sys-views component the client renders to collect this function's input.",
+                    "description": "The sys-views contract the client renders to collect this function's input.",
                     "allOf": [
-                        { "$ref": "#/definitions/viewComponentRef" }
+                        {
+                            "$ref": "#/definitions/viewSlot"
+                        }
                     ]
                 },
                 "outputView": {
-                    "description": "Reference to the sys-views component the client renders to present this function's output.",
+                    "description": "The sys-views contract the client renders to present this function's output.",
                     "allOf": [
-                        { "$ref": "#/definitions/viewComponentRef" }
+                        {
+                            "$ref": "#/definitions/viewSlot"
+                        }
                     ]
                 },
                 "cache": {
@@ -332,7 +354,9 @@
                         "keyExpression": {
                             "description": "Optional Dynamic Expresso expression (a ScriptCode with location 'dynamicExpresso') that computes the cache key from the request/script context and returns a string. Takes precedence over 'key'.",
                             "allOf": [
-                                { "$ref": "#/definitions/scriptExpression" }
+                                {
+                                    "$ref": "#/definitions/scriptExpression"
+                                }
                             ]
                         },
                         "key": {
@@ -349,7 +373,10 @@
                         },
                         "consistency": {
                             "type": "string",
-                            "enum": ["Eventual", "Strong"],
+                            "enum": [
+                                "Eventual",
+                                "Strong"
+                            ],
                             "description": "Optional consistency mode: Eventual (default) or Strong."
                         },
                         "bypassOnCacheError": {
@@ -360,7 +387,9 @@
                         "generationKeyExpression": {
                             "description": "Optional Dynamic Expresso expression resolving to the state key that holds this config's cache generation stamp. When configured, the runtime folds the stamp into the cache key for generation-namespace invalidation. Takes precedence over generationKey.",
                             "allOf": [
-                                { "$ref": "#/definitions/scriptExpression" }
+                                {
+                                    "$ref": "#/definitions/scriptExpression"
+                                }
                             ]
                         },
                         "generationKey": {
@@ -441,11 +470,15 @@
         "schemaComponentRef": {
             "description": "Reference to a sys-schemas component.",
             "allOf": [
-                { "$ref": "#/definitions/componentRef" },
+                {
+                    "$ref": "#/definitions/componentRef"
+                },
                 {
                     "if": {
                         "type": "object",
-                        "required": ["flow"]
+                        "required": [
+                            "flow"
+                        ]
                     },
                     "then": {
                         "properties": {
@@ -460,11 +493,15 @@
         "viewComponentRef": {
             "description": "Reference to a sys-views component.",
             "allOf": [
-                { "$ref": "#/definitions/componentRef" },
+                {
+                    "$ref": "#/definitions/componentRef"
+                },
                 {
                     "if": {
                         "type": "object",
-                        "required": ["flow"]
+                        "required": [
+                            "flow"
+                        ]
                     },
                     "then": {
                         "properties": {
@@ -482,7 +519,10 @@
             "properties": {
                 "type": {
                     "type": "string",
-                    "enum": ["G", "L"],
+                    "enum": [
+                        "G",
+                        "L"
+                    ],
                     "enumDescriptions": [
                         "Global",
                         "Local"
@@ -510,7 +550,11 @@
                 "encoding": {
                     "type": "string",
                     "description": "Code encoding format",
-                    "enum": ["B64", "NAT", "REF"],
+                    "enum": [
+                        "B64",
+                        "NAT",
+                        "REF"
+                    ],
                     "default": "B64"
                 },
                 "scripts": {
@@ -531,7 +575,9 @@
                         "required": []
                     },
                     "else": {
-                        "required": ["code"]
+                        "required": [
+                            "code"
+                        ]
                     }
                 },
                 {
@@ -541,10 +587,14 @@
                                 "const": "REF"
                             }
                         },
-                        "required": ["encoding"]
+                        "required": [
+                            "encoding"
+                        ]
                     },
                     "then": {
-                        "required": ["code"],
+                        "required": [
+                            "code"
+                        ],
                         "properties": {
                             "code": {
                                 "$ref": "#/definitions/mappingRef"
@@ -614,7 +664,10 @@
             "properties": {
                 "type": {
                     "type": "string",
-                    "enum": ["G", "L"],
+                    "enum": [
+                        "G",
+                        "L"
+                    ],
                     "enumDescriptions": [
                         "Global",
                         "Local"
@@ -634,7 +687,11 @@
                 "encoding": {
                     "type": "string",
                     "description": "Code encoding format",
-                    "enum": ["B64", "NAT", "REF"],
+                    "enum": [
+                        "B64",
+                        "NAT",
+                        "REF"
+                    ],
                     "default": "B64"
                 },
                 "scripts": {
@@ -645,7 +702,10 @@
         },
         "roleGrant": {
             "type": "object",
-            "required": ["role", "grant"],
+            "required": [
+                "role",
+                "grant"
+            ],
             "properties": {
                 "role": {
                     "type": "string",
@@ -653,11 +713,183 @@
                 },
                 "grant": {
                     "type": "string",
-                    "enum": ["allow", "deny"],
+                    "enum": [
+                        "allow",
+                        "deny"
+                    ],
                     "description": "DENY always overrides ALLOW"
                 }
             },
             "additionalProperties": false
+        },
+        "scriptCode": {
+            "type": "object",
+            "description": "An inline C# script implementing IConditionMapping, evaluated to decide whether the entry it belongs to is selected.",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "G",
+                        "L"
+                    ],
+                    "enumDescriptions": [
+                        "Global",
+                        "Local"
+                    ],
+                    "default": "L",
+                    "description": "Script type - Global or Local"
+                },
+                "code": {
+                    "description": "Script code content (string), or a sys-mappings reference when encoding is REF.",
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/mappingRef"
+                        }
+                    ]
+                },
+                "location": {
+                    "type": "string",
+                    "description": "Location of the script file"
+                },
+                "encoding": {
+                    "type": "string",
+                    "description": "Code encoding format",
+                    "enum": [
+                        "B64",
+                        "NAT",
+                        "REF"
+                    ],
+                    "default": "B64"
+                },
+                "scripts": {
+                    "$ref": "#/definitions/scripts"
+                }
+            },
+            "required": [
+                "code"
+            ],
+            "additionalProperties": false
+        },
+        "viewRuleEntry": {
+            "type": "object",
+            "description": "One entry of a rule-based view slot. Entries are evaluated in declaration order and the first match wins; an entry without a rule always matches, so it must be the last entry.",
+            "properties": {
+                "rule": {
+                    "description": "Selection rule. Omit on the final fallback entry.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/scriptCode"
+                        }
+                    ]
+                },
+                "view": {
+                    "description": "The sys-views component this entry selects.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/viewComponentRef"
+                        }
+                    ]
+                },
+                "loadData": {
+                    "type": "boolean",
+                    "description": "Whether the client should load instance data alongside this view."
+                }
+            },
+            "required": [
+                "view"
+            ],
+            "additionalProperties": false
+        },
+        "schemaRuleEntry": {
+            "type": "object",
+            "description": "One entry of a rule-based schema slot. Entries are evaluated in declaration order and the first match wins; an entry without a rule always matches, so it must be the last entry.",
+            "properties": {
+                "rule": {
+                    "description": "Selection rule. Omit on the final fallback entry.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/scriptCode"
+                        }
+                    ]
+                },
+                "schema": {
+                    "description": "The sys-schemas component this entry selects.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/schemaComponentRef"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "schema"
+            ],
+            "additionalProperties": false
+        },
+        "viewSlot": {
+            "description": "A view contract: either a single sys-views reference, or rule-based entries evaluated in order (first match wins, a trailing rule-less entry is the fallback).",
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/viewComponentRef"
+                },
+                {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/viewRuleEntry"
+                    }
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "views"
+                    ],
+                    "properties": {
+                        "views": {
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {
+                                "$ref": "#/definitions/viewRuleEntry"
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            ]
+        },
+        "schemaSlot": {
+            "description": "A schema contract: either a single sys-schemas reference, or rule-based entries evaluated in order (first match wins, a trailing rule-less entry is the fallback).",
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/schemaComponentRef"
+                },
+                {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/schemaRuleEntry"
+                    }
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "schemas"
+                    ],
+                    "properties": {
+                        "schemas": {
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {
+                                "$ref": "#/definitions/schemaRuleEntry"
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            ]
         }
     }
 }
