@@ -345,6 +345,42 @@
       },
       "additionalProperties": false
     },
+    "availableInEntry": {
+      "type": "object",
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "description": "State key this entry applies to",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "roles": {
+          "type": "array",
+          "description": "Role grants that apply only while the instance is in this state. Composed with the transition's own roles as an AND: both must allow. Omit or leave empty for no additional narrowing (identical to the bare string form).",
+          "items": {
+            "$ref": "#/definitions/roleGrant"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "availableIn": {
+      "type": "array",
+      "description": "States where this transition is available. Empty or absent means every state. Each item is either a bare state key or an object narrowing that state to a set of role grants; the two forms may be mixed.",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          {
+            "$ref": "#/definitions/availableInEntry"
+          }
+        ]
+      }
+    },
     "viewDefinition": {
       "oneOf": [
         {
@@ -1234,11 +1270,7 @@
               "description": "Trigger type for shared transitions: Manual (0), Scheduled (2), Event (3)"
             },
             "availableIn": {
-              "type": "array",
-              "description": "States where this shared transition is available",
-              "items": {
-                "type": "string"
-              }
+              "$ref": "#/definitions/availableIn"
             },
             "roles": {
               "type": "array",
@@ -1410,11 +1442,7 @@
           "then": {
             "properties": {
               "availableIn": {
-                "type": "array",
-                "description": "States where this shared transition is available",
-                "items": {
-                  "type": "string"
-                }
+                "$ref": "#/definitions/availableIn"
               },
               "view": {
                 "$ref": "#/definitions/viewDefinition"
@@ -1613,11 +1641,7 @@
           "description": "Optional mapping definition for cancel transition input data transformation"
         },
         "availableIn": {
-          "type": "array",
-          "description": "States where this cancel transition is available. Empty or absent means every state (same semantics as shared transitions).",
-          "items": {
-            "type": "string"
-          }
+          "$ref": "#/definitions/availableIn"
         },
         "roles": {
           "type": "array",
@@ -1717,11 +1741,7 @@
           "description": "Optional mapping definition for exit transition input data transformation"
         },
         "availableIn": {
-          "type": "array",
-          "description": "States where this exit transition is available. Empty or absent means every state (same semantics as shared transitions).",
-          "items": {
-            "type": "string"
-          }
+          "$ref": "#/definitions/availableIn"
         },
         "roles": {
           "type": "array",
@@ -1821,11 +1841,7 @@
           "description": "Optional mapping definition for update data transition input data transformation"
         },
         "availableIn": {
-          "type": "array",
-          "description": "States where this update data transition is available. Empty or absent means every state (same semantics as shared transitions).",
-          "items": {
-            "type": "string"
-          }
+          "$ref": "#/definitions/availableIn"
         },
         "roles": {
           "type": "array",
