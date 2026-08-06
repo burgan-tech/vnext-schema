@@ -195,8 +195,10 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 **Notes:**
 - Auto (1) is **not supported** -- `triggerType` enum is `[0, 2, 3]`
 - `triggerKind` is **not available** in shared transitions
-- Manual (0): `availableIn` specifies which states this transition applies to
-- Scheduled/Event: `availableIn` must be null (applies globally)
+- Manual (0): `availableIn` specifies which states this transition applies to (see [availableIn](#availablein))
+- Scheduled/Event: `availableIn` must be null (applies globally). Note the base `properties.availableIn`
+  is typed as an array, so in practice a Scheduled/Event shared transition cannot carry `availableIn`
+  in **any** form — including `null`.
 - `additionalProperties` is **not** restricted (open schema)
 
 ---
@@ -237,7 +239,7 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | view | viewDefinition | No | Yes | Single or rule-based |
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
-| availableIn | string[] | No | No | States where cancel is available; empty/absent = every state (since 0.0.79) |
+| availableIn | availableIn | No | No | States where cancel is available, optionally role-scoped per state; empty/absent = every state (string[] since 0.0.79, object form since 0.0.80) |
 | roles | roleGrant[] | No | No | Authorization roles |
 | from | string | No | No | `^[a-z0-9-]+$` |
 | annotations | object | No | Yes | Key-value metadata (since 0.0.42) |
@@ -262,7 +264,7 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | view | viewDefinition | No | Yes | Single or rule-based |
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
-| availableIn | string[] | No | No | States where exit is available; empty/absent = every state (since 0.0.79) |
+| availableIn | availableIn | No | No | States where exit is available, optionally role-scoped per state; empty/absent = every state (string[] since 0.0.79, object form since 0.0.80) |
 | roles | roleGrant[] | No | No | Authorization roles |
 | from | string | No | No | `^[a-z0-9-]+$` |
 | annotations | object | No | Yes | Key-value metadata (since 0.0.42) |
@@ -292,7 +294,7 @@ was accepted by the schema but never evaluated.
 | view | viewDefinition | No | Yes | Single or rule-based |
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
-| availableIn | string[] | No | No | States where updateData is available; empty/absent = every state (since 0.0.79) |
+| availableIn | availableIn | No | No | States where updateData is available, optionally role-scoped per state; empty/absent = every state (string[] since 0.0.79, object form since 0.0.80) |
 | roles | roleGrant[] | No | No | Authorization roles |
 | from | string | No | No | `^[a-z0-9-]+$` |
 | annotations | object | No | Yes | Key-value metadata (since 0.0.42) |
@@ -534,6 +536,58 @@ Used at workflow, state, and task levels.
 | grant | enum | Yes | `allow`, `deny`. DENY always overrides ALLOW |
 
 `additionalProperties: false`
+
+---
+
+## availableIn
+
+Array restricting which states a transition is offered in. Empty or absent means **every state**.
+
+Each item is **either** a bare state key **or** an `availableInEntry` object, and the two forms may be
+mixed in one array:
+
+```json
+"availableIn": [
+  "review",
+  { "state": "approval", "roles": [ { "role": "backoffice.supervisor", "grant": "allow" } ] }
+]
+```
+
+| Form | Meaning | Since |
+|------|---------|-------|
+| `"review"` (string) | Available in `review`, no role narrowing | 0.0.1 |
+| `{ "state": "review" }` | Identical to the bare string form | 0.0.80 |
+| `{ "state": "review", "roles": [...] }` | Available in `review` **and** only to callers the grants allow | 0.0.80 |
+
+State keys must match `^[a-z0-9-]+$` in both forms.
+
+Supported on `sharedTransition` (Manual only), `cancelTransition`, `exitTransition` and
+`updateDataTransition`. Optional everywhere.
+
+### availableInEntry
+
+| Field | Type | Required | Constraint |
+|-------|------|----------|------------|
+| state | string | Yes | `^[a-z0-9-]+$` |
+| roles | roleGrant[] | No | Applies only in this state |
+
+`additionalProperties: false`
+
+**Role composition is AND.** A transition's own `roles` is the global gate; an entry's `roles` narrows
+it further for that one state. A caller must satisfy **both**. An entry with no `roles` adds no
+narrowing, which is why the bare string form and the object-without-roles form are equivalent and why
+existing definitions are unaffected.
+
+**Where it is enforced:**
+
+| Surface | State | Roles |
+|---------|:-----:|:-----:|
+| State function `availableTransitions` | Yes | Yes |
+| `authorize` function | Yes | Yes |
+| Transition execution (`POST .../transitions/{key}`) | Yes | No |
+
+Execution deliberately gates on state only — role grants describe what a client should be *offered*,
+and no transition type has ever had its roles re-checked at execution.
 
 ---
 
