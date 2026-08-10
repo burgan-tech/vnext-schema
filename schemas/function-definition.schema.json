@@ -569,7 +569,10 @@
                             "type": {
                                 "const": "G"
                             }
-                        }
+                        },
+                        "required": [
+                            "type"
+                        ]
                     },
                     "then": {
                         "required": []
@@ -698,7 +701,29 @@
                     "$ref": "#/definitions/scripts"
                 }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "G"
+                            }
+                        },
+                        "required": [
+                            "type"
+                        ]
+                    },
+                    "then": {
+                        "required": []
+                    },
+                    "else": {
+                        "required": [
+                            "code"
+                        ]
+                    }
+                }
+            ]
         },
         "roleGrant": {
             "type": "object",

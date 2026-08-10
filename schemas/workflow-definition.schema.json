@@ -721,7 +721,10 @@
               "type": {
                 "const": "G"
               }
-            }
+            },
+            "required": [
+              "type"
+            ]
           },
           "then": {
             "required": []
