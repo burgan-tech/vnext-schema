@@ -1344,7 +1344,29 @@
                                                 ],
                                                 "description": "Code encoding format"
                                             }
-                                        }
+                                        },
+                                        "allOf": [
+                                            {
+                                                "if": {
+                                                    "properties": {
+                                                        "type": {
+                                                            "const": "G"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "type"
+                                                    ]
+                                                },
+                                                "then": {
+                                                    "required": []
+                                                },
+                                                "else": {
+                                                    "required": [
+                                                        "code"
+                                                    ]
+                                                }
+                                            }
+                                        ]
                                     },
                                     "keyExpression": {
                                         "type": "object",
@@ -1379,7 +1401,29 @@
                                                 ],
                                                 "description": "Code encoding format"
                                             }
-                                        }
+                                        },
+                                        "allOf": [
+                                            {
+                                                "if": {
+                                                    "properties": {
+                                                        "type": {
+                                                            "const": "G"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "type"
+                                                    ]
+                                                },
+                                                "then": {
+                                                    "required": []
+                                                },
+                                                "else": {
+                                                    "required": [
+                                                        "code"
+                                                    ]
+                                                }
+                                            }
+                                        ]
                                     },
                                     "bypassOnCacheError": {
                                         "type": "boolean",
