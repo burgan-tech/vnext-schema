@@ -12,7 +12,7 @@
     "README.md"
   ],
   "scripts": {
-    "test": "node test/validate-schemas.js",
+    "test": "node test/validate-schemas.js && node test/validate-function-documents.js",
     "test:coverage": "nyc npm test",
     "lint": "eslint . --fix",
     "validate": "npm run test",
