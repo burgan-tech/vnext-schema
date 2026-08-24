@@ -86,7 +86,8 @@
                         "17",
                         "18",
                         "19",
-                        "20"
+                        "20",
+                        "21"
                     ],
                     "enumDescriptions": [
                         "Dapr HTTP Endpoint",
@@ -108,7 +109,8 @@
                         "State Store Task",
                         "Cache Aside Task",
                         "Get Instance Task",
-                        "Dapr Conversation Task"
+                        "Dapr Conversation Task",
+                        "FanOut Task"
                     ]
                 }
             },
@@ -1599,6 +1601,307 @@
                                     "componentName"
                                 ],
                                 "additionalProperties": false
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "config"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "21"
+                            }
+                        }
+                    },
+                    "then": {
+                        "title": "FanOut Task",
+                        "properties": {
+                            "type": {
+                                "const": "21"
+                            },
+                            "config": {
+                                "type": "object",
+                                "description": "FanOut Task configuration - Executes a referenced inner task once per item of a runtime-resolved collection, in parallel, and joins the per-item outcomes into a single output. Only inline mode is available in this phase. Two runtime rules cannot be expressed here and are enforced at parse/execution time: execution.itemTimeoutSeconds must be less than or equal to execution.batchTimeoutSeconds, and exactly one item source must be configured - either itemsPath on this config or ItemSelector on the task's mapping, never both and never neither.",
+                                "properties": {
+                                    "_comment": {
+                                        "type": "string",
+                                        "description": "Comment about the fan-out configuration"
+                                    },
+                                    "mode": {
+                                        "type": "string",
+                                        "description": "Execution mode. Only 'inline' is accepted; the value 'durable' is reserved for a later phase and is rejected at parse time, so it must not be authored.",
+                                        "enum": [
+                                            "inline"
+                                        ],
+                                        "default": "inline"
+                                    },
+                                    "itemsPath": {
+                                        "type": "string",
+                                        "description": "JSONPath (dot-path subset, property navigation only - no filters, wildcards, indices or slices) into instance data selecting the item collection. Must start with '$.'. Mutually exclusive with the mapping's ItemSelector: configuring both, or neither, is a runtime execution error. A missing path resolves to an empty batch; a path resolving to a non-array value throws.",
+                                        "pattern": "^\\$\\..+",
+                                        "examples": [
+                                            "$.documents.online",
+                                            "$.payments"
+                                        ]
+                                    },
+                                    "itemAlias": {
+                                        "type": "string",
+                                        "description": "Readability label for ONE item of the batch (e.g. 'document', 'payment'), surfaced on the batch log line and on every item trace span. It plays no role in input binding - renaming it can never change what a script reads. When unset, the runtime substitutes the neutral label 'item'.",
+                                        "minLength": 1
+                                    },
+                                    "task": {
+                                        "type": "object",
+                                        "description": "Reference to the inner task executed once per item. All four properties are required. Resolved once per batch and cloned per item. A reference to another FanOut task (type 21) is rejected by the executor.",
+                                        "properties": {
+                                            "key": {
+                                                "type": "string",
+                                                "description": "Inner task key",
+                                                "minLength": 1
+                                            },
+                                            "domain": {
+                                                "type": "string",
+                                                "description": "Inner task domain",
+                                                "minLength": 1
+                                            },
+                                            "flow": {
+                                                "type": "string",
+                                                "description": "Inner task flow",
+                                                "minLength": 1
+                                            },
+                                            "version": {
+                                                "type": "string",
+                                                "description": "Inner task version",
+                                                "minLength": 1
+                                            }
+                                        },
+                                        "required": [
+                                            "key",
+                                            "domain",
+                                            "flow",
+                                            "version"
+                                        ],
+                                        "additionalProperties": false
+                                    },
+                                    "execution": {
+                                        "type": "object",
+                                        "description": "Batch execution limits. itemTimeoutSeconds must be less than or equal to batchTimeoutSeconds - that cross-field rule is enforced at parse time by the runtime, not here.",
+                                        "properties": {
+                                            "maxDegreeOfParallelism": {
+                                                "type": "integer",
+                                                "description": "Batch-local concurrency cap. Deliberately low by default: an unbounded fan-out overloads whatever the inner task calls. A global ceiling caps all batches in the process on top of this.",
+                                                "minimum": 1,
+                                                "default": 4
+                                            },
+                                            "itemTimeoutSeconds": {
+                                                "type": "integer",
+                                                "description": "Per-item deadline in seconds. Must be less than or equal to batchTimeoutSeconds.",
+                                                "minimum": 1,
+                                                "default": 30
+                                            },
+                                            "batchTimeoutSeconds": {
+                                                "type": "integer",
+                                                "description": "Whole-batch deadline in seconds. Items still running when it fires are cancelled and counted as FanOut:BatchTimeout failures.",
+                                                "minimum": 1,
+                                                "default": 120
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    "join": {
+                                        "type": "object",
+                                        "description": "How per-item outcomes combine into the task outcome.",
+                                        "properties": {
+                                            "policy": {
+                                                "type": "string",
+                                                "description": "Join policy. 'all' succeeds only when every item succeeded and the batch did not time out (remaining items are cancelled on the first failure). 'allSettled' always succeeds - partial failure is data, not an error. 'quorum' succeeds when succeeded >= minSuccess. 'firstSuccess' succeeds when at least one item succeeded (remaining items are cancelled on the first success). For an empty batch 'all' and 'allSettled' succeed while 'quorum' and 'firstSuccess' fail.",
+                                                "enum": [
+                                                    "all",
+                                                    "allSettled",
+                                                    "quorum",
+                                                    "firstSuccess"
+                                                ],
+                                                "default": "allSettled"
+                                            },
+                                            "minSuccess": {
+                                                "type": "integer",
+                                                "description": "Minimum successful items. Required when policy is 'quorum'; ignored for the other policies.",
+                                                "minimum": 1
+                                            },
+                                            "resultKey": {
+                                                "type": "string",
+                                                "description": "Instance data key the default output packaging writes item results under, alongside a '{resultKey}Summary' object. Ignored once the task's mapping overrides OutputHandler.",
+                                                "minLength": 1,
+                                                "default": "fanOutResults"
+                                            },
+                                            "ordered": {
+                                                "type": "boolean",
+                                                "description": "Accepted for forward compatibility with a future durable mode. In inline mode it is a no-op - item results are always returned sorted by item index.",
+                                                "default": true
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    "errorBoundary": {
+                                        "type": "object",
+                                        "description": "Per-ITEM error boundary, applied independently to every item through the same engine machinery a state or transition error boundary uses. A retry-exhausted item becomes one failed entry in the result set; it does not by itself stop the batch - the join policy decides that.",
+                                        "properties": {
+                                            "onError": {
+                                                "type": "array",
+                                                "description": "Error handling rules evaluated in priority order (lower value first). Empty array is valid (no error rules).",
+                                                "items": {
+                                                    "type": "object",
+                                                    "description": "A single error handling rule within the per-item error boundary",
+                                                    "required": [
+                                                        "action"
+                                                    ],
+                                                    "properties": {
+                                                        "action": {
+                                                            "type": "integer",
+                                                            "enum": [
+                                                                0,
+                                                                1,
+                                                                2,
+                                                                3,
+                                                                4,
+                                                                5
+                                                            ],
+                                                            "enumDescriptions": [
+                                                                "Abort (0) - Abort execution. Transition must not be set.",
+                                                                "Retry (1) - Retry with configured retry policy. RetryPolicy is required.",
+                                                                "Rollback (2) - Rollback to compensation state. Transition is required (transition key).",
+                                                                "Ignore (3) - Ignore error and continue",
+                                                                "Notify (4) - Send notification and transition. Transition is required (transition key).",
+                                                                "Log (5) - Log only, does not affect flow"
+                                                            ],
+                                                            "description": "Action to take when an error is caught by the per-item boundary. Constraint: Abort -> no transition; Retry -> retryPolicy required."
+                                                        },
+                                                        "errorTypes": {
+                                                            "type": "array",
+                                                            "description": "Exception type names to match (e.g., ValidationException). Omit or use '*' to match all. Items must not be empty or whitespace.",
+                                                            "items": {
+                                                                "type": "string",
+                                                                "minLength": 1
+                                                            }
+                                                        },
+                                                        "errorCodes": {
+                                                            "type": "array",
+                                                            "description": "Error codes to match (e.g., 'Task:409', '404', 'FanOut:ItemTimeout'). Omit or use '*' to match all. Items must not be empty or whitespace.",
+                                                            "items": {
+                                                                "type": "string",
+                                                                "minLength": 1
+                                                            }
+                                                        },
+                                                        "transition": {
+                                                            "type": "string",
+                                                            "description": "Workflow transition key to trigger when this rule matches. Required when action is Notify or Rollback. Must not be set when action is Abort."
+                                                        },
+                                                        "priority": {
+                                                            "type": "integer",
+                                                            "description": "Rule priority. Lower values evaluated first. Default 100; use higher values (e.g. 999) for wildcard/fallback rules.",
+                                                            "minimum": 1,
+                                                            "default": 100
+                                                        },
+                                                        "retryPolicy": {
+                                                            "type": "object",
+                                                            "description": "Configures retry behavior for the matched item. Required when action is Retry. MaxDelay must be greater than or equal to initialDelay.",
+                                                            "required": [
+                                                                "initialDelay"
+                                                            ],
+                                                            "properties": {
+                                                                "maxRetries": {
+                                                                    "type": "integer",
+                                                                    "description": "Maximum number of retry attempts (0 or greater; values above 100 are discouraged)",
+                                                                    "minimum": 0,
+                                                                    "default": 3
+                                                                },
+                                                                "initialDelay": {
+                                                                    "type": "string",
+                                                                    "description": "Initial delay before first retry (ISO 8601 duration). Must be greater than zero.",
+                                                                    "pattern": "^P(?=\\d|T\\d)(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+(\\.\\d+)?S)?)?$"
+                                                                },
+                                                                "backoffType": {
+                                                                    "type": "integer",
+                                                                    "enum": [
+                                                                        0,
+                                                                        1
+                                                                    ],
+                                                                    "enumDescriptions": [
+                                                                        "Fixed - Fixed delay between retries",
+                                                                        "Exponential - Exponential backoff between retries"
+                                                                    ],
+                                                                    "default": 1,
+                                                                    "description": "Backoff strategy for retry operations"
+                                                                },
+                                                                "backoffMultiplier": {
+                                                                    "type": "number",
+                                                                    "description": "Multiplier for exponential backoff",
+                                                                    "minimum": 1,
+                                                                    "default": 2.0
+                                                                },
+                                                                "maxDelay": {
+                                                                    "type": "string",
+                                                                    "description": "Maximum delay between retries (ISO 8601 duration). Must be greater than or equal to initialDelay.",
+                                                                    "pattern": "^P(?=\\d|T\\d)(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+(\\.\\d+)?S)?)?$"
+                                                                },
+                                                                "useJitter": {
+                                                                    "type": "boolean",
+                                                                    "description": "Whether to add random jitter to retry delays",
+                                                                    "default": true
+                                                                }
+                                                            }
+                                                        },
+                                                        "logOnly": {
+                                                            "type": "boolean",
+                                                            "description": "If true, only logs the error without affecting execution flow",
+                                                            "default": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "task"
+                                ],
+                                "additionalProperties": false,
+                                "allOf": [
+                                    {
+                                        "if": {
+                                            "properties": {
+                                                "join": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "policy": {
+                                                            "const": "quorum"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "policy"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "join"
+                                            ]
+                                        },
+                                        "then": {
+                                            "properties": {
+                                                "join": {
+                                                    "required": [
+                                                        "minSuccess"
+                                                    ]
+                                                }
+                                            },
+                                            "description": "When join.policy is 'quorum', join.minSuccess is required and must be >= 1 (task parsing fails otherwise)."
+                                        }
+                                    }
+                                ]
                             }
                         },
                         "required": [
