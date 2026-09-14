@@ -173,3 +173,34 @@ values never mean master. `x-indexed` metadata (including `false`) is allowed on
 root `type: "master"`. The existing `attributes.type` and nested JSON Schema `type` keywords remain
 independent and unchanged. These contract changes require a package release before downstream
 consumers using the published package see the new root field.
+
+For an explicit master schema, `x-indexed` must be boolean. `true` requires an explicit scalar
+`type` of `string`, `number`, `integer`, or `boolean` beneath fixed object `properties`; date fields
+remain strings with `format: "date-time"`. Nested objects may omit their object type. The first path
+segment must match `[a-zA-Z][a-zA-Z0-9_]*`; subsequent segments allow `[a-zA-Z0-9_]+`.
+Arrays, object-valued indexed fields, ambiguous types, references, and conditional/composed indexed
+nodes or ancestors are rejected. Index requests in definitions, pattern properties, and other dynamic
+schema locations are also rejected. Unrelated conditional siblings and literal `examples`, `default`,
+`const`, or `enum` data are unaffected. `false` disables indexing and does not require a scalar type;
+it is still invalid outside an explicit master schema. Omitting `x-indexed` requests no index and
+validation does not insert a default value.
+
+For example, inside a component with root `"type": "master"`:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "amount": { "type": "number", "x-indexed": true },
+    "customer": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "x-indexed": true }
+      }
+    }
+  }
+}
+```
+
+This validates index eligibility only. The CLI generates SQL and the DBA schedules execution;
+validation does not create indexes or change filter/sort permissions.

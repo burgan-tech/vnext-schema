@@ -256,6 +256,371 @@
                     }
                 }
             ]
+        },
+        "unindexableMasterSchema": {
+            "anyOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "properties": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "patternProperties": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "$defs": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "definitions": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "dependentSchemas": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "additionalProperties": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "not": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "if": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "then": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "else": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "contains": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "propertyNames": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "additionalItems": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "unevaluatedProperties": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "unevaluatedItems": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "allOf": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "anyOf": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "oneOf": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "prefixItems": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/unindexableMasterSchema"
+                                    }
+                                },
+                                {
+                                    "$ref": "#/definitions/unindexableMasterSchema"
+                                }
+                            ]
+                        },
+                        "x-indexed": {
+                            "type": "boolean",
+                            "const": false
+                        }
+                    }
+                }
+            ]
+        },
+        "indexableMasterField": {
+            "description": "Validate index metadata along fixed object property paths without interpreting example/default data as schemas.",
+            "anyOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "properties": {
+                            "type": "object",
+                            "patternProperties": {
+                                "^[a-zA-Z0-9_]+$": {
+                                    "$ref": "#/definitions/indexableMasterField"
+                                }
+                            },
+                            "additionalProperties": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "patternProperties": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "$defs": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "definitions": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "dependentSchemas": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "additionalProperties": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "not": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "if": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "then": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "else": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "contains": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "propertyNames": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "additionalItems": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "unevaluatedProperties": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "unevaluatedItems": {
+                            "$ref": "#/definitions/unindexableMasterSchema"
+                        },
+                        "allOf": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "anyOf": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "oneOf": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "prefixItems": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/unindexableMasterSchema"
+                                    }
+                                },
+                                {
+                                    "$ref": "#/definitions/unindexableMasterSchema"
+                                }
+                            ]
+                        },
+                        "x-indexed": {
+                            "type": "boolean",
+                            "description": "Opt this scalar field into manual index preparation. Supported only in an explicit root type: master schema; omission does not request an index."
+                        }
+                    },
+                    "allOf": [
+                        {
+                            "if": {
+                                "required": [
+                                    "x-indexed"
+                                ],
+                                "properties": {
+                                    "x-indexed": {
+                                        "const": true
+                                    }
+                                }
+                            },
+                            "then": {
+                                "required": [
+                                    "type"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "enum": [
+                                            "string",
+                                            "number",
+                                            "integer",
+                                            "boolean"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "if": {
+                                "anyOf": [
+                                    {
+                                        "required": [
+                                            "$ref"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "allOf"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "anyOf"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "oneOf"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "not"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "if"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "then"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "else"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "dependentSchemas"
+                                        ]
+                                    }
+                                ]
+                            },
+                            "then": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        },
+                        {
+                            "if": {
+                                "required": [
+                                    "type"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "not": {
+                                            "const": "object"
+                                        }
+                                    }
+                                }
+                            },
+                            "then": {
+                                "properties": {
+                                    "properties": {
+                                        "type": "object",
+                                        "additionalProperties": {
+                                            "$ref": "#/definitions/unindexableMasterSchema"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "masterIndexSchema": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/indexableMasterField"
+                },
+                {
+                    "properties": {
+                        "x-indexed": {
+                            "type": "boolean",
+                            "const": false
+                        },
+                        "properties": {
+                            "type": "object",
+                            "patternProperties": {
+                                "^[a-zA-Z][a-zA-Z0-9_]*$": {
+                                    "$ref": "#/definitions/indexableMasterField"
+                                }
+                            },
+                            "additionalProperties": {
+                                "$ref": "#/definitions/unindexableMasterSchema"
+                            }
+                        }
+                    }
+                }
+            ]
         }
     },
     "allOf": [
@@ -276,6 +641,17 @@
                         "properties": {
                             "schema": {
                                 "$ref": "#/definitions/nonIndexedSchema"
+                            }
+                        }
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "attributes": {
+                        "properties": {
+                            "schema": {
+                                "$ref": "#/definitions/masterIndexSchema"
                             }
                         }
                     }
