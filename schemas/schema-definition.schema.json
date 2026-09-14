@@ -118,7 +118,169 @@
                 }
             },
             "additionalProperties": false
+        },
+        "type": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "enum": [
+                        "master",
+                        "transition",
+                        "view",
+                        "function"
+                    ]
+                },
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string",
+                    "pattern": "^\\s*$"
+                }
+            ],
+            "description": "Optional schema purpose at the component root. No default: absent, null or blank never means master. Independent of attributes.type and JSON Schema types."
         }
     },
-    "additionalProperties": false
+    "additionalProperties": false,
+    "definitions": {
+        "nonIndexedSchema": {
+            "anyOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "object",
+                    "not": {
+                        "required": [
+                            "x-indexed"
+                        ]
+                    },
+                    "properties": {
+                        "properties": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/nonIndexedSchema"
+                            }
+                        },
+                        "patternProperties": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/nonIndexedSchema"
+                            }
+                        },
+                        "$defs": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/nonIndexedSchema"
+                            }
+                        },
+                        "definitions": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/nonIndexedSchema"
+                            }
+                        },
+                        "dependentSchemas": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/nonIndexedSchema"
+                            }
+                        },
+                        "additionalProperties": {
+                            "$ref": "#/definitions/nonIndexedSchema"
+                        },
+                        "not": {
+                            "$ref": "#/definitions/nonIndexedSchema"
+                        },
+                        "if": {
+                            "$ref": "#/definitions/nonIndexedSchema"
+                        },
+                        "then": {
+                            "$ref": "#/definitions/nonIndexedSchema"
+                        },
+                        "else": {
+                            "$ref": "#/definitions/nonIndexedSchema"
+                        },
+                        "contains": {
+                            "$ref": "#/definitions/nonIndexedSchema"
+                        },
+                        "propertyNames": {
+                            "$ref": "#/definitions/nonIndexedSchema"
+                        },
+                        "additionalItems": {
+                            "$ref": "#/definitions/nonIndexedSchema"
+                        },
+                        "unevaluatedProperties": {
+                            "$ref": "#/definitions/nonIndexedSchema"
+                        },
+                        "unevaluatedItems": {
+                            "$ref": "#/definitions/nonIndexedSchema"
+                        },
+                        "allOf": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/nonIndexedSchema"
+                            }
+                        },
+                        "anyOf": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/nonIndexedSchema"
+                            }
+                        },
+                        "oneOf": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/nonIndexedSchema"
+                            }
+                        },
+                        "prefixItems": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/nonIndexedSchema"
+                            }
+                        },
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/nonIndexedSchema"
+                                    }
+                                },
+                                {
+                                    "$ref": "#/definitions/nonIndexedSchema"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "master"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "else": {
+                "properties": {
+                    "attributes": {
+                        "properties": {
+                            "schema": {
+                                "$ref": "#/definitions/nonIndexedSchema"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
 }

@@ -164,3 +164,12 @@ For support and questions:
 ---
 
 **Note**: This package is part of the vNext ecosystem and is primarily intended for use with the official vNext CLI tools and vNext Workflow platform. 
+
+### Schema component purpose
+
+Schema component documents (`sys-schemas`) accept an optional root `type` beside `key`, `domain`
+and `flow`: `master`, `transition`, `view`, or `function`. It has no default; absent, null and blank
+values never mean master. `x-indexed` metadata (including `false`) is allowed only with explicit
+root `type: "master"`. The existing `attributes.type` and nested JSON Schema `type` keywords remain
+independent and unchanged. These contract changes require a package release before downstream
+consumers using the published package see the new root field.
