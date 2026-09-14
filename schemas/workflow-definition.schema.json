@@ -2352,10 +2352,9 @@
     },
     "longPoll": {
       "type": "object",
-      "description": "Long polling configuration for the state. The runtime keeps the request open until a transition occurs or the fallback timeout elapses.",
+      "description": "Long polling configuration for the state. The runtime keeps the request open until a transition occurs or the fallback timeout elapses. Authorization is exactly one of two mutually exclusive arms: role grants ('roles') or a condition rule ('rule') — never both.",
       "required": [
-        "terminate",
-        "roles"
+        "terminate"
       ],
       "properties": {
         "terminate": {
@@ -2369,12 +2368,26 @@
         },
         "roles": {
           "type": "array",
-          "description": "Roles allowed to use the long poll interaction. DENY overrides ALLOW.",
+          "description": "Roles allowed to use the long poll interaction. DENY overrides ALLOW. Mutually exclusive with 'rule'.",
           "items": {
             "$ref": "#/definitions/roleGrant"
           }
+        },
+        "rule": {
+          "$ref": "#/definitions/scriptCode",
+          "description": "Condition script (IConditionMapping, true/false) deciding per caller whether the interaction applies — the rule-based alternative to 'roles'. At most one rule per interaction. A false, throwing, or non-compiling rule denies (fail-closed) on both the state signal and the acknowledge endpoint."
         }
       },
+      "oneOf": [
+        {
+          "required": ["roles"],
+          "not": { "required": ["rule"] }
+        },
+        {
+          "required": ["rule"],
+          "not": { "required": ["roles"] }
+        }
+      ],
       "additionalProperties": false
     },
     "stateNotification": {
