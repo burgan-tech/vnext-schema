@@ -5,7 +5,12 @@ const schema = require('../schemas/schema-definition.schema.json');
 const validate = new Ajv({ strict: false }).compile(schema);
 
 const doc = (type, indexed) => ({
-  key: 'orders', domain: 'test', flow: 'sys-schemas', version: '1.0.0', flowVersion: '1.0.0', tags: ['test'],
+  key: 'orders',
+  domain: 'test',
+  flow: 'sys-schemas',
+  version: '1.0.0',
+  flowVersion: '1.0.0',
+  tags: ['test'],
   ...(type === undefined ? {} : { type }),
   attributes: {
     type: 'workflow', schema: {
