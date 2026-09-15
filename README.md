@@ -164,3 +164,43 @@ For support and questions:
 ---
 
 **Note**: This package is part of the vNext ecosystem and is primarily intended for use with the official vNext CLI tools and vNext Workflow platform. 
+
+### Schema component purpose
+
+Schema component documents (`sys-schemas`) use the existing `attributes.type` free-text string;
+legacy and custom values are accepted without an enum. Only the exact value `master` allows
+`x-indexed` metadata (including `false`). Missing, null, blank and other values never mean master.
+The existing required string contract for `attributes.type` remains. There is no component root
+`type` field, and nested JSON Schema `type` keywords retain their meaning. Publish a new package
+version for downstream consumers to receive the updated contract.
+
+For an explicit master schema, `x-indexed` must be boolean. `true` requires an explicit scalar
+`type` of `string`, `number`, `integer`, or `boolean` beneath fixed object `properties`; date fields
+remain strings with `format: "date-time"`. Nested objects may omit their object type. The first path
+segment must match `[a-zA-Z][a-zA-Z0-9_]*`; subsequent segments allow `[a-zA-Z0-9_]+`.
+Arrays, object-valued indexed fields, ambiguous types, references, and conditional/composed indexed
+nodes or ancestors are rejected. Index requests in definitions, pattern properties, and other dynamic
+schema locations are also rejected. Unrelated conditional siblings and literal `examples`, `default`,
+`const`, or `enum` data are unaffected. `false` disables indexing and does not require a scalar type;
+it is still invalid outside an explicit master schema. Omitting `x-indexed` requests no index and
+validation does not insert a default value.
+
+For example, inside a component with `attributes.type: "master"`:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "amount": { "type": "number", "x-indexed": true },
+    "customer": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "x-indexed": true }
+      }
+    }
+  }
+}
+```
+
+This validates index eligibility only. The CLI generates SQL and the DBA schedules execution;
+validation does not create indexes or change filter/sort permissions.
