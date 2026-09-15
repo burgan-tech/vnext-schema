@@ -65,25 +65,7 @@
             "properties": {
                 "type": {
                     "type": "string",
-                    "description": "Schema type identifier",
-                    "enum": [
-                        "workflow",
-                        "task",
-                        "function",
-                        "view",
-                        "schema",
-                        "extension",
-                        "headers"
-                    ],
-                    "enumDescriptions": [
-                        "Workflow component definition",
-                        "Task component definition",
-                        "Function component definition",
-                        "View component definition",
-                        "Schema component definition",
-                        "Extension component definition",
-                        "Headers schema definition"
-                    ]
+                    "description": "Free-text schema type. Only the exact value master permits x-indexed metadata."
                 },
                 "schema": {
                     "type": "object",
@@ -118,27 +100,6 @@
                 }
             },
             "additionalProperties": false
-        },
-        "type": {
-            "anyOf": [
-                {
-                    "type": "string",
-                    "enum": [
-                        "master",
-                        "transition",
-                        "view",
-                        "function"
-                    ]
-                },
-                {
-                    "type": "null"
-                },
-                {
-                    "type": "string",
-                    "pattern": "^\\s*$"
-                }
-            ],
-            "description": "Optional schema purpose at the component root. No default: absent, null or blank never means master. Independent of attributes.type and JSON Schema types."
         }
     },
     "additionalProperties": false,
@@ -626,14 +587,21 @@
     "allOf": [
         {
             "if": {
-                "properties": {
-                    "type": {
-                        "const": "master"
-                    }
-                },
                 "required": [
-                    "type"
-                ]
+                    "attributes"
+                ],
+                "properties": {
+                    "attributes": {
+                        "required": [
+                            "type"
+                        ],
+                        "properties": {
+                            "type": {
+                                "const": "master"
+                            }
+                        }
+                    }
+                }
             },
             "else": {
                 "properties": {

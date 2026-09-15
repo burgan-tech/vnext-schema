@@ -167,12 +167,12 @@ For support and questions:
 
 ### Schema component purpose
 
-Schema component documents (`sys-schemas`) accept an optional root `type` beside `key`, `domain`
-and `flow`: `master`, `transition`, `view`, or `function`. It has no default; absent, null and blank
-values never mean master. `x-indexed` metadata (including `false`) is allowed only with explicit
-root `type: "master"`. The existing `attributes.type` and nested JSON Schema `type` keywords remain
-independent and unchanged. These contract changes require a package release before downstream
-consumers using the published package see the new root field.
+Schema component documents (`sys-schemas`) use the existing `attributes.type` free-text string;
+legacy and custom values are accepted without an enum. Only the exact value `master` allows
+`x-indexed` metadata (including `false`). Missing, null, blank and other values never mean master.
+The existing required string contract for `attributes.type` remains. There is no component root
+`type` field, and nested JSON Schema `type` keywords retain their meaning. Publish a new package
+version for downstream consumers to receive the updated contract.
 
 For an explicit master schema, `x-indexed` must be boolean. `true` requires an explicit scalar
 `type` of `string`, `number`, `integer`, or `boolean` beneath fixed object `properties`; date fields
@@ -185,7 +185,7 @@ schema locations are also rejected. Unrelated conditional siblings and literal `
 it is still invalid outside an explicit master schema. Omitting `x-indexed` requests no index and
 validation does not insert a default value.
 
-For example, inside a component with root `"type": "master"`:
+For example, inside a component with `attributes.type: "master"`:
 
 ```json
 {

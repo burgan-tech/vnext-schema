@@ -11,9 +11,9 @@ const doc = (type, indexed) => ({
   version: '1.0.0',
   flowVersion: '1.0.0',
   tags: ['test'],
-  ...(type === undefined ? {} : { type }),
   attributes: {
-    type: 'workflow', schema: {
+    ...(type === undefined ? {} : { type }),
+    schema: {
       type: 'object', properties: {
         nested: {
           type: 'object',
@@ -29,22 +29,25 @@ const doc = (type, indexed) => ({
   }
 });
 
-for (const type of ['master', 'transition', 'view', 'function', undefined, null, '', '   ']) {
+for (const type of ['master', 'transition', 'view', 'function', 'workflow', 'task', 'headers', 'custom-schema', 'MASTER', '', '   ']) {
   assert(validate(doc(type)), JSON.stringify(validate.errors));
   for (const indexed of [true, false]) {
     assert.strictEqual(validate(doc(type, indexed)), type === 'master');
   }
 }
 
-for (const type of ['MASTER', 'workflow', 42, {}, []]) {
+for (const type of [undefined, null, 42, {}, []]) {
   assert.strictEqual(validate(doc(type)), false);
 }
 
 const example = doc('view');
 example.attributes.schema.examples = [{ 'x-indexed': true }];
 assert(validate(example));
-assert.strictEqual(schema.properties.type.default, undefined);
-console.log('Schema root purpose document validation passed.');
+assert.strictEqual(schema.properties.type, undefined);
+const obsoleteRoot = { ...doc('view', true), type: 'master' };
+assert.strictEqual(validate(obsoleteRoot), false);
+assert.strictEqual(schema.properties.attributes.properties.type.enum, undefined);
+console.log('Schema attributes.type document validation passed.');
 
 let indexCases = 0;
 const checkIndexSchema = (jsonSchema, expected, label) => {
