@@ -367,8 +367,11 @@
       "additionalProperties": false
     },
     "availableIn": {
-      "type": "array",
-      "description": "States where this transition is available. Empty or absent means every state. Each item is either a bare state key or an object narrowing that state to a set of role grants; the two forms may be mixed.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "description": "States where this transition is available, independent of trigger type. Null, empty or absent means every state. Each array item is either a bare state key or an object narrowing that state to a set of role grants; the two forms may be mixed.",
       "items": {
         "oneOf": [
           {
@@ -1444,9 +1447,6 @@
           },
           "then": {
             "properties": {
-              "availableIn": {
-                "$ref": "#/definitions/availableIn"
-              },
               "view": {
                 "$ref": "#/definitions/viewDefinition"
               }
@@ -1455,9 +1455,6 @@
           "else": {
             "properties": {
               "view": {
-                "type": "null"
-              },
-              "availableIn": {
                 "type": "null"
               }
             }
