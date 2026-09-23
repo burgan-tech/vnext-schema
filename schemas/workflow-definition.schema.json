@@ -2254,6 +2254,17 @@
             }
           ],
           "description": "Optional mapping script for dynamic timeout duration calculation. When provided, the script is executed at runtime to determine the timeout schedule. If the mapping fails, the static timer duration is used as fallback."
+        },
+        "annotations": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/annotations"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Key-value annotations for the timeout, surfaced on the state function's timeout block for client UI context. A subFlow.overrides.timeout replaces the child's timeout as a whole, annotations included."
         }
       }
     },
@@ -2384,7 +2395,7 @@
     },
     "annotations": {
       "type": "object",
-      "description": "Key-value annotations for the transition",
+      "description": "Key-value annotations (transitions and the workflow timeout). Pure passthrough metadata for client UI context; the runtime does not interpret values. Use namespaced keys, e.g. ui/priority.",
       "additionalProperties": {
         "type": "string"
       }

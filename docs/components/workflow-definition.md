@@ -472,6 +472,7 @@ Nullable (`anyOf: [object, null]`).
 | versionStrategy | versionStrategy | Yes | enum |
 | timer | timerConfig | Yes | ISO 8601 duration |
 | mapping | scriptCode | No | Nullable. Dynamic timeout calculation |
+| annotations | annotations | No | Nullable. Key-value metadata, surfaced on the state function's `timeout` block |
 | _comment | string | No | - |
 
 ### timerConfig
