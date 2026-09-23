@@ -180,7 +180,7 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | **versionStrategy** | **Required** | **Required** | **Required** |
 | **triggerType** | **Required** (=0) | **Required** (=2) | **Required** (=3) |
 | **labels** | **Required** | **Required** | **Required** |
-| availableIn | Optional | null | null |
+| availableIn | Optional/null | Optional/null | Optional/null |
 | rule | null | null | null |
 | timer | null | **Required** (scriptCode) | null |
 | view | Optional/null (viewDefinition) | null | null |
@@ -195,10 +195,10 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 **Notes:**
 - Auto (1) is **not supported** -- `triggerType` enum is `[0, 2, 3]`
 - `triggerKind` is **not available** in shared transitions
-- Manual (0): `availableIn` specifies which states this transition applies to (see [availableIn](#availablein))
-- Scheduled/Event: `availableIn` must be null (applies globally). Note the base `properties.availableIn`
-  is typed as an array, so in practice a Scheduled/Event shared transition cannot carry `availableIn`
-  in **any** form — including `null`.
+- All supported trigger types (0, 2, 3): `availableIn` specifies which states this transition applies to
+  (see [availableIn](#availablein)). Null, empty or absent means every state.
+- Referencing a shared transition from an error boundary does not change its schema. The runtime
+  bypasses the state restriction for error-boundary-requested transitions.
 - `additionalProperties` is **not** restricted (open schema)
 
 ---
@@ -239,7 +239,7 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | view | viewDefinition | No | Yes | Single or rule-based |
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
-| availableIn | availableIn | No | No | States where cancel is available, optionally role-scoped per state; empty/absent = every state (string[] since 0.0.79, object form since 0.0.80) |
+| availableIn | availableIn | No | Yes | States where cancel is available, optionally role-scoped per state; null/empty/absent = every state (string[] since 0.0.79, object form since 0.0.80) |
 | roles | roleGrant[] | No | No | Authorization roles |
 | from | string | No | No | `^[a-z0-9-]+$` |
 | annotations | object | No | Yes | Key-value metadata (since 0.0.42) |
@@ -264,7 +264,7 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | view | viewDefinition | No | Yes | Single or rule-based |
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
-| availableIn | availableIn | No | No | States where exit is available, optionally role-scoped per state; empty/absent = every state (string[] since 0.0.79, object form since 0.0.80) |
+| availableIn | availableIn | No | Yes | States where exit is available, optionally role-scoped per state; null/empty/absent = every state (string[] since 0.0.79, object form since 0.0.80) |
 | roles | roleGrant[] | No | No | Authorization roles |
 | from | string | No | No | `^[a-z0-9-]+$` |
 | annotations | object | No | Yes | Key-value metadata (since 0.0.42) |
@@ -294,7 +294,7 @@ was accepted by the schema but never evaluated.
 | view | viewDefinition | No | Yes | Single or rule-based |
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
-| availableIn | availableIn | No | No | States where updateData is available, optionally role-scoped per state; empty/absent = every state (string[] since 0.0.79, object form since 0.0.80) |
+| availableIn | availableIn | No | Yes | States where updateData is available, optionally role-scoped per state; null/empty/absent = every state (string[] since 0.0.79, object form since 0.0.80) |
 | roles | roleGrant[] | No | No | Authorization roles |
 | from | string | No | No | `^[a-z0-9-]+$` |
 | annotations | object | No | Yes | Key-value metadata (since 0.0.42) |
@@ -329,7 +329,7 @@ Summary of all 6 transition types side by side:
 | rule | Auto required | No | No | No | No | No |
 | timer | Scheduled required | Scheduled required | No | No | No | No |
 | triggerKind | Yes | No | No | No | No | No |
-| availableIn | No | Manual only | No | Optional | Optional | Optional |
+| availableIn | No | Optional/null | No | Optional/null | Optional/null | Optional/null |
 | schema | Manual/Event | Manual/Event | Optional | Optional | Optional | Optional |
 | mapping | Manual/Event | Manual/Event | Optional | Optional | Optional | Optional |
 | onExecutionTasks | Optional | Optional | Optional | Optional | Optional | Optional |
@@ -542,7 +542,8 @@ Used at workflow, state, and task levels.
 
 ## availableIn
 
-Array restricting which states a transition is offered in. Empty or absent means **every state**.
+Nullable array restricting which states a transition is available in. Null, empty or absent means
+**every state**.
 
 Each item is **either** a bare state key **or** an `availableInEntry` object, and the two forms may be
 mixed in one array:
@@ -562,7 +563,7 @@ mixed in one array:
 
 State keys must match `^[a-z0-9-]+$` in both forms.
 
-Supported on `sharedTransition` (Manual only), `cancelTransition`, `exitTransition` and
+Supported on `sharedTransition` (Manual, Scheduled and Event), `cancelTransition`, `exitTransition` and
 `updateDataTransition`. Optional everywhere.
 
 ### availableInEntry
