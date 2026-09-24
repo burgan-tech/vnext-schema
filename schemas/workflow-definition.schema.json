@@ -367,8 +367,11 @@
       "additionalProperties": false
     },
     "availableIn": {
-      "type": "array",
-      "description": "States where this transition is available. Empty or absent means every state. Each item is either a bare state key or an object narrowing that state to a set of role grants; the two forms may be mixed.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "description": "States where this transition is available, independent of trigger type. Null, empty or absent means every state. Each array item is either a bare state key or an object narrowing that state to a set of role grants; the two forms may be mixed.",
       "items": {
         "oneOf": [
           {
@@ -841,7 +844,7 @@
             },
             "viewOverrides": {
               "type": "object",
-              "description": "Dictionary of view overrides for subflow views. Key is the original view key, value is the reference to the new view definition.",
+              "description": "Dictionary of view overrides for subflow views. Key is the original view key, value is the reference to the new view definition. Deprecated: use overrides.states.<state>.views / overrides.transitions.<transition>.views.",
               "patternProperties": {
                 "^[a-z0-9\\-]+$": {
                   "$ref": "#/definitions/reference"
@@ -1444,9 +1447,6 @@
           },
           "then": {
             "properties": {
-              "availableIn": {
-                "$ref": "#/definitions/availableIn"
-              },
               "view": {
                 "$ref": "#/definitions/viewDefinition"
               }
@@ -1455,9 +1455,6 @@
           "else": {
             "properties": {
               "view": {
-                "type": "null"
-              },
-              "availableIn": {
                 "type": "null"
               }
             }
@@ -2254,16 +2251,32 @@
             }
           ],
           "description": "Optional mapping script for dynamic timeout duration calculation. When provided, the script is executed at runtime to determine the timeout schedule. If the mapping fails, the static timer duration is used as fallback."
+        },
+        "annotations": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/annotations"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Key-value annotations for the timeout, surfaced on the state function's timeout block for client UI context. A subFlow.overrides.timeout replaces the child's timeout as a whole, annotations included."
         }
       }
     },
-    "subFlowTransitionOverride": {
+    "subFlowLongPollOverride": {
       "type": "object",
-      "description": "Per-transition override configuration for a subflow. Replaces transition roles.",
+      "description": "Parent override of a child state's interaction.longPoll. Field-level: omitted fields keep the child's value. terminate and rule are not overridable.",
       "properties": {
+        "fallbackTimeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Acknowledge fallback window in seconds."
+        },
         "roles": {
           "type": "array",
-          "description": "Transition role overrides. DENY always overrides ALLOW.",
+          "description": "Replaces the child's long-poll role grants as a whole list. Empty admits every caller. Ignored when the child uses a rule.",
           "items": {
             "$ref": "#/definitions/roleGrant"
           }
@@ -2271,9 +2284,33 @@
       },
       "additionalProperties": false
     },
+    "subFlowTransitionOverride": {
+      "type": "object",
+      "description": "Per-transition override configuration for a subflow. Replaces transition roles, view swaps.",
+      "properties": {
+        "roles": {
+          "type": "array",
+          "description": "Transition role overrides. DENY always overrides ALLOW.",
+          "items": {
+            "$ref": "#/definitions/roleGrant"
+          }
+        },
+        "views": {
+          "type": "object",
+          "description": "View swap for this child transition. Key is the view key the child's rules selected; value is the replacement view.",
+          "patternProperties": {
+            "^[a-z0-9\\-]+$": {
+              "$ref": "#/definitions/reference"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "subFlowStateOverride": {
       "type": "object",
-      "description": "Per-state override configuration for a subflow. Replaces state query roles.",
+      "description": "Per-state override configuration for a subflow: query roles (replace), long-poll (field-level), view swaps.",
       "properties": {
         "queryRoles": {
           "type": "array",
@@ -2281,6 +2318,26 @@
           "items": {
             "$ref": "#/definitions/roleGrant"
           }
+        },
+        "interaction": {
+          "type": "object",
+          "description": "Field-level override of the child state's interaction.",
+          "properties": {
+            "longPoll": {
+              "$ref": "#/definitions/subFlowLongPollOverride"
+            }
+          },
+          "additionalProperties": false
+        },
+        "views": {
+          "type": "object",
+          "description": "View swap for this child state. Key is the view key the child's rules selected; value is the replacement view.",
+          "patternProperties": {
+            "^[a-z0-9\\-]+$": {
+              "$ref": "#/definitions/reference"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -2291,7 +2348,7 @@
       "properties": {
         "views": {
           "type": "object",
-          "description": "Dictionary of view overrides. Key is the original view key, value is the new view reference.",
+          "description": "Dictionary of view overrides. Key is the original view key, value is the new view reference. Deprecated: use overrides.states.<state>.views / overrides.transitions.<transition>.views.",
           "patternProperties": {
             "^[a-z0-9\\-]+$": {
               "$ref": "#/definitions/reference"
@@ -2335,7 +2392,7 @@
     },
     "annotations": {
       "type": "object",
-      "description": "Key-value annotations for the transition",
+      "description": "Key-value annotations (transitions and the workflow timeout). Pure passthrough metadata for client UI context; the runtime does not interpret values. Use namespaced keys, e.g. ui/priority.",
       "additionalProperties": {
         "type": "string"
       }
@@ -2352,10 +2409,9 @@
     },
     "longPoll": {
       "type": "object",
-      "description": "Long polling configuration for the state. The runtime keeps the request open until a transition occurs or the fallback timeout elapses.",
+      "description": "Long polling configuration for the state. The runtime keeps the request open until a transition occurs or the fallback timeout elapses. Authorization is exactly one of two mutually exclusive arms: role grants ('roles') or a condition rule ('rule') — never both.",
       "required": [
-        "terminate",
-        "roles"
+        "terminate"
       ],
       "properties": {
         "terminate": {
@@ -2369,12 +2425,26 @@
         },
         "roles": {
           "type": "array",
-          "description": "Roles allowed to use the long poll interaction. DENY overrides ALLOW.",
+          "description": "Roles allowed to use the long poll interaction. DENY overrides ALLOW. Mutually exclusive with 'rule'.",
           "items": {
             "$ref": "#/definitions/roleGrant"
           }
+        },
+        "rule": {
+          "$ref": "#/definitions/scriptCode",
+          "description": "Condition script (IConditionMapping, true/false) deciding per caller whether the interaction applies — the rule-based alternative to 'roles'. At most one rule per interaction. A false, throwing, or non-compiling rule denies (fail-closed) on both the state signal and the acknowledge endpoint."
         }
       },
+      "oneOf": [
+        {
+          "required": ["roles"],
+          "not": { "required": ["rule"] }
+        },
+        {
+          "required": ["rule"],
+          "not": { "required": ["roles"] }
+        }
+      ],
       "additionalProperties": false
     },
     "stateNotification": {
