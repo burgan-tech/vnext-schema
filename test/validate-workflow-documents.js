@@ -121,5 +121,24 @@ inlineTransition.attributes.errorBoundary.onError[0].transition = { key: 'recove
 check('boundary transition remains a string reference', inlineTransition, false,
   '/attributes/errorBoundary/onError/0/transition');
 
+// executionType (vnext#1003): optional SYNC/ASYNC on flow, shared/state transitions and startTransition.
+for (const value of ['SYNC', 'ASYNC']) {
+  const flow = document(); flow.attributes.executionType = value;
+  check(`flow executionType ${value}`, flow, true);
+  const shared = document(); shared.attributes.sharedTransitions[0].executionType = value;
+  check(`shared transition executionType ${value}`, shared, true);
+  const start = document(); start.attributes.startTransition.executionType = value;
+  check(`start transition executionType ${value}`, start, true);
+}
+// Absent is fine (non-breaking) — the base document() carries no executionType anywhere.
+check('executionType omitted everywhere', document(), true);
+// Only the two upper-case codes are accepted.
+for (const [name, bad] of [['lower-case', 'sync'], ['unknown', 'BACKGROUND'], ['wrong-type', true], ['null', null]]) {
+  const flow = document(); flow.attributes.executionType = bad;
+  check(`flow executionType rejects ${name}`, flow, false, '/attributes/executionType');
+  const shared = document(); shared.attributes.sharedTransitions[0].executionType = bad;
+  check(`shared executionType rejects ${name}`, shared, false, '/attributes/sharedTransitions/0/executionType');
+}
+
 assert.strictEqual(failures.length, 0, failures.join('\n'));
 console.log(`${checked} workflow availableIn document cases passed.`);

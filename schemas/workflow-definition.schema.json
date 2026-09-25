@@ -79,6 +79,10 @@
             "Sub Process"
           ]
         },
+        "executionType": {
+          "$ref": "#/definitions/executionType",
+          "description": "Optional default execution mode for this flow (vnext#1003). Applies to its transitions unless a transition overrides it with its own executionType (the inner definition wins)."
+        },
         "scripts": {
           "$ref": "#/definitions/scripts"
         },
@@ -489,6 +493,18 @@
         "Major version update"
       ],
       "description": "Version strategy for updates"
+    },
+    "executionType": {
+      "type": "string",
+      "description": "Execution mode of a flow or transition (vnext#1003). SYNC: the request blocks until the pipeline settles and returns the full instance. ASYNC: the request is accepted and the pipeline runs in the background. Optional and non-breaking — when omitted, the caller's `sync` query parameter chooses the mode. When set it is the source of truth and overrides the query parameter; a transition's value (inner) wins over the flow's (outer). Not honoured for automatic transitions, which always run inline.",
+      "enum": [
+        "SYNC",
+        "ASYNC"
+      ],
+      "enumDescriptions": [
+        "Synchronous — the request blocks and returns the full instance",
+        "Asynchronous — the request is accepted and runs in the background"
+      ]
     },
     "triggerType": {
       "type": "integer",
@@ -942,6 +958,9 @@
             "versionStrategy": {
               "$ref": "#/definitions/versionStrategy"
             },
+            "executionType": {
+              "$ref": "#/definitions/executionType"
+            },
             "triggerType": {
               "$ref": "#/definitions/triggerType"
             },
@@ -1266,6 +1285,9 @@
             "versionStrategy": {
               "$ref": "#/definitions/versionStrategy"
             },
+            "executionType": {
+              "$ref": "#/definitions/executionType"
+            },
             "triggerType": {
               "type": "integer",
               "enum": [
@@ -1506,6 +1528,9 @@
         },
         "versionStrategy": {
           "$ref": "#/definitions/versionStrategy"
+        },
+        "executionType": {
+          "$ref": "#/definitions/executionType"
         },
         "labels": {
           "type": "array",
