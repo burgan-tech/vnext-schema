@@ -105,6 +105,13 @@ for (const slot of SCHEMA_SLOTS) {
   expectInvalid(`${slot}: empty array`, doc({ [slot]: [] }));
 }
 
+// executionLog: opt-in for the function-execution journal (non-breaking; absent → no logging).
+expectValid('executionLog: ENABLED', doc({ executionLog: 'ENABLED' }));
+expectValid('executionLog: DISABLED', doc({ executionLog: 'DISABLED' }));
+expectInvalid('executionLog: unknown value', doc({ executionLog: 'MAYBE' }));
+expectInvalid('executionLog: lower-case not accepted on the wire', doc({ executionLog: 'enabled' }));
+expectInvalid('executionLog: wrong type', doc({ executionLog: true }));
+
 expectValid('all four slots together, mixing shapes', doc({
   verbs: ['POST'],
   inputSchema: [
