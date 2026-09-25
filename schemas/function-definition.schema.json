@@ -315,6 +315,18 @@
                         ]
                     }
                 },
+                "executionLog": {
+                    "type": "string",
+                    "description": "Opt-in for the function-execution journal. When ENABLED, every invocation of this function is recorded in the FunctionExecutions telemetry table (and served by the function metrics endpoints). Omitted or DISABLED records nothing, so existing definitions keep the default no-logging behaviour. Journaling is best-effort and asynchronous; it never affects function execution time.",
+                    "enum": [
+                        "ENABLED",
+                        "DISABLED"
+                    ],
+                    "enumDescriptions": [
+                        "Record every invocation of this function in the execution journal",
+                        "Do not record invocations (the default when the field is absent)"
+                    ]
+                },
                 "inputSchema": {
                     "description": "The sys-schemas contract describing the request body. When set, the runtime validates the request body against the entry that wins rule evaluation.",
                     "allOf": [
