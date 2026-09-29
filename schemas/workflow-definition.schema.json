@@ -496,10 +496,10 @@
     },
     "executionType": {
       "type": "string",
-      "description": "Execution mode of a flow or transition (vnext#1003). SYNC: the request blocks until the pipeline settles and returns the full instance. ASYNC: the request is accepted and the pipeline runs in the background. Optional and non-breaking — when omitted, the caller's `sync` query parameter chooses the mode. When set it is the source of truth and overrides the query parameter; a transition's value (inner) wins over the flow's (outer). Not honoured for automatic transitions, which always run inline.",
+      "description": "Execution mode of a flow or transition (vnext#1003). S: synchronous — the request blocks until the pipeline settles and returns the full instance. A: asynchronous — the request is accepted and the pipeline runs in the background. Optional and non-breaking — when omitted, the caller's `sync` query parameter chooses the mode. When set it is the source of truth and overrides the query parameter; a transition's value (inner) wins over the flow's (outer). Not honoured for automatic transitions, which always run inline.",
       "enum": [
-        "SYNC",
-        "ASYNC"
+        "S",
+        "A"
       ],
       "enumDescriptions": [
         "Synchronous — the request blocks and returns the full instance",
