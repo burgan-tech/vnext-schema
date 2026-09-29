@@ -45,6 +45,17 @@ This package provides comprehensive JSON Schema definitions used by the vNext ec
 | `19` | Get Instance Task | Read a single instance |
 | `20` | Dapr Conversation Task | Dapr conversation (LLM) call |
 | `21` | FanOut Task | Run an inner task once per collection item, in parallel, and join the results |
+| `22` | External HTTP Task | Same configuration contract as type 6, executed directly by the Orchestrator process instead of being routed through the Execution service |
+
+#### External HTTP Task (`type: "22"`)
+
+Type `22` shares the type-6 HTTP configuration surface unchanged (`url`, `method`, `headers`, `body`,
+`contentType`, `timeoutSeconds`, `validateSsl`, `acceptedStatusCodes`) — in the runtime
+`ExternalHttpTask` derives from `HttpTask`, so mapping scripts (`task as HttpTask`) work for both.
+Only the transport differs: the call runs in-process in the Orchestrator, so no Dapr sidecar,
+circuit breaker or remote-invocation timeout participates — the task's own `timeoutSeconds`
+(default 30) is the only bound. In this schema both types validate against the same `if/then`
+branch; adding an HTTP config field means adding it once, for both.
 
 #### FanOut Task (`type: "21"`)
 
