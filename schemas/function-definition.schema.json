@@ -317,10 +317,10 @@
                 },
                 "executionLog": {
                     "type": "string",
-                    "description": "Opt-in for the function-execution journal. When ENABLED, every invocation of this function is recorded in the FunctionExecutions telemetry table (and served by the function metrics endpoints). Omitted or DISABLED records nothing, so existing definitions keep the default no-logging behaviour. Journaling is best-effort and asynchronous; it never affects function execution time.",
+                    "description": "Opt-in for the function-execution journal. When E (enabled), every invocation of this function is recorded in the FunctionExecutions telemetry table (and served by the function metrics endpoints). Omitted or D (disabled) records nothing, so existing definitions keep the default no-logging behaviour. Journaling is best-effort and asynchronous; it never affects function execution time.",
                     "enum": [
-                        "ENABLED",
-                        "DISABLED"
+                        "E",
+                        "D"
                     ],
                     "enumDescriptions": [
                         "Record every invocation of this function in the execution journal",
