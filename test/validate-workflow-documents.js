@@ -140,5 +140,68 @@ for (const [name, bad] of [['lower-case', 's'], ['old-code-sync', 'SYNC'], ['old
   check(`shared executionType rejects ${name}`, shared, false, '/attributes/sharedTransitions/0/executionType');
 }
 
+// arrayMerge (vnext-client-sdk-core#58): optional R/M on every transition shape that can write a
+// body — state and shared transitions, startTransition, and the three well-known transitions. It is
+// deliberately NOT a flow-level setting: the two values are opposite data-retention trade-offs, so
+// the choice belongs to the transition whose body is being merged, not to the whole workflow.
+const wellKnown = (kind, key) => {
+  const input = document();
+  input.attributes[kind] = {
+    key, target: kind === 'updateData' ? '$self' : 'failed',
+    triggerType: 0, versionStrategy: 'Minor', labels: labels(key)
+  };
+  return input;
+};
+
+for (const value of ['R', 'M']) {
+  const shared = document(); shared.attributes.sharedTransitions[0].arrayMerge = value;
+  check(`shared transition arrayMerge ${value}`, shared, true);
+
+  const state = document();
+  state.attributes.states[1].transitions = [{
+    key: 'advance', target: 'failed', triggerType: 0, versionStrategy: 'Minor',
+    labels: labels('Advance'), arrayMerge: value
+  }];
+  check(`state transition arrayMerge ${value}`, state, true);
+
+  const start = document(); start.attributes.startTransition.arrayMerge = value;
+  check(`start transition arrayMerge ${value}`, start, true);
+
+  for (const [kind, key] of [['cancel', 'cancel'], ['exit', 'exit'], ['updateData', 'update-data']]) {
+    const input = wellKnown(kind, key);
+    input.attributes[kind].arrayMerge = value;
+    check(`${kind} transition arrayMerge ${value}`, input, true);
+  }
+}
+
+// Absent is the non-breaking default — the base document carries no arrayMerge anywhere.
+check('arrayMerge omitted everywhere', document(), true);
+
+// Only the two upper-case codes are accepted. Rejecting the descriptive spellings matters: a value
+// that validated but did not resolve would silently keep the replace behaviour the author was trying
+// to move away from, and the data loss would look like a runtime bug rather than a typo.
+for (const [name, bad] of [
+  ['lower-case', 'm'], ['description-merge', 'merge'], ['description-replace', 'REPLACE'],
+  ['unknown', 'X'], ['wrong-type', true], ['null', null]
+]) {
+  const shared = document(); shared.attributes.sharedTransitions[0].arrayMerge = bad;
+  check(`shared arrayMerge rejects ${name}`, shared, false, '/attributes/sharedTransitions/0/arrayMerge');
+
+  const start = document(); start.attributes.startTransition.arrayMerge = bad;
+  check(`start arrayMerge rejects ${name}`, start, false, '/attributes/startTransition/arrayMerge');
+
+  const updateData = wellKnown('updateData', 'update-data');
+  updateData.attributes.updateData.arrayMerge = bad;
+  check(`updateData arrayMerge rejects ${name}`, updateData, false, '/attributes/updateData/arrayMerge');
+}
+
+// KNOWN GAP, pinned deliberately: arrayMerge is a TRANSITION setting, but the workflow root does
+// not set additionalProperties:false, so a flow-level `arrayMerge` validates and then does nothing
+// at runtime. Asserting the real behaviour rather than the desired one keeps the gap visible — if
+// the root is ever closed, this case flips and says so. Closing it is a separate change: it would
+// reject every other stray root property too, which is a breaking validation change for domains.
+const flowLevel = document(); flowLevel.attributes.arrayMerge = 'M';
+check('flow-level arrayMerge is silently accepted (open root object)', flowLevel, true);
+
 assert.strictEqual(failures.length, 0, failures.join('\n'));
 console.log(`${checked} workflow availableIn document cases passed.`);

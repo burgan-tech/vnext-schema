@@ -506,6 +506,18 @@
         "Asynchronous — the request is accepted and runs in the background"
       ]
     },
+    "arrayMerge": {
+      "type": "string",
+      "description": "How this transition's request body combines ARRAYS with the instance data already stored (vnext-client-sdk-core#58). Objects are unaffected — they always merge key by key. Optional and non-breaking: omitted means R, which is how every transition has always behaved. R lets the incoming array win outright, so omitting an item is how a caller deletes it — but a caller holding a stale copy silently erases items another request just added. M folds the two together instead: an incoming item that matches one already stored replaces it in place, anything new is appended, and duplicates collapse. Items match by their `id` when both sides are objects carrying one, otherwise by exact value — so an array of objects WITHOUT an id cannot express an update and an edited item arrives as a new entry. Under M an item is never removed by omission.",
+      "enum": [
+        "R",
+        "M"
+      ],
+      "enumDescriptions": [
+        "Replace — the incoming array wins outright (default; omission deletes)",
+        "Merge — stored items are kept and incoming ones folded in (matched by id, else by value)"
+      ]
+    },
     "triggerType": {
       "type": "integer",
       "enum": [
@@ -961,6 +973,9 @@
             "executionType": {
               "$ref": "#/definitions/executionType"
             },
+            "arrayMerge": {
+              "$ref": "#/definitions/arrayMerge"
+            },
             "triggerType": {
               "$ref": "#/definitions/triggerType"
             },
@@ -1288,6 +1303,9 @@
             "executionType": {
               "$ref": "#/definitions/executionType"
             },
+            "arrayMerge": {
+              "$ref": "#/definitions/arrayMerge"
+            },
             "triggerType": {
               "type": "integer",
               "enum": [
@@ -1532,6 +1550,9 @@
         "executionType": {
           "$ref": "#/definitions/executionType"
         },
+        "arrayMerge": {
+          "$ref": "#/definitions/arrayMerge"
+        },
         "labels": {
           "type": "array",
           "description": "Multi-language labels",
@@ -1620,6 +1641,9 @@
         },
         "versionStrategy": {
           "$ref": "#/definitions/versionStrategy"
+        },
+        "arrayMerge": {
+          "$ref": "#/definitions/arrayMerge"
         },
         "triggerType": {
           "type": "integer",
@@ -1721,6 +1745,9 @@
         "versionStrategy": {
           "$ref": "#/definitions/versionStrategy"
         },
+        "arrayMerge": {
+          "$ref": "#/definitions/arrayMerge"
+        },
         "triggerType": {
           "type": "integer",
           "const": 0,
@@ -1820,6 +1847,9 @@
         },
         "versionStrategy": {
           "$ref": "#/definitions/versionStrategy"
+        },
+        "arrayMerge": {
+          "$ref": "#/definitions/arrayMerge"
         },
         "triggerType": {
           "type": "integer",
