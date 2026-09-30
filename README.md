@@ -90,6 +90,51 @@ Authoring notes:
 - A FanOut task cannot reference another FanOut task as its inner task.
 - `join.ordered` is accepted for forward compatibility; in `inline` mode item results are always ordered by item index.
 
+## Field Exposure Vocabulary (`view-vocab.json`)
+
+Master-schema properties can declare how their value leaves the runtime. The runtime evaluates them in a
+fixed order: **`x-roles` → `x-masking` → `x-encryption`**. A property hidden by `x-roles` is pruned and
+never reaches the later keywords.
+
+| Keyword | Shape | Runtime |
+|---|---|---|
+| `x-roles` | array of `roleGrant` (`{ role, grant: allow \| deny }`) | hides the field from callers the grants refuse |
+| `x-masking` | `{ operator: mask \| replace, params?, roles? }` | masks the visible value; `roles` is an **allow-only exemption list** (an allow match sees the raw value) |
+| `x-encryption` | `{ type: none \| hash \| encrypt, params?, roles?, purpose?, redactInLogs?, retentionDays? }` | `hash`: applied when the data is written — the stored and served value is `HASHED:SHA256:<hex>` (HMAC under a salt the runtime generates per instance); irreversible, so no `roles` and no `pattern`/`format`/`minLength`/`maxLength`/`enum`/`const`. `encrypt`: AES-256-GCM token `ENCRYPTED:AES256:i1:…` in the stored instance data (key generated per instance), decrypted for the engine; on the data function an allow-listed caller reads the plaintext, everyone else the token; only instance data is encrypted. `roles` is an **allow-only exemption list**; the metadata fields are not enforced. `transport`/`persisted` were removed (never enforced) — use `encrypt` |
+
+Rules the runtime enforces at publish time for `x-masking` and `x-encryption.type: "hash"` (the vocabulary
+expresses the shape; the runtime adds the context): `type: "string"` properties reachable through nested
+`properties` (any schema component type; they take effect on the schema a workflow references as its data schema), not together with `x-filterOperators` or `x-sortable`, one transform per field
+(`x-masking` next to an active `x-encryption` is rejected), and for `hash` a salt configured on the host.
+
+```json
+"tckn": {
+  "type": "string",
+  "x-encryption": {
+    "type": "hash",
+    "params": { "algorithm": "sha256" },
+    "roles": [ { "role": "morph-idm.auditor", "grant": "deny" } ],
+    "purpose": "PII-Identification",
+    "redactInLogs": true,
+    "retentionDays": 2555
+  }
+}
+```
+
+```json
+"iban": {
+  "type": "string",
+  "x-masking": {
+    "operator": "mask",
+    "params": { "keepFirst": 2, "keepLast": 4, "maskingChar": "*" },
+    "roles": [ { "role": "morph-idm.auditor", "grant": "deny" } ]
+  }
+}
+```
+
+A caller matching a `deny` grant sees the value in clear; every other caller — including one whose role is
+misspelled or missing — sees it masked. `allow` is not accepted in `x-masking.roles`.
+
 ## Installation
 
 ```bash
