@@ -41,7 +41,7 @@ The `attributes` object is where each schema diverges. Schemas use JSON Schema `
 2. Add a new `if/then` entry at the end of the `attributes.allOf` list, with `then.title` set to the human-readable task name.
 3. Inside the branch, re-assert `type` as a `const` and set `additionalProperties: false` on both the branch and `config`.
 
-`1` Dapr HTTP Endpoint · `2` Dapr Binding · `3` Dapr Service · `4` Dapr PubSub · `5` Human · `6` HTTP · `7` Script · `8` Condition · `9` Timer · `10` Notification · `11` Start Flow · `12` Trigger Transition · `13` Get Instance Data · `14` SubProcess · `15` Get Instances · `16` SOAP · `17` State Store · `18` Cache Aside · `19` Get Instance · `20` Dapr Conversation · `21` FanOut
+`1` Dapr HTTP Endpoint · `2` Dapr Binding · `3` Dapr Service · `4` Dapr PubSub · `5` Human · `6` HTTP · `7` Script · `8` Condition · `9` Timer · `10` Notification · `11` Start Flow · `12` Trigger Transition · `13` Get Instance Data · `14` SubProcess · `15` Get Instances · `16` SOAP · `17` State Store · `18` Cache Aside · `19` Get Instance · `20` Dapr Conversation · `21` FanOut · `22` External HTTP (same config contract as `6`, executed in-process by the Orchestrator — one shared `if/then` branch in the schema, deliberately)
 
 #### FanOut task (`type: "21"`)
 
