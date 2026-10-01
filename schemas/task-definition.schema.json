@@ -87,7 +87,8 @@
                         "18",
                         "19",
                         "20",
-                        "21"
+                        "21",
+                        "22"
                     ],
                     "enumDescriptions": [
                         "Dapr HTTP Endpoint",
@@ -110,7 +111,8 @@
                         "Cache Aside Task",
                         "Get Instance Task",
                         "Dapr Conversation Task",
-                        "FanOut Task"
+                        "FanOut Task",
+                        "External HTTP Task"
                     ]
                 }
             },
@@ -432,15 +434,22 @@
                     "if": {
                         "properties": {
                             "type": {
-                                "const": "6"
+                                "enum": [
+                                    "6",
+                                    "22"
+                                ]
                             }
                         }
                     },
                     "then": {
                         "title": "HTTP Task",
+                        "description": "Types 6 and 22 share one configuration contract. Type 6 is invoked remotely through the Execution service; type 22 (External HTTP) performs the same user-defined URL call directly in the Orchestrator process — no Dapr sidecar, circuit breaker or remote-invocation timeout participates, so the task's own timeoutSeconds is the only bound.",
                         "properties": {
                             "type": {
-                                "const": "6"
+                                "enum": [
+                                    "6",
+                                    "22"
+                                ]
                             },
                             "config": {
                                 "type": "object",
