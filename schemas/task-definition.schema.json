@@ -1259,10 +1259,10 @@
                             },
                             "config": {
                                 "type": "object",
-                                "description": "Cache Aside Task configuration - Read-through cache pattern: the cache key comes from the static key, the key script or the sourceMapping InputHandler; on a miss the referenced source task runs as a task (its request shaped by sourceMapping), the sourceMapping OutputHandler result is written to the Dapr state store with a TTL and returned.",
+                                "description": "Cache Aside Task configuration - Read-through cache pattern: the cache key comes from the static key, the key script or the task-level mapping InputHandler (SetCacheKey); on a miss the referenced source task runs as a task (its request shaped by sourceMapping), the sourceMapping OutputHandler result is written to the Dapr state store with a TTL and returned.",
                                 "properties": {
                                     "key": {
-                                        "description": "Cache key. A string is a static key. An object is a key script (ScriptCode): location 'dynamicExpresso' evaluates a Dynamic Expresso expression; any other location is a C# ICacheKeyMapping. NAT, B64 and REF encodings are allowed. Optional - the sourceMapping InputHandler may set the key instead.",
+                                        "description": "Cache key. A string is a static key. An object is a key script (ScriptCode): location 'dynamicExpresso' evaluates a Dynamic Expresso expression; any other location is a C# ICacheKeyMapping. NAT, B64 and REF encodings are allowed. Optional - the task-level mapping InputHandler (SetCacheKey) may set the key instead.",
                                         "oneOf": [
                                             {
                                                 "type": "string",
