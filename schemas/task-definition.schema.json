@@ -1268,11 +1268,19 @@
                             },
                             "config": {
                                 "type": "object",
-                                "description": "Cache Aside Task configuration - Read-through cache pattern: reads from a Dapr state store, and on a cache miss executes the referenced source task, writes the shaped result back with a TTL, and returns it.",
+                                "description": "Cache Aside Task configuration - Read-through cache pattern: the cache key comes from the static key, the key script or the task-level mapping InputHandler (SetCacheKey); on a miss the referenced source task runs as a task (its request shaped by sourceMapping), the sourceMapping OutputHandler result is written to the Dapr state store with a TTL and returned.",
                                 "properties": {
                                     "key": {
-                                        "type": "string",
-                                        "description": "Static cache key. Optional - a dynamic key may be derived at runtime via an input mapping or the keyExpression."
+                                        "description": "Cache key. A string is a static key. An object is a key script (ScriptCode): location 'dynamicExpresso' evaluates a Dynamic Expresso expression; any other location is a C# ICacheKeyMapping. NAT, B64 and REF encodings are allowed. Optional - the task-level mapping InputHandler (SetCacheKey) may set the key instead.",
+                                        "oneOf": [
+                                            {
+                                                "type": "string",
+                                                "description": "Static cache key."
+                                            },
+                                            {
+                                                "$ref": "#/definitions/scriptCode"
+                                            }
+                                        ]
                                     },
                                     "storeName": {
                                         "type": "string",
@@ -1323,118 +1331,8 @@
                                         "additionalProperties": false
                                     },
                                     "sourceMapping": {
-                                        "type": "object",
-                                        "description": "Optional mapping (ScriptCode) applied to the raw source result before it is cached and returned.",
-                                        "properties": {
-                                            "type": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "G",
-                                                    "L"
-                                                ],
-                                                "enumDescriptions": [
-                                                    "Global",
-                                                    "Local"
-                                                ],
-                                                "description": "Script type - Global or Local"
-                                            },
-                                            "code": {
-                                                "type": "string",
-                                                "description": "Script code content"
-                                            },
-                                            "location": {
-                                                "type": "string",
-                                                "description": "Location of the script file"
-                                            },
-                                            "encoding": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "B64",
-                                                    "NAT",
-                                                    "REF"
-                                                ],
-                                                "description": "Code encoding format"
-                                            }
-                                        },
-                                        "allOf": [
-                                            {
-                                                "if": {
-                                                    "properties": {
-                                                        "type": {
-                                                            "const": "G"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "type"
-                                                    ]
-                                                },
-                                                "then": {
-                                                    "required": []
-                                                },
-                                                "else": {
-                                                    "required": [
-                                                        "code"
-                                                    ]
-                                                }
-                                            }
-                                        ]
-                                    },
-                                    "keyExpression": {
-                                        "type": "object",
-                                        "description": "Optional Dynamic Expresso expression (ScriptCode with location='dynamicExpresso') whose evaluated string result overrides the cache key at runtime.",
-                                        "properties": {
-                                            "type": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "G",
-                                                    "L"
-                                                ],
-                                                "enumDescriptions": [
-                                                    "Global",
-                                                    "Local"
-                                                ],
-                                                "description": "Script type - Global or Local"
-                                            },
-                                            "code": {
-                                                "type": "string",
-                                                "description": "Script code content"
-                                            },
-                                            "location": {
-                                                "type": "string",
-                                                "description": "Location of the script file"
-                                            },
-                                            "encoding": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "B64",
-                                                    "NAT",
-                                                    "REF"
-                                                ],
-                                                "description": "Code encoding format"
-                                            }
-                                        },
-                                        "allOf": [
-                                            {
-                                                "if": {
-                                                    "properties": {
-                                                        "type": {
-                                                            "const": "G"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "type"
-                                                    ]
-                                                },
-                                                "then": {
-                                                    "required": []
-                                                },
-                                                "else": {
-                                                    "required": [
-                                                        "code"
-                                                    ]
-                                                }
-                                            }
-                                        ]
+                                        "$ref": "#/definitions/scriptCode",
+                                        "description": "The source task's IMapping: InputHandler runs before the source call (e.g. SetKey/SetUrl), OutputHandler after it; its Data is what is cached."
                                     },
                                     "bypassOnCacheError": {
                                         "type": "boolean",
@@ -1921,6 +1819,152 @@
                     }
                 }
             ]
+        }
+    },
+    "definitions": {
+        "scriptCode": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "G",
+                        "L"
+                    ],
+                    "enumDescriptions": [
+                        "Global",
+                        "Local"
+                    ],
+                    "default": "L",
+                    "description": "Script type - Global or Local"
+                },
+                "code": {
+                    "description": "Script code content (string), or a sys-mappings reference when encoding is REF.",
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/mappingRef"
+                        }
+                    ]
+                },
+                "location": {
+                    "type": "string",
+                    "description": "Location of the script file"
+                },
+                "encoding": {
+                    "type": "string",
+                    "description": "Code encoding format",
+                    "enum": [
+                        "B64",
+                        "NAT",
+                        "REF"
+                    ],
+                    "default": "B64"
+                },
+                "scripts": {
+                    "$ref": "#/definitions/scripts"
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "G"
+                            }
+                        },
+                        "required": [
+                            "type"
+                        ]
+                    },
+                    "then": {
+                        "required": []
+                    },
+                    "else": {
+                        "required": [
+                            "code"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "encoding": {
+                                "const": "REF"
+                            }
+                        },
+                        "required": [
+                            "encoding"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "code"
+                        ],
+                        "properties": {
+                            "code": {
+                                "$ref": "#/definitions/mappingRef"
+                            }
+                        }
+                    },
+                    "else": {
+                        "properties": {
+                            "code": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "mappingRef": {
+            "type": "object",
+            "description": "Reference to a sys-mappings component.",
+            "required": [
+                "key",
+                "version",
+                "domain",
+                "flow"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "flow": {
+                    "type": "string",
+                    "const": "sys-mappings"
+                }
+            },
+            "additionalProperties": false
+        },
+        "scripts": {
+            "type": "object",
+            "description": "Helper script references and allowed assemblies for mapping execution.",
+            "properties": {
+                "helpers": {
+                    "type": "array",
+                    "description": "References to sys-mappings helper components.",
+                    "items": {
+                        "$ref": "#/definitions/mappingRef"
+                    }
+                },
+                "allowedAssemblies": {
+                    "type": "array",
+                    "description": "Allowed .NET assemblies for the script execution context.",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "additionalProperties": false
         }
     },
     "additionalProperties": false
