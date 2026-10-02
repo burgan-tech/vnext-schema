@@ -181,7 +181,7 @@
         },
         "states": {
           "type": "array",
-          "description": "States in the workflow. Only one initial state (stateType: 1) is allowed.",
+          "description": "States in the workflow. At most one initial state (stateType: 1) may be declared. When none is declared the runtime's implicit '$start' state is the start transition's source.",
           "items": {
             "$ref": "#/definitions/state"
           },
@@ -195,7 +195,7 @@
               "stateType"
             ]
           },
-          "minContains": 1,
+          "minContains": 0,
           "maxContains": 1
         },
         "schema": {
@@ -1518,7 +1518,7 @@
         },
         "target": {
           "type": "string",
-          "description": "Target state key (must be an Initial state)",
+          "description": "Required. Key of the state the instance enters when it starts; must equal the key of a state declared in 'states' (checked by the runtime at publish). Reserved keys such as '$start' and '$self' are not allowed.",
           "pattern": "^[a-z0-9-]+$"
         },
         "triggerType": {
