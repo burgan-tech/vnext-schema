@@ -140,5 +140,29 @@ for (const [name, bad] of [['lower-case', 's'], ['old-code-sync', 'SYNC'], ['old
   check(`shared executionType rejects ${name}`, shared, false, '/attributes/sharedTransitions/0/executionType');
 }
 
+// Initial state is optional (the runtime supplies an implicit '$start' source state):
+// zero Initial states are valid, two are not, and startTransition.target stays mandatory.
+const noInitial = () => {
+  const input = document();
+  input.attributes.startTransition.target = 'step-1';
+  input.attributes.states = [
+    { key: 'step-1', stateType: 5, subType: 0, versionStrategy: 'Minor', labels: labels('Step 1'),
+      transitions: [{ key: 'finish', target: 'done', triggerType: 0, versionStrategy: 'Minor', labels: labels('Finish') }] },
+    { key: 'done', stateType: 3, subType: 1, versionStrategy: 'Minor', labels: labels('Done'), transitions: [] }
+  ];
+  delete input.attributes.sharedTransitions;
+  return input;
+};
+check('no Initial state is valid', noInitial(), true);
+const twoInitial = noInitial();
+twoInitial.attributes.states.forEach(state => { state.stateType = 1; });
+check('two Initial states rejected', twoInitial, false, '/attributes/states');
+const noTarget = noInitial(); delete noTarget.attributes.startTransition.target;
+check('startTransition without target rejected', noTarget, false, '/attributes/startTransition');
+for (const bad of ['', '$start', '$self']) {
+  const input = noInitial(); input.attributes.startTransition.target = bad;
+  check(`startTransition target ${JSON.stringify(bad)} rejected`, input, false, '/attributes/startTransition/target');
+}
+
 assert.strictEqual(failures.length, 0, failures.join('\n'));
 console.log(`${checked} workflow availableIn document cases passed.`);
