@@ -16,18 +16,36 @@ ajv.addSchema(vocab);
 
 const allow = (role) => ({ role, grant: 'allow' });
 const deny = (role) => ({ role, grant: 'deny' });
+const allOfGrant = (...roles) => ({ allOf: roles.map((role) => ({ role })), grant: 'allow' });
+const anyOfGrant = (...roles) => ({ anyOf: roles.map((role) => ({ role })), grant: 'allow' });
 
 const cases = {
   'x-roles': {
     valid: [
       [{ role: 'morph-idm.maker', grant: 'allow' }],
-      [{ role: '$user.$.context.Instance.Data.ownerId', grant: 'deny' }]
+      [{ role: '$user.$.context.Instance.Data.ownerId', grant: 'deny' }],
+      // role-grant combinators (allOf / anyOf)
+      [allOfGrant('customer-role', '$InstanceStarter')],
+      [allOfGrant('a.corporate-maker', 'a.corporate-region'), allOfGrant('b.corporate-checker', 'b.corporate-region')],
+      [anyOfGrant('$InstanceStarter', '$InstanceBehalfOfStarter')],
+      [allOfGrant('r1'), { role: 'plain', grant: 'deny' }]
     ],
     invalid: [
       [],
       [{ role: '', grant: 'allow' }],
       [{ role: 'r', grant: 'maybe' }],
-      [{ role: 'r', grant: 'allow', extra: true }]
+      [{ role: 'r', grant: 'allow', extra: true }],
+      // combinators: exactly one of role / allOf / anyOf, children are { role } only, depth 1
+      [{ role: 'r', allOf: [{ role: 'a' }], grant: 'allow' }],
+      [{ allOf: [{ role: 'a' }], anyOf: [{ role: 'b' }], grant: 'allow' }],
+      [{ allOf: [], grant: 'allow' }],
+      [{ anyOf: [], grant: 'allow' }],
+      [{ allOf: [{ role: 'a', grant: 'allow' }], grant: 'allow' }],
+      [{ allOf: [{ allOf: [{ role: 'a' }] }], grant: 'allow' }],
+      [{ allOf: [{ role: '' }], grant: 'allow' }],
+      [{ allOf: [{ role: 'a' }] }],
+      [{ grant: 'allow' }],
+      [{ allOf: [{ role: 'a' }], grant: 'maybe' }]
     ]
   },
   'x-masking': {
@@ -50,6 +68,11 @@ const cases = {
       { operator: 'replace', params: { value: '' } },
       { operator: 'replace', params: { value: 'x', keepLast: 2 } },
       { operator: 'mask', roles: [] },
+      // exemption lists take no combinators
+      { operator: 'mask', roles: [allOfGrant('a', 'b')] },
+      { operator: 'mask', roles: [anyOfGrant('a', 'b')] },
+      { operator: 'mask', roles: [{ allOf: [{ role: 'a' }], role: 'b', grant: 'allow' }] },
+      { operator: 'mask', roles: [{ grant: 'allow' }] },
       { operator: 'mask', roles: [deny('teller')] },
       { operator: 'mask', unknown: 1 }
     ]
@@ -71,6 +94,9 @@ const cases = {
       { type: 'encrypt', params: { algorithm: 'sha256' } },
       { type: 'encrypt', params: { key: 'AAAA' } },
       { type: 'encrypt', roles: [deny('teller')] },
+      { type: 'encrypt', roles: [allOfGrant('a', 'b')] },
+      { type: 'encrypt', roles: [anyOfGrant('a', 'b')] },
+      { type: 'encrypt', roles: [{ grant: 'allow' }] },
       // hashed on write, irreversible: nobody can be exempted
       { type: 'hash', roles: [allow('teller')] },
       { type: 'hash', roles: [] },

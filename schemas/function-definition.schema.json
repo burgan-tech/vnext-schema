@@ -737,15 +737,31 @@
                 }
             ]
         },
+        "roleGrantCondition": {
+            "type": "object",
+            "description": "One role in an allOf/anyOf list: only a role name, a predefined instance role or a dynamic expression. No grant and no nesting (depth 1).",
+            "required": [
+                "role"
+            ],
+            "properties": {
+                "role": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Role name (current: Amorphie roles; future: domain.rolename)"
+                }
+            },
+            "additionalProperties": false
+        },
         "roleGrant": {
             "type": "object",
+            "description": "Single role grant. Used in roles/queryRoles arrays for allow/deny. DENY always overrides ALLOW. Exactly one of role, allOf (all listed roles required) or anyOf (at least one listed role) selects who the grant applies to.",
             "required": [
-                "role",
                 "grant"
             ],
             "properties": {
                 "role": {
                     "type": "string",
+                    "minLength": 1,
                     "description": "Role name (current: Amorphie roles; future: domain.rolename)"
                 },
                 "grant": {
@@ -755,8 +771,41 @@
                         "deny"
                     ],
                     "description": "DENY always overrides ALLOW"
+                },
+                "allOf": {
+                    "type": "array",
+                    "minItems": 1,
+                    "description": "Conjunction: the caller must hold every listed role.",
+                    "items": {
+                        "$ref": "#/definitions/roleGrantCondition"
+                    }
+                },
+                "anyOf": {
+                    "type": "array",
+                    "minItems": 1,
+                    "description": "Disjunction: the caller must hold at least one listed role.",
+                    "items": {
+                        "$ref": "#/definitions/roleGrantCondition"
+                    }
                 }
             },
+            "oneOf": [
+                {
+                    "required": [
+                        "role"
+                    ]
+                },
+                {
+                    "required": [
+                        "allOf"
+                    ]
+                },
+                {
+                    "required": [
+                        "anyOf"
+                    ]
+                }
+            ],
             "additionalProperties": false
         },
         "scriptCode": {
