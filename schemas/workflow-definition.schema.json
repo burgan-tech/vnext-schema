@@ -911,6 +911,12 @@
         "mapping": {
           "$ref": "#/definitions/scriptCode"
         },
+        "variableKey": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "maxLength": 100,
+          "description": "Optional name of this entry's response slot in ScriptContext.TaskResponse / OutputResponse. Defaults to the task key converted to a variable name (e.g. 'send-notification' -> 'sendNotification'). Required in practice when the same task runs twice at the same order: entries at one order run in parallel and must file under distinct slots."
+        },
         "errorBoundary": {
           "anyOf": [
             {
