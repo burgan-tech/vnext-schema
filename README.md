@@ -115,7 +115,7 @@ never reaches the later keywords.
 
 Rules the runtime enforces at publish time for `x-masking` and `x-encryption.type: "hash"` (the vocabulary
 expresses the shape; the runtime adds the context): `type: "string"` properties reachable through nested
-`properties` (any schema component type; they take effect on the schema a workflow references as its data schema), not together with `x-filterOperators` or `x-sortable`, one transform per field
+`properties` (any schema component type; they take effect on the schema a workflow references as its data schema), not together with `x-filterOperators`, `x-sortable` or `x-indexed`, one transform per field
 (`x-masking` next to an active `x-encryption` is rejected), and for `hash` a salt configured on the host.
 
 ```json
@@ -124,7 +124,6 @@ expresses the shape; the runtime adds the context): `type: "string"` properties 
   "x-encryption": {
     "type": "hash",
     "params": { "algorithm": "sha256" },
-    "roles": [ { "role": "morph-idm.auditor", "grant": "deny" } ],
     "purpose": "PII-Identification",
     "redactInLogs": true,
     "retentionDays": 2555
@@ -138,13 +137,25 @@ expresses the shape; the runtime adds the context): `type: "string"` properties 
   "x-masking": {
     "operator": "mask",
     "params": { "keepFirst": 2, "keepLast": 4, "maskingChar": "*" },
-    "roles": [ { "role": "morph-idm.auditor", "grant": "deny" } ]
+    "roles": [ { "role": "morph-idm.auditor", "grant": "allow" } ]
   }
 }
 ```
 
-A caller matching a `deny` grant sees the value in clear; every other caller — including one whose role is
-misspelled or missing — sees it masked. `allow` is not accepted in `x-masking.roles`.
+```json
+"accountNumber": {
+  "type": "string",
+  "x-encryption": {
+    "type": "encrypt",
+    "roles": [ { "role": "morph-idm.auditor", "grant": "allow" } ]
+  }
+}
+```
+
+The exemption lists of `x-masking` and `x-encryption` take plain `{ "role", "grant": "allow" }` entries only —
+no `deny` and no `allOf` / `anyOf`. A caller matching an allow entry sees the raw value (the plaintext, for
+`encrypt`); every other caller — including one whose role is misspelled or missing — sees it masked (the
+token, for `encrypt`). `hash` takes no `roles`: the digest is irreversible.
 
 ## Installation
 
