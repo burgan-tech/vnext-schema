@@ -164,5 +164,19 @@ for (const bad of ['', '$start', '$self']) {
   check(`startTransition target ${JSON.stringify(bad)} rejected`, input, false, '/attributes/startTransition/target');
 }
 
+// variableKey: optional slot name for the entry's response in ScriptContext.TaskResponse.
+const withVariableKey = value => {
+  const doc = document(0, 'task');
+  doc.attributes.states[0].onEntries[0].variableKey = value;
+  return doc;
+};
+check('variableKey omitted', document(0, 'task'), true);
+check('variableKey identifier', withVariableKey('primaryChild'), true);
+check('variableKey underscore start', withVariableKey('_child2'), true);
+check('variableKey with hyphen', withVariableKey('primary-child'), false, '/attributes/states/0/onEntries/0/variableKey');
+check('variableKey leading digit', withVariableKey('1child'), false, '/attributes/states/0/onEntries/0/variableKey');
+check('variableKey empty', withVariableKey(''), false, '/attributes/states/0/onEntries/0/variableKey');
+check('variableKey not string', withVariableKey(42), false, '/attributes/states/0/onEntries/0/variableKey');
+
 assert.strictEqual(failures.length, 0, failures.join('\n'));
 console.log(`${checked} workflow availableIn document cases passed.`);
