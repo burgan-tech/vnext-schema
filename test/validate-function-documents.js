@@ -105,6 +105,15 @@ for (const slot of SCHEMA_SLOTS) {
   expectInvalid(`${slot}: empty array`, doc({ [slot]: [] }));
 }
 
+// executionLog: opt-in for the function-execution journal (non-breaking; absent → no logging).
+expectValid('executionLog: E', doc({ executionLog: 'E' }));
+expectValid('executionLog: D', doc({ executionLog: 'D' }));
+expectInvalid('executionLog: unknown value', doc({ executionLog: 'MAYBE' }));
+expectInvalid('executionLog: old code ENABLED no longer valid', doc({ executionLog: 'ENABLED' }));
+expectInvalid('executionLog: old code DISABLED no longer valid', doc({ executionLog: 'DISABLED' }));
+expectInvalid('executionLog: lower-case not accepted on the wire', doc({ executionLog: 'e' }));
+expectInvalid('executionLog: wrong type', doc({ executionLog: true }));
+
 expectValid('all four slots together, mixing shapes', doc({
   verbs: ['POST'],
   inputSchema: [
@@ -115,6 +124,33 @@ expectValid('all four slots together, mixing shapes', doc({
   inputView: { views: [{ rule: rule(), view: ref('v1', 'sys-views') }, { view: ref('v2', 'sys-views') }] },
   outputView: ref('v3', 'sys-views')
 }));
+
+// variableKey: optional response-slot name on both the legacy task and onExecutionTasks entries.
+const multiTask = variableKey => {
+  const entry = {
+    order: 1,
+    task: ref('my-task', 'sys-tasks'),
+    mapping: { location: './my-task.csx', code: 'cmV0dXJuIHt9Ow==', encoding: 'B64' }
+  };
+  if (variableKey !== undefined) entry.variableKey = variableKey;
+  return doc({
+    task: undefined,
+    onExecutionTasks: [entry],
+    output: { location: './out.csx', code: 'cmV0dXJuIHt9Ow==', encoding: 'B64' }
+  });
+};
+const legacyTask = variableKey => {
+  const document = doc();
+  document.attributes.task.variableKey = variableKey;
+  return document;
+};
+expectValid('onExecutionTasks variableKey omitted', multiTask());
+for (const [label, build] of [['onExecutionTasks', multiTask], ['task', legacyTask]]) {
+  expectValid(`${label} variableKey identifier`, build('primaryChild'));
+  expectInvalid(`${label} variableKey with hyphen`, build('primary-child'));
+  expectInvalid(`${label} variableKey empty`, build(''));
+  expectInvalid(`${label} variableKey not string`, build(42));
+}
 
 function run() {
   console.log('🔍 Function document validation starting...\n');

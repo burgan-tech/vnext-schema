@@ -121,5 +121,62 @@ inlineTransition.attributes.errorBoundary.onError[0].transition = { key: 'recove
 check('boundary transition remains a string reference', inlineTransition, false,
   '/attributes/errorBoundary/onError/0/transition');
 
+// executionType (vnext#1003): optional S/A on flow, shared/state transitions and startTransition.
+for (const value of ['S', 'A']) {
+  const flow = document(); flow.attributes.executionType = value;
+  check(`flow executionType ${value}`, flow, true);
+  const shared = document(); shared.attributes.sharedTransitions[0].executionType = value;
+  check(`shared transition executionType ${value}`, shared, true);
+  const start = document(); start.attributes.startTransition.executionType = value;
+  check(`start transition executionType ${value}`, start, true);
+}
+// Absent is fine (non-breaking) — the base document() carries no executionType anywhere.
+check('executionType omitted everywhere', document(), true);
+// Only the two upper-case codes S and A are accepted (the old SYNC/ASYNC are no longer valid).
+for (const [name, bad] of [['lower-case', 's'], ['old-code-sync', 'SYNC'], ['old-code-async', 'ASYNC'], ['unknown', 'BACKGROUND'], ['wrong-type', true], ['null', null]]) {
+  const flow = document(); flow.attributes.executionType = bad;
+  check(`flow executionType rejects ${name}`, flow, false, '/attributes/executionType');
+  const shared = document(); shared.attributes.sharedTransitions[0].executionType = bad;
+  check(`shared executionType rejects ${name}`, shared, false, '/attributes/sharedTransitions/0/executionType');
+}
+
+// Initial state is optional (the runtime supplies an implicit '$start' source state):
+// zero Initial states are valid, two are not, and startTransition.target stays mandatory.
+const noInitial = () => {
+  const input = document();
+  input.attributes.startTransition.target = 'step-1';
+  input.attributes.states = [
+    { key: 'step-1', stateType: 5, subType: 0, versionStrategy: 'Minor', labels: labels('Step 1'),
+      transitions: [{ key: 'finish', target: 'done', triggerType: 0, versionStrategy: 'Minor', labels: labels('Finish') }] },
+    { key: 'done', stateType: 3, subType: 1, versionStrategy: 'Minor', labels: labels('Done'), transitions: [] }
+  ];
+  delete input.attributes.sharedTransitions;
+  return input;
+};
+check('no Initial state is valid', noInitial(), true);
+const twoInitial = noInitial();
+twoInitial.attributes.states.forEach(state => { state.stateType = 1; });
+check('two Initial states rejected', twoInitial, false, '/attributes/states');
+const noTarget = noInitial(); delete noTarget.attributes.startTransition.target;
+check('startTransition without target rejected', noTarget, false, '/attributes/startTransition');
+for (const bad of ['', '$start', '$self']) {
+  const input = noInitial(); input.attributes.startTransition.target = bad;
+  check(`startTransition target ${JSON.stringify(bad)} rejected`, input, false, '/attributes/startTransition/target');
+}
+
+// variableKey: optional slot name for the entry's response in ScriptContext.TaskResponse.
+const withVariableKey = value => {
+  const doc = document(0, 'task');
+  doc.attributes.states[0].onEntries[0].variableKey = value;
+  return doc;
+};
+check('variableKey omitted', document(0, 'task'), true);
+check('variableKey identifier', withVariableKey('primaryChild'), true);
+check('variableKey underscore start', withVariableKey('_child2'), true);
+check('variableKey with hyphen', withVariableKey('primary-child'), false, '/attributes/states/0/onEntries/0/variableKey');
+check('variableKey leading digit', withVariableKey('1child'), false, '/attributes/states/0/onEntries/0/variableKey');
+check('variableKey empty', withVariableKey(''), false, '/attributes/states/0/onEntries/0/variableKey');
+check('variableKey not string', withVariableKey(42), false, '/attributes/states/0/onEntries/0/variableKey');
+
 assert.strictEqual(failures.length, 0, failures.join('\n'));
 console.log(`${checked} workflow availableIn document cases passed.`);

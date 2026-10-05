@@ -73,7 +73,7 @@ List all `attributes` properties with their type, required status, and brief con
 | Field | Type | Required | Nullable | Description |
 |-------|------|----------|----------|-------------|
 | type | enum | Yes | No | C, F, S, P |
-| states | state[] | Yes | No | Must contain exactly 1 initial state |
+| states | state[] | Yes | No | Must contain at most 1 initial state |
 | startTransition | object | Yes | No | triggerType must be 0 |
 | cancel | object | No | Yes | triggerType must be 0 |
 ```

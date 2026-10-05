@@ -79,6 +79,10 @@
             "Sub Process"
           ]
         },
+        "executionType": {
+          "$ref": "#/definitions/executionType",
+          "description": "Optional default execution mode for this flow (vnext#1003). Applies to its transitions unless a transition overrides it with its own executionType (the inner definition wins)."
+        },
         "scripts": {
           "$ref": "#/definitions/scripts"
         },
@@ -177,7 +181,7 @@
         },
         "states": {
           "type": "array",
-          "description": "States in the workflow. Only one initial state (stateType: 1) is allowed.",
+          "description": "States in the workflow. At most one initial state (stateType: 1) may be declared. When none is declared the runtime's implicit '$start' state is the start transition's source.",
           "items": {
             "$ref": "#/definitions/state"
           },
@@ -191,7 +195,7 @@
               "stateType"
             ]
           },
-          "minContains": 1,
+          "minContains": 0,
           "maxContains": 1
         },
         "schema": {
@@ -323,15 +327,31 @@
       },
       "additionalProperties": false
     },
+    "roleGrantCondition": {
+      "type": "object",
+      "description": "One role in an allOf/anyOf list: only a role name, a predefined instance role or a dynamic expression. No grant and no nesting (depth 1).",
+      "required": [
+        "role"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Role name (current: Amorphie roles; future: domain.rolename)"
+        }
+      },
+      "additionalProperties": false
+    },
     "roleGrant": {
       "type": "object",
+      "description": "Single role grant. Used in roles/queryRoles arrays for allow/deny. DENY always overrides ALLOW. Exactly one of role, allOf (all listed roles required) or anyOf (at least one listed role) selects who the grant applies to.",
       "required": [
-        "role",
         "grant"
       ],
       "properties": {
         "role": {
           "type": "string",
+          "minLength": 1,
           "description": "Role name (current: Amorphie roles; future: domain.rolename)"
         },
         "grant": {
@@ -341,8 +361,41 @@
             "deny"
           ],
           "description": "DENY always overrides ALLOW"
+        },
+        "allOf": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Conjunction: the caller must hold every listed role.",
+          "items": {
+            "$ref": "#/definitions/roleGrantCondition"
+          }
+        },
+        "anyOf": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Disjunction: the caller must hold at least one listed role.",
+          "items": {
+            "$ref": "#/definitions/roleGrantCondition"
+          }
         }
       },
+      "oneOf": [
+        {
+          "required": [
+            "role"
+          ]
+        },
+        {
+          "required": [
+            "allOf"
+          ]
+        },
+        {
+          "required": [
+            "anyOf"
+          ]
+        }
+      ],
       "additionalProperties": false
     },
     "availableInEntry": {
@@ -489,6 +542,18 @@
         "Major version update"
       ],
       "description": "Version strategy for updates"
+    },
+    "executionType": {
+      "type": "string",
+      "description": "Execution mode of a flow or transition (vnext#1003). S: synchronous — the request blocks until the pipeline settles and returns the full instance. A: asynchronous — the request is accepted and the pipeline runs in the background. Optional and non-breaking — when omitted, the caller's `sync` query parameter chooses the mode. When set it is the source of truth and overrides the query parameter; a transition's value (inner) wins over the flow's (outer). Not honoured for automatic transitions, which always run inline.",
+      "enum": [
+        "S",
+        "A"
+      ],
+      "enumDescriptions": [
+        "Synchronous — the request blocks and returns the full instance",
+        "Asynchronous — the request is accepted and runs in the background"
+      ]
     },
     "triggerType": {
       "type": "integer",
@@ -895,6 +960,12 @@
         "mapping": {
           "$ref": "#/definitions/scriptCode"
         },
+        "variableKey": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "maxLength": 100,
+          "description": "Optional name of this entry's response slot in ScriptContext.TaskResponse / OutputResponse. Defaults to the task key converted to a variable name (e.g. 'send-notification' -> 'sendNotification'). Required in practice when the same task runs twice at the same order: entries at one order run in parallel and must file under distinct slots."
+        },
         "errorBoundary": {
           "anyOf": [
             {
@@ -941,6 +1012,9 @@
             },
             "versionStrategy": {
               "$ref": "#/definitions/versionStrategy"
+            },
+            "executionType": {
+              "$ref": "#/definitions/executionType"
             },
             "triggerType": {
               "$ref": "#/definitions/triggerType"
@@ -1266,6 +1340,9 @@
             "versionStrategy": {
               "$ref": "#/definitions/versionStrategy"
             },
+            "executionType": {
+              "$ref": "#/definitions/executionType"
+            },
             "triggerType": {
               "type": "integer",
               "enum": [
@@ -1496,7 +1573,7 @@
         },
         "target": {
           "type": "string",
-          "description": "Target state key (must be an Initial state)",
+          "description": "Required. Key of the state the instance enters when it starts; must equal the key of a state declared in 'states' (checked by the runtime at publish). Reserved keys such as '$start' and '$self' are not allowed.",
           "pattern": "^[a-z0-9-]+$"
         },
         "triggerType": {
@@ -1506,6 +1583,9 @@
         },
         "versionStrategy": {
           "$ref": "#/definitions/versionStrategy"
+        },
+        "executionType": {
+          "$ref": "#/definitions/executionType"
         },
         "labels": {
           "type": "array",
@@ -2437,12 +2517,24 @@
       },
       "oneOf": [
         {
-          "required": ["roles"],
-          "not": { "required": ["rule"] }
+          "required": [
+            "roles"
+          ],
+          "not": {
+            "required": [
+              "rule"
+            ]
+          }
         },
         {
-          "required": ["rule"],
-          "not": { "required": ["roles"] }
+          "required": [
+            "rule"
+          ],
+          "not": {
+            "required": [
+              "roles"
+            ]
+          }
         }
       ],
       "additionalProperties": false

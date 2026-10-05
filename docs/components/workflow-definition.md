@@ -25,7 +25,7 @@
 |-------|------|----------|----------|-------------|
 | type | enum | Yes | No | `C` (Core), `F` (Flow), `S` (SubFlow), `P` (Sub Process) |
 | labels | languageLabel[] | Yes | No | minItems: 1 |
-| states | state[] | Yes | No | Must contain exactly 1 initial state (stateType: 1) |
+| states | state[] | Yes | No | At most one initial state (stateType: 1) may be declared; when none is declared the runtime's implicit `$start` state is the start transition's source |
 | startTransition | startTransition | Yes | No | triggerType must be 0 (Manual) |
 | timeout | workflowTimeout | No | Yes | Workflow-level timeout configuration |
 | functions | reference[] | No | No | Functions used in the workflow |
@@ -210,7 +210,7 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | Field | Type | Required | Nullable | Constraint |
 |-------|------|----------|----------|------------|
 | key | string | Yes | No | `^[a-z0-9-]+$` |
-| target | string | Yes | No | `^[a-z0-9-]+$` (must point to Initial state) |
+| target | string | Yes | No | `^[a-z0-9-]+$` (must equal the key of a state declared in `states`, checked by the runtime at publish; reserved keys `$start` and `$self` are not allowed) |
 | triggerType | integer | Yes | No | **const: 0** (Manual only) |
 | versionStrategy | versionStrategy | Yes | No | enum |
 | labels | languageLabel[] | Yes | No | minItems: 1 |
@@ -418,6 +418,7 @@ Two formats (oneOf):
 | task | reference | Yes | No | Task component reference |
 | mapping | scriptCode | Yes | No | Input/output mapping |
 | errorBoundary | errorBoundary | No | Yes | Task-level error boundary |
+| variableKey | string | No | No | `^[A-Za-z_][A-Za-z0-9_]*$`, maxLength 100. Response slot in `context.TaskResponse`; defaults to the task key as a variable name (`send-notification` → `sendNotification`). Entries at one `order` run in parallel and need distinct slots |
 | _comment | string | No | No | - |
 
 ---
