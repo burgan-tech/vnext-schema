@@ -418,6 +418,7 @@ Two formats (oneOf):
 | task | reference | Yes | No | Task component reference |
 | mapping | scriptCode | Yes | No | Input/output mapping |
 | errorBoundary | errorBoundary | No | Yes | Task-level error boundary |
+| variableKey | string | No | No | `^[A-Za-z_][A-Za-z0-9_]*$`, maxLength 100. Response slot in `context.TaskResponse`; defaults to the task key as a variable name (`send-notification` → `sendNotification`). Entries at one `order` run in parallel and need distinct slots |
 | _comment | string | No | No | - |
 
 ---
