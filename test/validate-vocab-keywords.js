@@ -1,5 +1,5 @@
 /**
- * Compiles field-exposure vocabulary keywords (x-roles, x-masking, x-encryption) and checks
+ * Compiles field-exposure vocabulary keywords (x-roles, x-masking, x-encryption, x-storage) and checks
  * positive/negative fixtures against them.
  *
  * validate-schemas.js only meta-validates vocabulary files (ajv.validateSchema); it never compiles a
@@ -103,6 +103,18 @@ const cases = {
       { type: 'none', purpose: '' },
       { type: 'none', redactInLogs: 'yes' },
       { type: 'none', retentionDays: 0 }
+    ]
+  },
+  'x-storage': {
+    valid: [
+      { binding: 'vnext-blob-local' }
+    ],
+    invalid: [
+      'file',
+      {},
+      { binding: '' },
+      { binding: 5 },
+      { binding: 'vnext-blob-local', extra: true }
     ]
   }
 };
