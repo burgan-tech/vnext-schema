@@ -617,6 +617,21 @@
       ],
       "additionalProperties": false
     },
+    "x-storage": {
+      "type": "object",
+      "description": "Master-schema file offload: a property marked x-storage keeps its file bytes in the named Dapr binding component instead of in the instance data. binding is the name of the Dapr binding component.",
+      "required": [
+        "binding"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "binding": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Name of the Dapr binding component that stores the file bytes."
+        }
+      }
+    },
     "x-validation": {
       "type": "object",
       "description": "Backend-defined custom validation rule metadata.",

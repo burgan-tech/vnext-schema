@@ -112,6 +112,7 @@ never reaches the later keywords.
 | `x-roles` | array of `roleGrant` (`{ role, grant: allow \| deny }`) | hides the field from callers the grants refuse |
 | `x-masking` | `{ operator: mask \| replace, params?, roles? }` | masks the visible value; `roles` is an **allow-only exemption list** (an allow match sees the raw value) |
 | `x-encryption` | `{ type: none \| hash \| encrypt, params?, roles?, purpose?, redactInLogs?, retentionDays? }` | `hash`: applied when the data is written — the stored and served value is `HASHED:SHA256:<hex>` (HMAC under a salt the runtime generates per instance); irreversible, so no `roles` and no `pattern`/`format`/`minLength`/`maxLength`/`enum`/`const`. `encrypt`: AES-256-GCM token `ENCRYPTED:AES256:i1:…` in the stored instance data (key generated per instance), decrypted for the engine; on the data function an allow-listed caller reads the plaintext, everyone else the token; only instance data is encrypted. `roles` is an **allow-only exemption list**; the metadata fields are not enforced. `transport`/`persisted` were removed (never enforced) — use `encrypt` |
+| `x-storage` | `{ binding }` | file offload: the property's file bytes are kept in the named Dapr binding component instead of the instance data; `binding` is required and non-empty, no other fields |
 
 Rules the runtime enforces at publish time for `x-masking` and `x-encryption.type: "hash"` (the vocabulary
 expresses the shape; the runtime adds the context): `type: "string"` properties reachable through nested
