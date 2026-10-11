@@ -1,7 +1,8 @@
 /**
- * The ROLE vocabularies (vnext-schema#153): a schema is written in one role — RECORD (a flow's master) or
- * INPUT (a transition / function-input body) — and may carry the shared base keywords, the view hints
- * and its own role's keywords, nothing else. Compiles each role's `schema` definition through the
+ * The ROLE vocabularies (vnext-schema#153): a schema is written in one role — RECORD (a flow's master),
+ * INPUT (a transition / function-input body, or the dataSchema of a view that submits a move itself) or
+ * COMPONENT (the dataSchema of an embedded view that sends nothing) — and may carry the shared base
+ * keywords, the view hints and its own role's keywords, nothing else. Compiles each role's `schema` definition through the
  * vocabularies' own $ids and checks documents that must be accepted and refused, nested placements
  * included (a misplaced keyword deep in `properties` / `items` is still misplaced).
  */
@@ -44,6 +45,7 @@ const cases = {
       obj({ a: obj({ b: prop({ 'x-encrypt': { key: 'urn:k', algorithm: 'RSA-OAEP-256' } }) }) }),
       obj({ a: { type: 'array', items: prop({ 'x-context-source': { const: 1 } }) } }),
       obj({ a: prop({ 'x-foo': 1 }) }),
+      obj({ a: prop({ 'x-binding': 'required' }) }),
       obj({ a: prop({ 'x-persistance': 'maybe' }) }),
       obj({ a: prop({ 'x-filterOperators': ['ge'] }) }),
       obj({ a: prop({ 'x-computed': { evaluatedBy: 'browser' } }) })
@@ -70,7 +72,30 @@ const cases = {
       obj({}, { 'x-context-target': { k: { context: { boundary: 'device', key: 'k' } } } }),
       obj({ a: prop({ 'x-encrypt': { key: 'urn:k' } }) }),
       obj({ a: prop({ 'x-encrypt': { key: 'urn:k', algorithm: 'AES' } }) }),
-      obj({ a: prop({ 'x-bar': true }) })
+      obj({ a: prop({ 'x-bar': true }) }),
+      obj({ a: prop({ 'x-binding': 'required' }) })
+    ]
+  },
+  // The component's schema is its own INPUT CONTRACT; the host binds into it and keeps every
+  // role-specific behaviour (what is sent, what the record exposes) on its own schema.
+  'component-vocab.json': {
+    valid: [
+      obj({
+        phone: prop({ 'x-binding': 'required', 'x-labels': { tr: 'Telefon', en: 'Phone' } }),
+        email: prop({ 'x-binding': 'optional', 'x-conditional': { showIf: { field: 'phone', operator: 'isNotEmpty' } }, 'x-validation': { rule: 'r' } }),
+        city: prop({ 'x-lov': { source: 'urn:vnext:fn:sample:cities', valueField: '$.data[*].code', displayField: '$.data[*].name' }, 'x-helpText': { en: 'h' } })
+      }),
+      true
+    ],
+    invalid: [
+      obj({ a: prop({ 'x-context-source': { const: 1 } }) }),
+      obj({}, { 'x-context-target': { k: { context: { boundary: 'device', key: 'k' } } } }),
+      obj({ a: prop({ 'x-encrypt': { key: 'urn:k', algorithm: 'RSA-OAEP-256' } }) }),
+      obj({ a: prop({ 'x-roles': [{ role: 'r', grant: 'allow' }] }) }),
+      obj({ a: prop({ 'x-masking': { operator: 'mask' } }) }),
+      obj({ a: prop({ 'x-filterOperators': ['eq'] }) }),
+      obj({ a: prop({ 'x-binding': 'maybe' }) }),
+      obj({ a: obj({ b: prop({ 'x-persistance': 'transient' }) }) })
     ]
   }
 };
