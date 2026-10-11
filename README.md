@@ -170,17 +170,23 @@ token, for `encrypt`). `hash` takes no `roles`: the digest is irreversible.
 
 ## Role Vocabularies (proposal, #153)
 
-A schema plays one ROLE, and what an `x-*` keyword means depends on it. Three files compose the existing
+A schema plays one ROLE, and what an `x-*` keyword means depends on it. These files compose the existing
 definitions by role (no definition is duplicated — each `$ref`s `view-vocab.json` / `data-vocab.json`):
 
 | File | Role | Adds |
 |---|---|---|
 | `data-base-vocab.json` | shared by both | `x-labels`, `x-enum`, `x-order`, `x-displayFormat`, `x-lov`, `x-lookup`, `x-errorMessages`, `x-validation`, `x-conditional` |
 | `record-vocab.json` | a flow's master schema | `x-roles`, `x-masking`, `x-encryption`, `x-storage`, `x-indexed`, `x-filterOperators`, `x-sortable`, `x-computed`, `x-context-target`, `x-persistance` (proposed) |
-| `input-vocab.json` | a transition schema / function `inputSchema` | `x-context-source`, `x-encrypt` (in-transit, client → backend) |
-| `view-hints-vocab.json` | mixin, either role | `x-helpText`, `x-placeholder`, `x-uiHint`, `x-uiNote`, `x-group`, `x-binding` |
+| `input-vocab.json` | a transition schema / function `inputSchema` / the dataSchema of a view that submits a move of its own | `x-context-source`, `x-encrypt` (in-transit, client → backend) |
+| `component-vocab.json` | the dataSchema of an embedded view (`Component ref`) that sends nothing of its own | `x-binding` (the component's input contract) |
+| `view-hints-vocab.json` | mixin, every role | `x-helpText`, `x-placeholder`, `x-uiHint`, `x-uiNote`, `x-group` |
 
-`record-vocab.json#/definitions/schema` and `input-vocab.json#/definitions/schema` validate a whole schema in
+A component does not inherit the role of the view that embeds it: the host BINDS its data into the component, and
+keeps every role-specific behaviour on its own schema (what is sent and how — `x-context-source`, `x-encrypt`; what the
+record exposes and copies out — `x-roles`, `x-masking`, `x-context-target`). A component that submits uses a command
+the host passes in (`$param.submitCommand`), so the move and its body are still the host's.
+
+`<role>-vocab.json#/definitions/schema` validates a whole schema in
 that role, recursively (`properties`, `items`, combinators, definitions): any `x-*` keyword outside the role's
 list is refused. `#/definitions/allowedKeywords` carries the same list as data, for a tool that wants to
 report rather than refuse. Nothing references these yet — enforcing them at publish is the next step.

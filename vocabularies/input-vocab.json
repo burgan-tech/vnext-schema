@@ -77,7 +77,6 @@
             },
             "then": {
               "enum": [
-                "x-binding",
                 "x-conditional",
                 "x-context-source",
                 "x-displayFormat",
@@ -303,7 +302,6 @@
     "allowedKeywords": {
       "description": "Every x-* keyword this role accepts (base + view hints + its own), as data — for tools that want to report rather than refuse.",
       "const": [
-        "x-binding",
         "x-conditional",
         "x-context-source",
         "x-displayFormat",
