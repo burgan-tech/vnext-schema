@@ -170,7 +170,8 @@ const cases = {
   'x-errorMessages': {
     valid: [
       { minItems: { tr: 'En az bir seçim yapın', en: 'Pick at least one' } },
-      { maxItems: { en: 'Too many' }, required: { en: 'Required' } }
+      { maxItems: { en: 'Too many' }, required: { en: 'Required' } },
+      { exclusiveMinimum: { tr: 'Tutar sıfırdan büyük olmalı', en: 'Must be above zero' }, multipleOf: { en: 'Step' } }
     ],
     invalid: [
       {},

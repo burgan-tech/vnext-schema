@@ -23,7 +23,7 @@
     },
     "x-errorMessages": {
       "type": "object",
-      "description": "Localized messages keyed by JSON Schema validation keyword.",
+      "description": "Localized messages keyed by JSON Schema validation keyword. The runtime looks a failed keyword up by its name (JsonSchemaValidationMapper: ResolveErrorMessage(error.Key)), so any keyword it validates can carry one; the list below is the set the definitions use.",
       "properties": {
         "required": {
           "$ref": "#/definitions/localizedText"
@@ -40,10 +40,22 @@
         "maxItems": {
           "$ref": "#/definitions/localizedText"
         },
+        "uniqueItems": {
+          "$ref": "#/definitions/localizedText"
+        },
         "minimum": {
           "$ref": "#/definitions/localizedText"
         },
         "maximum": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "exclusiveMinimum": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "exclusiveMaximum": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "multipleOf": {
           "$ref": "#/definitions/localizedText"
         },
         "pattern": {
