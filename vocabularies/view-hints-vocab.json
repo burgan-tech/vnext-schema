@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-hints-vocab.json",
+  "x-stableId": "https://unpkg.com/@burgan-tech/vnext-schema/vocabularies/view-hints-vocab.json",
+  "title": "vNext View Hints Vocabulary",
+  "description": "Presentation hints a client reads when it draws a schema as a form or a record view. A MIXIN: both the record vocabulary (master schemas) and the input vocabulary (transition and function-input schemas) accept every keyword here. The runtime reads none of them.",
+  "definitions": {
+    "x-helpText": {
+      "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/localizedText",
+      "description": "Help text shown under or beside the field."
+    },
+    "x-placeholder": {
+      "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/localizedText",
+      "description": "Placeholder shown in an empty input."
+    },
+    "x-uiHint": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A rendering hint for the field (e.g. 'hidden', 'readonly'). Clients ignore hints they do not know."
+    },
+    "x-uiNote": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Free-form note for whoever renders or maintains the field. Never displayed."
+    },
+    "x-group": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The group (section) a generated form places the field in."
+    },
+    "x-binding": {
+      "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/x-binding"
+    },
+    "keywords": {
+      "description": "The view-hint keywords, for composition by the role vocabularies.",
+      "type": "object",
+      "properties": {
+        "x-helpText": {
+          "$ref": "#/definitions/x-helpText"
+        },
+        "x-placeholder": {
+          "$ref": "#/definitions/x-placeholder"
+        },
+        "x-uiHint": {
+          "$ref": "#/definitions/x-uiHint"
+        },
+        "x-uiNote": {
+          "$ref": "#/definitions/x-uiNote"
+        },
+        "x-group": {
+          "$ref": "#/definitions/x-group"
+        },
+        "x-binding": {
+          "$ref": "#/definitions/x-binding"
+        }
+      }
+    }
+  }
+}

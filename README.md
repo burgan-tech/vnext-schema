@@ -168,6 +168,23 @@ token, for `encrypt`). `hash` takes no `roles`: the digest is irreversible.
 | `x-errorMessages` | localized text per validation keyword | also `minItems` / `maxItems` |
 | `x-order` | number | a generated form's field order, lower first; a stored schema does not keep property order (jsonb) |
 
+## Role Vocabularies (proposal, #153)
+
+A schema plays one ROLE, and what an `x-*` keyword means depends on it. Three files compose the existing
+definitions by role (no definition is duplicated — each `$ref`s `view-vocab.json` / `data-vocab.json`):
+
+| File | Role | Adds |
+|---|---|---|
+| `data-base-vocab.json` | shared by both | `x-labels`, `x-enum`, `x-order`, `x-displayFormat`, `x-lov`, `x-lookup`, `x-errorMessages`, `x-validation`, `x-conditional` |
+| `record-vocab.json` | a flow's master schema | `x-roles`, `x-masking`, `x-encryption`, `x-storage`, `x-indexed`, `x-filterOperators`, `x-sortable`, `x-computed`, `x-context-target`, `x-persistance` (proposed) |
+| `input-vocab.json` | a transition schema / function `inputSchema` | `x-context-source`, `x-encrypt` (in-transit, client → backend) |
+| `view-hints-vocab.json` | mixin, either role | `x-helpText`, `x-placeholder`, `x-uiHint`, `x-uiNote`, `x-group`, `x-binding` |
+
+`record-vocab.json#/definitions/schema` and `input-vocab.json#/definitions/schema` validate a whole schema in
+that role, recursively (`properties`, `items`, combinators, definitions): any `x-*` keyword outside the role's
+list is refused. `#/definitions/allowedKeywords` carries the same list as data, for a tool that wants to
+report rather than refuse. Nothing references these yet — enforcing them at publish is the next step.
+
 ## Installation
 
 ```bash
