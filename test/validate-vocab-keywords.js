@@ -1,5 +1,6 @@
 /**
- * Compiles field-exposure vocabulary keywords (x-roles, x-masking, x-encryption, x-storage) and checks
+ * Compiles vocabulary keywords (x-roles, x-masking, x-encryption, x-storage, x-filterOperators, x-lov,
+ * condition, x-errorMessages, x-order) and checks
  * positive/negative fixtures against them.
  *
  * validate-schemas.js only meta-validates vocabulary files (ajv.validateSchema); it never compiles a
@@ -116,6 +117,70 @@ const cases = {
       { binding: 5 },
       { binding: 'vnext-blob-local', extra: true }
     ]
+  },
+  // The names the runtime matches a DECLARATION against (SchemaFilterContext maps ne→neq, ge→gte, le→lte,
+  // like/match→contains before the check), so the query tokens themselves must be refused here.
+  'x-filterOperators': {
+    valid: [
+      ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between'],
+      ['contains', 'startsWith', 'endsWith', 'in', 'nin', 'isNull', 'includes'],
+      []
+    ],
+    invalid: [
+      ['ne'], ['ge'], ['le'], ['like'], ['match'],
+      ['eq', 'eq'],
+      ['regex']
+    ]
+  },
+  'x-lov': {
+    valid: [
+      { source: 'urn:vnext:fn:sample:cities', valueField: '$.data[*].code', displayField: '$.data[*].name' },
+      { source: 'urn:vnext:fn:sample:cities', valueField: '$.data[*].code', displayField: '$.data[*].name', imageField: '$.data[*].image' },
+      { source: 'urn:vnext:flow:instances:{{$form.targetDomain}}:environment', valueField: '$.data[*].key', displayField: '$.data[*].key' },
+      { source: 'urn:vnext:fn:sample:districts', valueField: '$.data[*].code', displayField: '$.data[*].name', filter: [{ param: 'cityCode', value: '$form.city', required: true }] },
+      { source: 'urn:vnext:fn:sample:records', valueField: '$.data[*].key', displayField: '$.data[*].key', filter: [{ param: 'status:in', value: ['A', 'B'] }] },
+      { items: '$instance.levels', valueField: 'key', displayField: 'label' },
+      { items: '$instance.tags', valueField: '', displayField: '' }
+    ],
+    invalid: [
+      { valueField: 'key', displayField: 'label' },
+      { source: 'urn:x', items: '$instance.levels', valueField: 'key', displayField: 'label' },
+      { source: 'urn:x', valueField: '', displayField: '$.data[*].name' },
+      { source: 'urn:x', valueField: '$.data[*].code' },
+      { items: '', valueField: 'key', displayField: 'label' },
+      { source: 'urn:x', valueField: '$.a', displayField: '$.b', filter: [{ param: 'p', value: [] }] },
+      { source: 'urn:x', valueField: '$.a', displayField: '$.b', filter: [{ param: 'p', value: 5 }] },
+      { source: 'urn:x', valueField: '$.a', displayField: '$.b', unknown: true }
+    ]
+  },
+  condition: {
+    valid: [
+      { field: 'age', operator: 'greaterThanOrEquals', value: 18 },
+      { field: 'age', operator: 'lessThanOrEquals', value: 65 },
+      { field: 'iban', operator: 'startsWith', value: 'TR' },
+      { field: 'mail', operator: 'endsWith', value: '.com' },
+      { anyOf: [{ field: 'a', operator: 'equals', value: 1 }, { not: { field: 'b', operator: 'isEmpty' } }] }
+    ],
+    invalid: [
+      { field: 'age', operator: 'gte', value: 18 },
+      { field: 'age' },
+      { field: 'age', operator: 'equals', extra: 1 }
+    ]
+  },
+  'x-errorMessages': {
+    valid: [
+      { minItems: { tr: 'En az bir seçim yapın', en: 'Pick at least one' } },
+      { maxItems: { en: 'Too many' }, required: { en: 'Required' } },
+      { exclusiveMinimum: { tr: 'Tutar sıfırdan büyük olmalı', en: 'Must be above zero' }, multipleOf: { en: 'Step' } }
+    ],
+    invalid: [
+      {},
+      { minItem: { en: 'typo' } }
+    ]
+  },
+  'x-order': {
+    valid: [1, 2.5, 0, -1],
+    invalid: ['1', null, true]
   }
 };
 

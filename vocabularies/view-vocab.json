@@ -23,7 +23,7 @@
     },
     "x-errorMessages": {
       "type": "object",
-      "description": "Localized messages keyed by JSON Schema validation keyword.",
+      "description": "Localized messages keyed by JSON Schema validation keyword. The runtime looks a failed keyword up by its name (JsonSchemaValidationMapper: ResolveErrorMessage(error.Key)), so any keyword it validates can carry one; the list below is the set the definitions use.",
       "properties": {
         "required": {
           "$ref": "#/definitions/localizedText"
@@ -34,10 +34,28 @@
         "maxLength": {
           "$ref": "#/definitions/localizedText"
         },
+        "minItems": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "maxItems": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "uniqueItems": {
+          "$ref": "#/definitions/localizedText"
+        },
         "minimum": {
           "$ref": "#/definitions/localizedText"
         },
         "maximum": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "exclusiveMinimum": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "exclusiveMaximum": {
+          "$ref": "#/definitions/localizedText"
+        },
+        "multipleOf": {
           "$ref": "#/definitions/localizedText"
         },
         "pattern": {
@@ -63,6 +81,10 @@
         "$ref": "#/definitions/localizedText"
       },
       "minProperties": 1
+    },
+    "x-order": {
+      "type": "number",
+      "description": "A field's position when a client generates a form from the schema; lower first, a field without one after every ordered field. Needed because a stored schema does not keep its property order (PostgreSQL jsonb normalises object keys)."
     },
     "roleGrantCondition": {
       "type": "object",
@@ -145,23 +167,24 @@
     },
     "x-filterOperators": {
       "type": "array",
-      "description": "Allowed filter operators for this field. Empty or absent means the field is not filterable. Operator semantics depend on the field's JSON type (number/integer: numeric compare; string + gt/lt/ge/le/between: date compare; string + eq/like/startswith/endswith: text compare; boolean: equality; array: includes).",
+      "description": "Allowed filter operators for this field, spelled as the runtime matches a DECLARATION: a list query's operator token is mapped to these names before the check (ne → neq, ge → gte, le → lte, like/match → contains, startswith → startsWith, endswith → endsWith, isnull → isNull), so declaring the query token itself (e.g. 'ge') makes every such filter fail with 'Operator is not allowed'. Empty or absent means the field is not filterable. Semantics depend on the field's JSON type (number/integer: numeric compare; string + gt/gte/lt/lte/between: date compare; string + eq/contains/startsWith/endsWith: text compare; boolean: equality; array: includes).",
       "items": {
         "type": "string",
         "enum": [
           "eq",
-          "ne",
+          "neq",
           "gt",
-          "ge",
+          "gte",
           "lt",
-          "le",
+          "lte",
           "between",
-          "match",
-          "like",
-          "startswith",
-          "endswith",
+          "contains",
+          "startsWith",
+          "endsWith",
           "in",
-          "nin"
+          "nin",
+          "isNull",
+          "includes"
         ]
       },
       "uniqueItems": true
@@ -185,11 +208,21 @@
       "properties": {
         "param": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "Request parameter name. May carry the list-query operator after a colon ('status:in'); without one the backend's default (equality) applies."
         },
         "value": {
-          "type": "string",
-          "minLength": 1
+          "description": "A literal, or a reference resolved by the client ('$form.<path>', '$instance.<path>', '$param.<name>'). A LITERAL may be an array, which is the only way to reach the 'in' / 'nin' operators; a reference is always a string.",
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "array",
+              "minItems": 1
+            }
+          ]
         },
         "required": {
           "type": "boolean",
@@ -200,9 +233,8 @@
     },
     "x-lov": {
       "type": "object",
-      "description": "List-of-values data source definition for dropdown and selection components.",
+      "description": "List-of-values definition for dropdown and selection components. The options come from a data SOURCE (a URN, fetched) or from ITEMS already in scope (an expression, no request) — exactly one of the two.",
       "required": [
-        "source",
         "valueField",
         "displayField"
       ],
@@ -210,17 +242,25 @@
         "source": {
           "type": "string",
           "minLength": 1,
-          "description": "URN of the data source function."
+          "description": "URN of the data source function. May interpolate '{{$form.x}}' / '{{$instance.x}}' / '{{$param.x}}' to choose WHICH source (e.g. a domain picked in a sibling field); an unresolved placeholder skips the load."
+        },
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "description": "An expression ('$instance.<path>' / '$form.<path>') naming an array already in scope; the options are built from it with no request. valueField/displayField are then plain property names within one element, or empty to use the element itself (a list of strings)."
         },
         "valueField": {
           "type": "string",
-          "minLength": 1,
-          "description": "JSONPath expression for the option value."
+          "description": "Path to the option value: a JSONPath into the fetched envelope with 'source', a plain property name (or empty = the element) with 'items'."
         },
         "displayField": {
           "type": "string",
+          "description": "Path to the option label — same two shapes as valueField."
+        },
+        "imageField": {
+          "type": "string",
           "minLength": 1,
-          "description": "JSONPath expression for the option display label."
+          "description": "Path to an image for each option, for pickers that draw one (same path shape as valueField)."
         },
         "filter": {
           "type": "array",
@@ -229,7 +269,37 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "source"
+          ],
+          "not": {
+            "required": [
+              "items"
+            ]
+          },
+          "properties": {
+            "valueField": {
+              "minLength": 1
+            },
+            "displayField": {
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "required": [
+            "items"
+          ],
+          "not": {
+            "required": [
+              "source"
+            ]
+          }
+        }
+      ]
     },
     "x-lookup": {
       "type": "object",
@@ -300,7 +370,11 @@
             "isNotEmpty",
             "contains",
             "greaterThan",
-            "lessThan"
+            "lessThan",
+            "greaterThanOrEquals",
+            "lessThanOrEquals",
+            "startsWith",
+            "endsWith"
           ]
         },
         "value": {},

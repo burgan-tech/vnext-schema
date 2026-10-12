@@ -158,6 +158,16 @@ no `deny` and no `allOf` / `anyOf`. A caller matching an allow entry sees the ra
 `encrypt`); every other caller — including one whose role is misspelled or missing — sees it masked (the
 token, for `encrypt`). `hash` takes no `roles`: the digest is irreversible.
 
+## Query and Form Keywords (`view-vocab.json`)
+
+| Keyword | Shape | Notes |
+|---|---|---|
+| `x-filterOperators` | array of `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `between`, `contains`, `startsWith`, `endsWith`, `in`, `nin`, `isNull`, `includes` | the names the runtime matches a **declaration** against: a list query's token is mapped first (`ne`→`neq`, `ge`→`gte`, `le`→`lte`, `like`/`match`→`contains`), so declaring the query token (`ge`) makes every such filter fail |
+| `x-lov` | `{ source \| items, valueField, displayField, imageField?, filter? }` | exactly one of `source` (a URN, fetched; may interpolate `{{$form.x}}`) and `items` (an expression naming an array already in scope, no request); a `filter` `param` may carry an operator (`status:in`) and a literal `value` may be an array |
+| `x-conditional` | `{ showIf?, hideIf?, enableIf?, disableIf? }` of `condition` | operators also include `greaterThanOrEquals`, `lessThanOrEquals`, `startsWith`, `endsWith` |
+| `x-errorMessages` | localized text per validation keyword | also `minItems` / `maxItems` |
+| `x-order` | number | a generated form's field order, lower first; a stored schema does not keep property order (jsonb) |
+
 ## Installation
 
 ```bash
