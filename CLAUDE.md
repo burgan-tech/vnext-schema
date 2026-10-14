@@ -52,6 +52,10 @@ Runs a referenced inner task once per item of a runtime-resolved collection, in 
 - `config.join.policy` is one of `all` / `allSettled` (default) / `quorum` / `firstSuccess`. A conditional inside `config.allOf` requires `join.minSuccess` when the policy is `quorum`.
 - `config.errorBoundary.onError` reuses the same rule shape as state/transition error boundaries (`action` 0–5, `retryPolicy`, `priority`), applied **per item**.
 
+#### Schema component role (`schema-definition.schema.json`)
+
+`attributes.type` is an optional enum — `master` | `transition` | `component` | `function` (absent or `""` = no role) — and selects the role vocabulary `attributes.schema` is validated against (`master` → `record-vocab.json`, `transition`/`function` → `input-vocab.json`, `component` → `component-vocab.json`). Only `master` permits `x-indexed`. `x-encryption` carries `source`: `runtime` (default, at rest — record role only) or `client` (in transit, client → backend; the former `x-encrypt`) — accepted in the record and input roles, never handled by the runtime. When adding a keyword to a role, update both its `propertyNames` gate and `allowedKeywords` (the test asserts they match).
+
 ### Constraints the schema cannot express
 
 Some rules are cross-field or runtime-resolved and are deliberately **not** encoded as JSON Schema keywords — they are enforced by the runtime at parse/execution time and documented in the relevant `description` text instead. Keep that convention: describe the rule in the `description`, don't contort the schema. Current examples, all on the FanOut task:
@@ -66,7 +70,7 @@ Schema files contain a `__SCHEMA_VERSION__` placeholder in their `$id` and `$sch
 
 ### Entry point (`index.js` / `index.d.ts`)
 
-`index.js` exports all schemas as named exports and a `schemas` array. `index.d.ts` provides TypeScript typings. When adding a new schema, update both files.
+`index.js` exports all schemas as named exports and a `schemas` array, the vocabularies as `vocabularies`, and `addVocabularies(ajv)` — schemas `$ref` vocabularies by `$id`, so a validator must register them before compiling `schema-definition`. `index.d.ts` provides TypeScript typings. When adding a new schema or vocabulary, update both files.
 
 ### Test approach (`test/`)
 

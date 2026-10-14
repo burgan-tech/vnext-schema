@@ -11,9 +11,23 @@ const schemas = {
   coreHeader: require('./schemas/core-header.schema.json')
 };
 
+// Load all vocabulary files. Schemas $ref them by $id (schema-definition → the role vocabularies), so a
+// validator must register them before compiling — see addVocabularies.
+const vocabularies = {
+  dataVocab: require('./vocabularies/data-vocab.json'),
+  viewVocab: require('./vocabularies/view-vocab.json'),
+  rolesVocab: require('./vocabularies/roles-vocab.json'),
+  dataBaseVocab: require('./vocabularies/data-base-vocab.json'),
+  recordVocab: require('./vocabularies/record-vocab.json'),
+  inputVocab: require('./vocabularies/input-vocab.json'),
+  componentVocab: require('./vocabularies/component-vocab.json'),
+  viewHintsVocab: require('./vocabularies/view-hints-vocab.json')
+};
+
 // Export schemas individually
 module.exports = {
   schemas,
+  vocabularies,
   
   // Individual schema exports for convenience
   coreSchema: schemas.coreSchema,
@@ -40,6 +54,17 @@ module.exports = {
       'header': schemas.coreHeader
     };
     return schemaMap[type] || null;
+  },
+
+  // Register every vocabulary on an AJV (or compatible) instance so cross-file $refs resolve.
+  // Idempotent: a vocabulary already registered under its $id is skipped.
+  addVocabularies: function(ajv) {
+    Object.values(vocabularies).forEach(vocabulary => {
+      if (!ajv.getSchema(vocabulary.$id)) {
+        ajv.addSchema(vocabulary);
+      }
+    });
+    return ajv;
   },
 
   // Get all available schema types

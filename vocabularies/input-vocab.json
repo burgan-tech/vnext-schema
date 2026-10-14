@@ -1,0 +1,284 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/input-vocab.json",
+  "x-stableId": "https://unpkg.com/@burgan-tech/vnext-schema/vocabularies/input-vocab.json",
+  "title": "vNext Input Vocabulary",
+  "description": "The vocabulary of a schema in the INPUT role — a transition's schema or a function's inputSchema: a request BODY the runtime validates at intake and a client draws as a form. Extends data-base-vocab.json (which carries the validation metadata and x-conditional, shared with the record) and accepts view-hints-vocab.json. What it adds is what only a request can mean: where a value comes from on the client (x-context-source) and how it travels (x-encryption with source 'client'). A record keyword (x-roles, x-masking, x-encryption, x-filterOperators …) means nothing here.",
+  "definitions": {
+    "property": {
+      "description": "A schema object (the root, or any property / item below it) written in this ROLE: it may carry the base keywords, the view hints and this role's own keywords, and no other x-* keyword. Applied recursively to properties, items, combinators and definitions.",
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "allOf": [
+            {
+              "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/data-base-vocab.json#/definitions/keywords"
+            },
+            {
+              "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-hints-vocab.json#/definitions/keywords"
+            },
+            {
+              "properties": {
+                "x-context-source": {
+                  "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/data-vocab.json#/definitions/x-context-source"
+                },
+                "x-encryption": {
+                  "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/x-encryption-client"
+                }
+              }
+            }
+          ],
+          "propertyNames": {
+            "if": {
+              "pattern": "^x-"
+            },
+            "then": {
+              "enum": [
+                "x-conditional",
+                "x-context-source",
+                "x-displayFormat",
+                "x-encryption",
+                "x-enum",
+                "x-errorMessages",
+                "x-group",
+                "x-helpText",
+                "x-labels",
+                "x-lookup",
+                "x-lov",
+                "x-order",
+                "x-placeholder",
+                "x-uiHint",
+                "x-uiNote",
+                "x-validation"
+              ]
+            }
+          },
+          "properties": {
+            "properties": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "patternProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "definitions": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "$defs": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "dependentSchemas": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "items": {
+              "anyOf": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "$ref": "#/definitions/property"
+                    }
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/definitions/property"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "prefixItems": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/property"
+                }
+              ]
+            },
+            "allOf": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "anyOf": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "oneOf": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/property"
+                }
+              ]
+            },
+            "if": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/property"
+                }
+              ]
+            },
+            "then": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/property"
+                }
+              ]
+            },
+            "else": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/property"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "schema": {
+      "description": "The root of a schema written in this role.",
+      "$ref": "#/definitions/property"
+    },
+    "allowedKeywords": {
+      "description": "Every x-* keyword this role accepts (base + view hints + its own), as data — for tools that want to report rather than refuse.",
+      "const": [
+        "x-conditional",
+        "x-context-source",
+        "x-displayFormat",
+        "x-encryption",
+        "x-enum",
+        "x-errorMessages",
+        "x-group",
+        "x-helpText",
+        "x-labels",
+        "x-lookup",
+        "x-lov",
+        "x-order",
+        "x-placeholder",
+        "x-uiHint",
+        "x-uiNote",
+        "x-validation"
+      ]
+    }
+  }
+}

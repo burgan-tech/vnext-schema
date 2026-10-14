@@ -59,13 +59,26 @@
             "type": "object",
             "description": "Schema definition attributes",
             "required": [
-                "type",
                 "schema"
             ],
             "properties": {
                 "type": {
                     "type": "string",
-                    "description": "Free-text schema type. Only the exact value master permits x-indexed metadata."
+                    "enum": [
+                        "",
+                        "master",
+                        "transition",
+                        "component",
+                        "function"
+                    ],
+                    "enumDescriptions": [
+                        "No role (no role vocabulary is applied)",
+                        "Master — a flow's master schema (record role)",
+                        "Transition — a transition body (input role)",
+                        "Component — an embedded view's own dataSchema (component role)",
+                        "Function — a function inputSchema (input role)"
+                    ],
+                    "description": "The ROLE of the schema; it selects the role vocabulary the schema is validated against. master → record-vocab.json (a flow's master schema; the only role that permits x-indexed); transition → input-vocab.json (a transition body); function → input-vocab.json (a function inputSchema); component → component-vocab.json (an embedded view's own dataSchema). Optional: absent or empty means no role vocabulary is applied — use it for a schema that serves more than one role. Validating the role vocabularies needs them registered on the validator (index.js addVocabularies)."
                 },
                 "schema": {
                     "type": "object",
@@ -620,6 +633,90 @@
                         "properties": {
                             "schema": {
                                 "$ref": "#/definitions/masterIndexSchema"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "attributes": {
+                        "required": [
+                            "type"
+                        ],
+                        "properties": {
+                            "type": {
+                                "const": "master"
+                            }
+                        }
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "attributes": {
+                        "properties": {
+                            "schema": {
+                                "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/record-vocab.json#/definitions/schema"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "attributes": {
+                        "required": [
+                            "type"
+                        ],
+                        "properties": {
+                            "type": {
+                                "enum": [
+                                    "transition",
+                                    "function"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "attributes": {
+                        "properties": {
+                            "schema": {
+                                "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/input-vocab.json#/definitions/schema"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "attributes": {
+                        "required": [
+                            "type"
+                        ],
+                        "properties": {
+                            "type": {
+                                "const": "component"
+                            }
+                        }
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "attributes": {
+                        "properties": {
+                            "schema": {
+                                "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/component-vocab.json#/definitions/schema"
                             }
                         }
                     }
