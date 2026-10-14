@@ -1,10 +1,11 @@
 const assert = require('assert');
 const Ajv = require('ajv');
 
+const { addVocabularies } = require('../index');
 const schema = require('../schemas/schema-definition.schema.json');
-const validate = new Ajv({ strict: false }).compile(schema);
+const validate = addVocabularies(new Ajv({ strict: false })).compile(schema);
 
-const doc = (type, indexed) => ({
+const doc = (type, indexed, extra = {}) => ({
   key: 'orders',
   domain: 'test',
   flow: 'sys-schemas',
@@ -20,7 +21,8 @@ const doc = (type, indexed) => ({
           properties: {
             amount: {
               type: 'number',
-              ...(indexed === undefined ? {} : { 'x-indexed': indexed })
+              ...(indexed === undefined ? {} : { 'x-indexed': indexed }),
+              ...extra
             }
           }
         }
@@ -29,24 +31,52 @@ const doc = (type, indexed) => ({
   }
 });
 
-for (const type of ['master', 'transition', 'view', 'function', 'workflow', 'task', 'headers', 'custom-schema', 'MASTER', '', '   ']) {
-  assert(validate(doc(type)), JSON.stringify(validate.errors));
+// attributes.type is an optional role enum; absent and '' mean "no role".
+for (const type of ['master', 'transition', 'component', 'function', '', undefined]) {
+  assert(validate(doc(type)), `${type}: ${JSON.stringify(validate.errors)}`);
   for (const indexed of [true, false]) {
-    assert.strictEqual(validate(doc(type, indexed)), type === 'master');
+    assert.strictEqual(validate(doc(type, indexed)), type === 'master', `${type} x-indexed ${indexed}`);
   }
 }
 
-for (const type of [undefined, null, 42, {}, []]) {
-  assert.strictEqual(validate(doc(type)), false);
+// Legacy free-text values and non-strings are refused.
+for (const type of ['view', 'workflow', 'task', 'schema', 'headers', 'custom-schema', 'MASTER', '   ', null, 42, {}, []]) {
+  assert.strictEqual(validate(doc(type)), false, `legacy type ${JSON.stringify(type)} must be refused`);
 }
 
-const example = doc('view');
+// The role selects the vocabulary: each keyword is accepted in its own role only.
+const placement = [
+  // [keyword fragment, roles that accept it]
+  [{ 'x-roles': [{ role: 'ops', grant: 'allow' }] }, ['master', '', undefined]],
+  [{ 'x-filterOperators': ['eq', 'gte'] }, ['master', '', undefined]],
+  [{ 'x-encryption': { type: 'encrypt' } }, ['master', '', undefined]],
+  [{ 'x-encryption': { source: 'client', key: 'urn:k', algorithm: 'HPKE-P256-SHA256-AES128GCM' } }, ['master', 'transition', 'function', '', undefined]],
+  [{ 'x-context-source': { const: 1 } }, ['transition', 'function', '', undefined]],
+  [{ 'x-binding': 'required' }, ['component', '', undefined]],
+  [{ readOnly: true, 'x-computed': { evaluatedBy: 'runtime', fallback: { arithmetic: { op: 'add', fields: ['a', 'b'] } } } }, ['master', '', undefined]],
+  [{ 'x-labels': { en: 'Amount' }, 'x-order': 1 }, ['master', 'transition', 'component', 'function', '', undefined]]
+];
+for (const [fragment, accepting] of placement) {
+  for (const type of ['master', 'transition', 'component', 'function', '', undefined]) {
+    assert.strictEqual(validate(doc(type, undefined, fragment)), accepting.includes(type),
+      `${JSON.stringify(fragment)} on type ${JSON.stringify(type)}: ${JSON.stringify(validate.errors)}`);
+  }
+}
+
+// Removed keywords are refused in every role.
+for (const fragment of [{ 'x-persistance': 'transient' }, { 'x-encrypt': { key: 'urn:k', algorithm: 'RSA-OAEP-256' } }]) {
+  for (const type of ['master', 'transition', 'component', 'function']) {
+    assert.strictEqual(validate(doc(type, undefined, fragment)), false, `${Object.keys(fragment)[0]} on ${type}`);
+  }
+}
+
+const example = doc('transition');
 example.attributes.schema.examples = [{ 'x-indexed': true }];
 assert(validate(example));
 assert.strictEqual(schema.properties.type, undefined);
-const obsoleteRoot = { ...doc('view', true), type: 'master' };
+const obsoleteRoot = { ...doc('transition', true), type: 'master' };
 assert.strictEqual(validate(obsoleteRoot), false);
-assert.strictEqual(schema.properties.attributes.properties.type.enum, undefined);
+assert.deepStrictEqual(schema.properties.attributes.required, ['schema']);
 console.log('Schema attributes.type document validation passed.');
 
 let indexCases = 0;

@@ -3,48 +3,8 @@
   "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/input-vocab.json",
   "x-stableId": "https://unpkg.com/@burgan-tech/vnext-schema/vocabularies/input-vocab.json",
   "title": "vNext Input Vocabulary",
-  "description": "The vocabulary of a schema in the INPUT role — a transition's schema or a function's inputSchema: a request BODY the runtime validates at intake and a client draws as a form. Extends data-base-vocab.json (which carries the validation metadata and x-conditional, shared with the record) and accepts view-hints-vocab.json. What it adds is what only a request can mean: where a value comes from on the client (x-context-source) and how it travels (x-encrypt). A record keyword (x-roles, x-masking, x-encryption, x-filterOperators …) means nothing here.",
+  "description": "The vocabulary of a schema in the INPUT role — a transition's schema or a function's inputSchema: a request BODY the runtime validates at intake and a client draws as a form. Extends data-base-vocab.json (which carries the validation metadata and x-conditional, shared with the record) and accepts view-hints-vocab.json. What it adds is what only a request can mean: where a value comes from on the client (x-context-source) and how it travels (x-encryption with source 'client'). A record keyword (x-roles, x-masking, x-encryption, x-filterOperators …) means nothing here.",
   "definitions": {
-    "x-encrypt": {
-      "type": "object",
-      "description": "IN-TRANSIT encryption, client → backend: the client seals the value before the request leaves, and only the service holding the private key opens it. A different concept from x-encryption (at rest, record role). 'key' addresses the recipient's public key (a context read address, 'urn:client:context:read:<boundary>:<storage>:<key>', or '$instance.<path>'); 'into' names the field the ciphertext is sent as (absent = in place); 'nonce' binds a per-record value into the sealed text ('{value}:{nonce}') as a replay guard; envelope 'publicKey' sends '{publicKeyB64}.{ciphertextB64}'. A client that cannot seal REFUSES the write — it never sends the plaintext.",
-      "required": [
-        "key",
-        "algorithm"
-      ],
-      "properties": {
-        "into": {
-          "type": "string",
-          "minLength": 1
-        },
-        "key": {
-          "type": "string",
-          "minLength": 1
-        },
-        "algorithm": {
-          "enum": [
-            "HPKE-P256-SHA256-AES128GCM",
-            "RSA-OAEP-256"
-          ]
-        },
-        "encoding": {
-          "enum": [
-            "base64",
-            "base64url"
-          ]
-        },
-        "nonce": {
-          "type": "string",
-          "minLength": 1
-        },
-        "envelope": {
-          "enum": [
-            "publicKey"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
     "property": {
       "description": "A schema object (the root, or any property / item below it) written in this ROLE: it may carry the base keywords, the view hints and this role's own keywords, and no other x-* keyword. Applied recursively to properties, items, combinators and definitions.",
       "anyOf": [
@@ -65,8 +25,8 @@
                 "x-context-source": {
                   "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/data-vocab.json#/definitions/x-context-source"
                 },
-                "x-encrypt": {
-                  "$ref": "#/definitions/x-encrypt"
+                "x-encryption": {
+                  "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/x-encryption-client"
                 }
               }
             }
@@ -80,7 +40,7 @@
                 "x-conditional",
                 "x-context-source",
                 "x-displayFormat",
-                "x-encrypt",
+                "x-encryption",
                 "x-enum",
                 "x-errorMessages",
                 "x-group",
@@ -305,7 +265,7 @@
         "x-conditional",
         "x-context-source",
         "x-displayFormat",
-        "x-encrypt",
+        "x-encryption",
         "x-enum",
         "x-errorMessages",
         "x-group",

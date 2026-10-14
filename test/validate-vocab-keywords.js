@@ -84,10 +84,29 @@ const cases = {
       { type: 'hash' },
       { type: 'hash', params: { algorithm: 'sha512' }, purpose: 'PII-Identification' },
       { type: 'encrypt' },
-      { type: 'encrypt', roles: [allow('morph-idm.auditor')], purpose: 'PII-Identification', redactInLogs: true, retentionDays: 2555 }
+      { type: 'encrypt', roles: [allow('morph-idm.auditor')], purpose: 'PII-Identification', redactInLogs: true, retentionDays: 2555 },
+      // source: runtime (the default) — at rest
+      { source: 'runtime', type: 'encrypt' },
+      // source: client — in transit, client → backend (the former x-encrypt)
+      { source: 'client', key: 'urn:client:context:read:device:memory:device.hpke.publicKey', algorithm: 'HPKE-P256-SHA256-AES128GCM' },
+      { source: 'client', key: '$instance.keys.public', algorithm: 'RSA-OAEP-256', into: 'passwordEnc', encoding: 'base64url', nonce: '$instance.facts.nonce', envelope: 'publicKey', purpose: 'Credential' }
     ],
     invalid: [
       {}, { type: 'aes' }, { type: 'none', keyRef: 'k' },
+      { source: 'device', type: 'encrypt' },
+      // runtime: client members are not accepted, and type is required
+      { source: 'runtime', key: 'urn:k', algorithm: 'RSA-OAEP-256' },
+      { type: 'encrypt', algorithm: 'RSA-OAEP-256' },
+      // client: key and algorithm are required, at-rest members are not accepted
+      { source: 'client' },
+      { source: 'client', key: 'urn:k' },
+      { source: 'client', algorithm: 'RSA-OAEP-256' },
+      { source: 'client', key: 'urn:k', algorithm: 'AES-256-GCM' },
+      { source: 'client', key: '', algorithm: 'RSA-OAEP-256' },
+      { source: 'client', key: 'urn:k', algorithm: 'RSA-OAEP-256', type: 'encrypt' },
+      { source: 'client', key: 'urn:k', algorithm: 'RSA-OAEP-256', roles: [allow('a')] },
+      { source: 'client', key: 'urn:k', algorithm: 'RSA-OAEP-256', retentionDays: 30 },
+      { source: 'client', key: 'urn:k', algorithm: 'RSA-OAEP-256', envelope: 'jwe' },
       // removed in favour of 'encrypt' (never enforced by any runtime)
       { type: 'persisted' }, { type: 'transport' },
       { type: 'hash', params: { salt: '0123456789abcdef' } },

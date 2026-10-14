@@ -111,7 +111,8 @@ never reaches the later keywords.
 |---|---|---|
 | `x-roles` | array of `roleGrant` (`{ role, grant: allow \| deny }`) | hides the field from callers the grants refuse |
 | `x-masking` | `{ operator: mask \| replace, params?, roles? }` | masks the visible value; `roles` is an **allow-only exemption list** (an allow match sees the raw value) |
-| `x-encryption` | `{ type: none \| hash \| encrypt, params?, roles?, purpose?, redactInLogs?, retentionDays? }` | `hash`: applied when the data is written — the stored and served value is `HASHED:SHA256:<hex>` (HMAC under a salt the runtime generates per instance); irreversible, so no `roles` and no `pattern`/`format`/`minLength`/`maxLength`/`enum`/`const`. `encrypt`: AES-256-GCM token `ENCRYPTED:AES256:i1:…` in the stored instance data (key generated per instance), decrypted for the engine; on the data function an allow-listed caller reads the plaintext, everyone else the token; only instance data is encrypted. `roles` is an **allow-only exemption list**; the metadata fields are not enforced. `transport`/`persisted` were removed (never enforced) — use `encrypt` |
+| `x-encryption` | `{ source?: runtime, type: none \| hash \| encrypt, params?, roles?, purpose?, redactInLogs?, retentionDays? }` | **`source: runtime`** (the default when absent) — at rest. `hash`: applied when the data is written — the stored and served value is `HASHED:SHA256:<hex>` (HMAC under a salt the runtime generates per instance); irreversible, so no `roles` and no `pattern`/`format`/`minLength`/`maxLength`/`enum`/`const`. `encrypt`: AES-256-GCM token `ENCRYPTED:AES256:i1:…` in the stored instance data (key generated per instance), decrypted for the engine; on the data function an allow-listed caller reads the plaintext, everyone else the token; only instance data is encrypted. `roles` is an **allow-only exemption list**; the metadata fields are not enforced. `transport`/`persisted` were removed (never enforced) — use `encrypt` |
+| `x-encryption` | `{ source: client, key, algorithm: HPKE-P256-SHA256-AES128GCM \| RSA-OAEP-256, into?, encoding?, nonce?, envelope?, purpose? }` | **`source: client`** — in transit, client → backend: the client seals the value to the recipient's public key before sending; only the service holding the private key opens it. The runtime accepts it on any schema, the master included, and does nothing with it (no at-rest encryption, no read mask, no filter refusal). The at-rest members are not accepted. Replaces the former `x-encrypt` |
 | `x-storage` | `{ binding }` | file offload: the property's file bytes are kept in the named Dapr binding component instead of the instance data; `binding` is required and non-empty, no other fields |
 
 Rules the runtime enforces at publish time for `x-masking` and `x-encryption.type: "hash"` (the vocabulary
@@ -128,6 +129,20 @@ expresses the shape; the runtime adds the context): `type: "string"` properties 
     "purpose": "PII-Identification",
     "redactInLogs": true,
     "retentionDays": 2555
+  }
+}
+```
+
+```json
+"password": {
+  "type": "string",
+  "format": "password",
+  "x-encryption": {
+    "source": "client",
+    "key": "urn:client:context:read:device:memory:device.hpke.publicKey",
+    "algorithm": "HPKE-P256-SHA256-AES128GCM",
+    "into": "passwordEnc",
+    "envelope": "publicKey"
   }
 }
 ```
@@ -167,29 +182,50 @@ token, for `encrypt`). `hash` takes no `roles`: the digest is irreversible.
 | `x-conditional` | `{ showIf?, hideIf?, enableIf?, disableIf? }` of `condition` | operators also include `greaterThanOrEquals`, `lessThanOrEquals`, `startsWith`, `endsWith` |
 | `x-errorMessages` | localized text per validation keyword | also `minItems` / `maxItems` |
 | `x-order` | number | a generated form's field order, lower first; a stored schema does not keep property order (jsonb) |
+| `x-computed` | `{ evaluatedBy: runtime \| client, cases?, fallback?, whenAbsent? }` | a derived, never-stored field (master only). `runtime`: the runtime computes it on every read surface from the caller's already-shaped view (after `x-roles` / `x-masking` / `x-encryption`); `client`: a client evaluates it. Each case / the fallback is a `join` (`fields`, `separator`) or an `arithmetic` (`op`, `fields`) over sibling properties; the first case whose `when` matches wins |
 
-## Role Vocabularies (proposal, #153)
+## Role Vocabularies (#153)
 
-A schema plays one ROLE, and what an `x-*` keyword means depends on it. These files compose the existing
-definitions by role (no definition is duplicated — each `$ref`s `view-vocab.json` / `data-vocab.json`):
+A schema plays one ROLE, and what an `x-*` keyword means depends on it. The schema component's
+`attributes.type` names the role and selects the vocabulary `schema-definition.schema.json` validates
+`attributes.schema` against:
+
+| `attributes.type` | Role vocabulary | `x-indexed` |
+|---|---|---|
+| `master` | `record-vocab.json` | allowed |
+| `transition` | `input-vocab.json` | refused |
+| `function` | `input-vocab.json` | refused |
+| `component` | `component-vocab.json` | refused |
+| absent / `""` | none (no role gate) | refused |
+
+These files compose the existing definitions by role (no definition is duplicated — each `$ref`s
+`view-vocab.json` / `data-vocab.json`):
 
 | File | Role | Adds |
 |---|---|---|
 | `data-base-vocab.json` | shared by both | `x-labels`, `x-enum`, `x-order`, `x-displayFormat`, `x-lov`, `x-lookup`, `x-errorMessages`, `x-validation`, `x-conditional` |
-| `record-vocab.json` | a flow's master schema | `x-roles`, `x-masking`, `x-encryption`, `x-storage`, `x-indexed`, `x-filterOperators`, `x-sortable`, `x-computed`, `x-context-target`, `x-persistance` (proposed) |
-| `input-vocab.json` | a transition schema / function `inputSchema` / the dataSchema of a view that submits a move of its own | `x-context-source`, `x-encrypt` (in-transit, client → backend) |
+| `record-vocab.json` | a flow's master schema | `x-roles`, `x-masking`, `x-encryption`, `x-storage`, `x-indexed`, `x-filterOperators`, `x-sortable`, `x-computed`, `x-context-target` — `x-encryption` with either `source` (`runtime` applied at rest, `client` accepted and not handled by the runtime) |
+| `input-vocab.json` | a transition schema / function `inputSchema` / the dataSchema of a view that submits a move of its own | `x-context-source`, `x-encryption` with `source: client` only (in transit, client → backend) |
 | `component-vocab.json` | the dataSchema of an embedded view (`Component ref`) that sends nothing of its own | `x-binding` (the component's input contract) |
 | `view-hints-vocab.json` | mixin, every role | `x-helpText`, `x-placeholder`, `x-uiHint`, `x-uiNote`, `x-group` |
 
 A component does not inherit the role of the view that embeds it: the host BINDS its data into the component, and
-keeps every role-specific behaviour on its own schema (what is sent and how — `x-context-source`, `x-encrypt`; what the
+keeps every role-specific behaviour on its own schema (what is sent and how — `x-context-source`, `x-encryption` with `source: client`; what the
 record exposes and copies out — `x-roles`, `x-masking`, `x-context-target`). A component that submits uses a command
 the host passes in (`$param.submitCommand`), so the move and its body are still the host's.
 
 `<role>-vocab.json#/definitions/schema` validates a whole schema in
 that role, recursively (`properties`, `items`, combinators, definitions): any `x-*` keyword outside the role's
 list is refused. `#/definitions/allowedKeywords` carries the same list as data, for a tool that wants to
-report rather than refuse. Nothing references these yet — enforcing them at publish is the next step.
+report rather than refuse.
+
+The schemas `$ref` the vocabularies by `$id`, so a validator must register them before compiling:
+
+```js
+const Ajv = require('ajv');
+const { addVocabularies, schemaDefinition } = require('@burgan-tech/vnext-schema');
+const validate = addVocabularies(new Ajv({ strict: false })).compile(schemaDefinition);
+```
 
 ## Installation
 
@@ -268,12 +304,13 @@ For support and questions:
 
 ### Schema component purpose
 
-Schema component documents (`sys-schemas`) use the existing `attributes.type` free-text string;
-legacy and custom values are accepted without an enum. Only the exact value `master` allows
-`x-indexed` metadata (including `false`). Missing, null, blank and other values never mean master.
-The existing required string contract for `attributes.type` remains. There is no component root
-`type` field, and nested JSON Schema `type` keywords retain their meaning. Publish a new package
-version for downstream consumers to receive the updated contract.
+Schema component documents (`sys-schemas`) state their role in the optional `attributes.type`:
+`master`, `transition`, `component` or `function` (see [Role Vocabularies](#role-vocabularies-153)).
+It may be omitted or `""` (no role). Any other value — including the legacy `workflow`, `schema`,
+`view`, `headers` — is refused; migrate a flow's master to `master`, a transition / function input
+to `transition` / `function`, an embedded view's dataSchema to `component`, and a schema that
+serves more than one role to no type. Only `master` allows `x-indexed` metadata (including `false`).
+There is no component root `type` field, and nested JSON Schema `type` keywords retain their meaning.
 
 For an explicit master schema, `x-indexed` must be boolean. `true` requires an explicit scalar
 `type` of `string`, `number`, `integer`, or `boolean` beneath fixed object `properties`; date fields

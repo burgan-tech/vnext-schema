@@ -3,15 +3,15 @@
   "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/record-vocab.json",
   "x-stableId": "https://unpkg.com/@burgan-tech/vnext-schema/vocabularies/record-vocab.json",
   "title": "vNext Record Vocabulary",
-  "description": "The vocabulary of a schema in the RECORD role — a flow's master schema: the shape the runtime validates every write against, filters and sorts on, and exposes through x-roles / x-masking / x-encryption. Extends data-base-vocab.json and accepts view-hints-vocab.json. An input keyword (x-context-source, x-encrypt) means nothing here.",
+  "description": "The vocabulary of a schema in the RECORD role — a flow's master schema: the shape the runtime validates every write against, filters and sorts on, and exposes through x-roles / x-masking / x-encryption. Extends data-base-vocab.json and accepts view-hints-vocab.json. An input keyword (x-context-source) means nothing here; x-encryption is accepted with either source — 'runtime' is applied at rest, 'client' is left to the client.",
   "definitions": {
     "x-computed": {
       "type": "object",
-      "description": "A DERIVED field. 'server': the runtime computes it and it arrives as a plain field (the only mode a list can sort or filter on; needs runtime support). 'client': a client evaluates it from this declaration. The first case whose 'when' matches wins; otherwise 'fallback'; an unresolvable result becomes '' or null per 'whenAbsent'. A computed property is never 'required' and should be 'readOnly'.",
+      "description": "A DERIVED field. evaluatedBy 'runtime': the runtime computes it on every read surface that returns instance data (instance GET / list, data function, data history, sync start / transition output, GetInstance / GetInstances / GetInstanceData tasks) from the caller's already-shaped view (after x-roles, x-masking, x-encryption), so it never reveals a field the caller cannot see; it is never stored. 'client': a client evaluates it from this declaration. The first case whose 'when' matches wins; otherwise 'fallback'; an unresolvable result becomes '' or null per 'whenAbsent'. 'fields' name sibling properties. A computed property is never 'required', should be 'readOnly', and cannot carry x-indexed, x-filterOperators, x-sortable, an active x-encryption or x-storage.",
       "properties": {
         "evaluatedBy": {
           "enum": [
-            "server",
+            "runtime",
             "client"
           ]
         },
@@ -136,14 +136,6 @@
       },
       "additionalProperties": false
     },
-    "x-persistance": {
-      "type": "string",
-      "enum": [
-        "persisted",
-        "transient"
-      ],
-      "description": "PROPOSED (vnext-schema#153). 'transient': the field is accepted at intake and NOT persisted — it never reaches instance data or transition history (an OTP, a password). Absent = 'persisted'. Requires runtime support; until then it is a declaration only."
-    },
     "property": {
       "description": "A schema object (the root, or any property / item below it) written in this ROLE: it may carry the base keywords, the view hints and this role's own keywords, and no other x-* keyword. Applied recursively to properties, items, combinators and definitions.",
       "anyOf": [
@@ -188,9 +180,6 @@
                 },
                 "x-computed": {
                   "$ref": "#/definitions/x-computed"
-                },
-                "x-persistance": {
-                  "$ref": "#/definitions/x-persistance"
                 }
               }
             }
@@ -217,7 +206,6 @@
                 "x-lov",
                 "x-masking",
                 "x-order",
-                "x-persistance",
                 "x-placeholder",
                 "x-roles",
                 "x-sortable",
@@ -450,7 +438,6 @@
         "x-lov",
         "x-masking",
         "x-order",
-        "x-persistance",
         "x-placeholder",
         "x-roles",
         "x-sortable",
