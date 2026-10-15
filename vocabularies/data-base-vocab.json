@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/data-base-vocab.json",
+  "x-stableId": "https://unpkg.com/@burgan-tech/vnext-schema/vocabularies/data-base-vocab.json",
+  "title": "vNext Data Base Vocabulary",
+  "description": "The keywords that mean the same thing whatever ROLE a schema plays. The record vocabulary (master schemas) and the input vocabulary (transition and function-input schemas) both extend this one. x-lov / x-lookup are here with ONE meaning, 'this value is a key into that source': an input schema offers the choices, a record view resolves the stored key to its label. The validation metadata (x-errorMessages, x-validation) is here because the runtime runs the SAME validator on a transition body at intake and on the merged record at write; x-conditional because a record view hides and shows fields by the data as a form does.",
+  "definitions": {
+    "keywords": {
+      "description": "The base keywords, for composition by the role vocabularies.",
+      "type": "object",
+      "properties": {
+        "x-labels": {
+          "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/x-labels"
+        },
+        "x-enum": {
+          "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/x-enum"
+        },
+        "x-order": {
+          "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/x-order"
+        },
+        "x-displayFormat": {
+          "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/x-displayFormat"
+        },
+        "x-lov": {
+          "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/x-lov"
+        },
+        "x-lookup": {
+          "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/x-lookup"
+        },
+        "x-errorMessages": {
+          "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/x-errorMessages"
+        },
+        "x-validation": {
+          "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/x-validation"
+        },
+        "x-conditional": {
+          "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/x-conditional"
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,6 @@
 /**
- * Compiles field-exposure vocabulary keywords (x-roles, x-masking, x-encryption) and checks
+ * Compiles vocabulary keywords (x-roles, x-masking, x-encryption, x-storage, x-filterOperators, x-lov,
+ * condition, x-errorMessages, x-order) and checks
  * positive/negative fixtures against them.
  *
  * validate-schemas.js only meta-validates vocabulary files (ajv.validateSchema); it never compiles a
@@ -83,10 +84,29 @@ const cases = {
       { type: 'hash' },
       { type: 'hash', params: { algorithm: 'sha512' }, purpose: 'PII-Identification' },
       { type: 'encrypt' },
-      { type: 'encrypt', roles: [allow('morph-idm.auditor')], purpose: 'PII-Identification', redactInLogs: true, retentionDays: 2555 }
+      { type: 'encrypt', roles: [allow('morph-idm.auditor')], purpose: 'PII-Identification', redactInLogs: true, retentionDays: 2555 },
+      // source: runtime (the default) — at rest
+      { source: 'runtime', type: 'encrypt' },
+      // source: client — in transit, client → backend (the former x-encrypt)
+      { source: 'client', key: 'urn:client:context:read:device:memory:device.hpke.publicKey', algorithm: 'HPKE-P256-SHA256-AES128GCM' },
+      { source: 'client', key: '$instance.keys.public', algorithm: 'RSA-OAEP-256', into: 'passwordEnc', encoding: 'base64url', nonce: '$instance.facts.nonce', envelope: 'publicKey', purpose: 'Credential' }
     ],
     invalid: [
       {}, { type: 'aes' }, { type: 'none', keyRef: 'k' },
+      { source: 'device', type: 'encrypt' },
+      // runtime: client members are not accepted, and type is required
+      { source: 'runtime', key: 'urn:k', algorithm: 'RSA-OAEP-256' },
+      { type: 'encrypt', algorithm: 'RSA-OAEP-256' },
+      // client: key and algorithm are required, at-rest members are not accepted
+      { source: 'client' },
+      { source: 'client', key: 'urn:k' },
+      { source: 'client', algorithm: 'RSA-OAEP-256' },
+      { source: 'client', key: 'urn:k', algorithm: 'AES-256-GCM' },
+      { source: 'client', key: '', algorithm: 'RSA-OAEP-256' },
+      { source: 'client', key: 'urn:k', algorithm: 'RSA-OAEP-256', type: 'encrypt' },
+      { source: 'client', key: 'urn:k', algorithm: 'RSA-OAEP-256', roles: [allow('a')] },
+      { source: 'client', key: 'urn:k', algorithm: 'RSA-OAEP-256', retentionDays: 30 },
+      { source: 'client', key: 'urn:k', algorithm: 'RSA-OAEP-256', envelope: 'jwe' },
       // removed in favour of 'encrypt' (never enforced by any runtime)
       { type: 'persisted' }, { type: 'transport' },
       { type: 'hash', params: { salt: '0123456789abcdef' } },
@@ -104,6 +124,82 @@ const cases = {
       { type: 'none', redactInLogs: 'yes' },
       { type: 'none', retentionDays: 0 }
     ]
+  },
+  'x-storage': {
+    valid: [
+      { binding: 'vnext-blob-local' }
+    ],
+    invalid: [
+      'file',
+      {},
+      { binding: '' },
+      { binding: 5 },
+      { binding: 'vnext-blob-local', extra: true }
+    ]
+  },
+  // The names the runtime matches a DECLARATION against (SchemaFilterContext maps ne→neq, ge→gte, le→lte,
+  // like/match→contains before the check), so the query tokens themselves must be refused here.
+  'x-filterOperators': {
+    valid: [
+      ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between'],
+      ['contains', 'startsWith', 'endsWith', 'in', 'nin', 'isNull', 'includes'],
+      []
+    ],
+    invalid: [
+      ['ne'], ['ge'], ['le'], ['like'], ['match'],
+      ['eq', 'eq'],
+      ['regex']
+    ]
+  },
+  'x-lov': {
+    valid: [
+      { source: 'urn:vnext:fn:sample:cities', valueField: '$.data[*].code', displayField: '$.data[*].name' },
+      { source: 'urn:vnext:fn:sample:cities', valueField: '$.data[*].code', displayField: '$.data[*].name', imageField: '$.data[*].image' },
+      { source: 'urn:vnext:flow:instances:{{$form.targetDomain}}:environment', valueField: '$.data[*].key', displayField: '$.data[*].key' },
+      { source: 'urn:vnext:fn:sample:districts', valueField: '$.data[*].code', displayField: '$.data[*].name', filter: [{ param: 'cityCode', value: '$form.city', required: true }] },
+      { source: 'urn:vnext:fn:sample:records', valueField: '$.data[*].key', displayField: '$.data[*].key', filter: [{ param: 'status:in', value: ['A', 'B'] }] },
+      { items: '$instance.levels', valueField: 'key', displayField: 'label' },
+      { items: '$instance.tags', valueField: '', displayField: '' }
+    ],
+    invalid: [
+      { valueField: 'key', displayField: 'label' },
+      { source: 'urn:x', items: '$instance.levels', valueField: 'key', displayField: 'label' },
+      { source: 'urn:x', valueField: '', displayField: '$.data[*].name' },
+      { source: 'urn:x', valueField: '$.data[*].code' },
+      { items: '', valueField: 'key', displayField: 'label' },
+      { source: 'urn:x', valueField: '$.a', displayField: '$.b', filter: [{ param: 'p', value: [] }] },
+      { source: 'urn:x', valueField: '$.a', displayField: '$.b', filter: [{ param: 'p', value: 5 }] },
+      { source: 'urn:x', valueField: '$.a', displayField: '$.b', unknown: true }
+    ]
+  },
+  condition: {
+    valid: [
+      { field: 'age', operator: 'greaterThanOrEquals', value: 18 },
+      { field: 'age', operator: 'lessThanOrEquals', value: 65 },
+      { field: 'iban', operator: 'startsWith', value: 'TR' },
+      { field: 'mail', operator: 'endsWith', value: '.com' },
+      { anyOf: [{ field: 'a', operator: 'equals', value: 1 }, { not: { field: 'b', operator: 'isEmpty' } }] }
+    ],
+    invalid: [
+      { field: 'age', operator: 'gte', value: 18 },
+      { field: 'age' },
+      { field: 'age', operator: 'equals', extra: 1 }
+    ]
+  },
+  'x-errorMessages': {
+    valid: [
+      { minItems: { tr: 'En az bir seçim yapın', en: 'Pick at least one' } },
+      { maxItems: { en: 'Too many' }, required: { en: 'Required' } },
+      { exclusiveMinimum: { tr: 'Tutar sıfırdan büyük olmalı', en: 'Must be above zero' }, multipleOf: { en: 'Step' } }
+    ],
+    invalid: [
+      {},
+      { minItem: { en: 'typo' } }
+    ]
+  },
+  'x-order': {
+    valid: [1, 2.5, 0, -1],
+    invalid: ['1', null, true]
   }
 };
 

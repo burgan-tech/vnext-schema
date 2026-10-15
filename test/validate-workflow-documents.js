@@ -178,5 +178,72 @@ check('variableKey leading digit', withVariableKey('1child'), false, '/attribute
 check('variableKey empty', withVariableKey(''), false, '/attributes/states/0/onEntries/0/variableKey');
 check('variableKey not string', withVariableKey(42), false, '/attributes/states/0/onEntries/0/variableKey');
 
+// history (vnext#1006): 'none' | 'full'; 'none' constrains the flow to the one-shot shape.
+const historyNone = () => {
+  const input = document();
+  delete input.attributes.sharedTransitions;
+  delete input.attributes.errorBoundary;
+  input.attributes.history = 'none';
+  input.attributes.startTransition.target = 'work';
+  input.attributes.states = [
+    { key: 'work', stateType: 2, subType: 0, versionStrategy: 'Minor', labels: labels('Work'),
+      transitions: [{ key: 'go', target: 'done', triggerType: 1, versionStrategy: 'Minor', labels: labels('Go') }] },
+    { key: 'done', stateType: 3, subType: 1, versionStrategy: 'Minor', labels: labels('Done'), transitions: [] }
+  ];
+  return input;
+};
+check('history omitted', document(), true);
+const historyFull = document(); historyFull.attributes.history = 'full';
+check('history full keeps manual and shared transitions', historyFull, true);
+check('history none minimal one-shot flow', historyNone(), true);
+for (const bad of ['None', 'partial', null, true]) {
+  const input = historyNone(); input.attributes.history = bad;
+  check(`history rejects ${JSON.stringify(bad)}`, input, false, '/attributes/history');
+}
+const withSubFlowState = historyNone();
+withSubFlowState.attributes.states.unshift({
+  key: 'child', stateType: 4, subType: 0, versionStrategy: 'Minor', labels: labels('Child'),
+  subFlow: { type: 'S', process: { key: 'child-flow', domain: 'test', flow: 'sys-flows', version: '1.0.0' }, mapping: script('return null;') },
+  transitions: [{ key: 'after-child', target: 'work', triggerType: 1, versionStrategy: 'Minor', labels: labels('After') }]
+});
+check('history none accepts a SubFlow state with an automatic exit', withSubFlowState, true);
+const multipleAutos = historyNone();
+multipleAutos.attributes.states[0].transitions.push(
+  { key: 'other', target: 'done', triggerType: 1, versionStrategy: 'Minor', labels: labels('Other'), rule: script('return true;') });
+check('history none accepts several automatic transitions', multipleAutos, true);
+const withSubProcessTask = historyNone();
+withSubProcessTask.attributes.states[0].onEntries = [{
+  order: 1, task: { key: 'start-sub', domain: 'test', flow: 'sys-tasks', version: '1.0.0' }, mapping: script('return null;')
+}];
+check('history none accepts tasks (SubProcess included)', withSubProcessTask, true);
+for (const [name, mutate, errorPath] of [
+  ['manual state transition', d => { d.attributes.states[0].transitions[0].triggerType = 0; }, '/attributes/states/0/transitions/0/triggerType'],
+  ['scheduled state transition', d => { d.attributes.states[0].transitions[0].triggerType = 2; d.attributes.states[0].transitions[0].timer = script('return TimeSpan.FromMinutes(1);'); }, '/attributes/states/0/transitions/0/triggerType'],
+  ['event state transition', d => { d.attributes.states[0].transitions[0].triggerType = 3; d.attributes.states[0].transitions[0].event = { mapping: script('return null;') }; }, '/attributes/states/0/transitions/0/triggerType'],
+  ['shared transitions', d => { d.attributes.sharedTransitions = document().attributes.sharedTransitions; }, '/attributes/sharedTransitions'],
+  ['timeout', d => { d.attributes.timeout = { key: 'expire', target: 'done', versionStrategy: 'Minor', timer: { reset: 'N', duration: 'PT1M' } }; }, '/attributes/timeout'],
+  ['no Finish state', d => { d.attributes.states.pop(); d.attributes.states[0].transitions[0].target = '$self'; }, '/attributes/states'],
+  ['non-Finish state without transitions', d => { d.attributes.states[0].transitions = []; }, '/attributes/states/0'],
+  ['non-Finish state missing transitions', d => { delete d.attributes.states[0].transitions; }, '/attributes/states/0'],
+  ['Wizard state', d => { d.attributes.states[0].stateType = 5; }, '/attributes/states/0/stateType'],
+  ['Suspended subtype', d => { d.attributes.states[0].subType = 4; }, '/attributes/states/0/subType'],
+  ['Busy subtype', d => { d.attributes.states[0].subType = 5; }, '/attributes/states/0/subType'],
+  ['Human subtype', d => { d.attributes.states[0].subType = 6; }, '/attributes/states/0/subType'],
+  ['long poll', d => { d.attributes.states[0].interaction = { longPoll: { terminate: true } }; }, '/attributes/states/0/interaction/longPoll']
+]) {
+  const input = historyNone();
+  mutate(input);
+  check(`history none rejects ${name}`, input, false, errorPath);
+}
+for (const kind of ['cancel', 'exit', 'updateData']) {
+  const input = historyNone();
+  input.attributes[kind] = { key: kind, target: kind === 'updateData' ? '$self' : 'done', triggerType: 0, versionStrategy: 'Minor', labels: labels(kind) };
+  check(`history none rejects ${kind}`, input, false, `/attributes/${kind}`);
+}
+// Cycles and Finish reachability are runtime-only (WorkflowValidator); the schema accepts them.
+const cycle = historyNone();
+cycle.attributes.states[0].transitions[0].target = '$self';
+check('history none cycle is left to the runtime', cycle, true);
+
 assert.strictEqual(failures.length, 0, failures.join('\n'));
 console.log(`${checked} workflow availableIn document cases passed.`);

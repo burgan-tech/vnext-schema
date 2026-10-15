@@ -1,0 +1,280 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/component-vocab.json",
+  "x-stableId": "https://unpkg.com/@burgan-tech/vnext-schema/vocabularies/component-vocab.json",
+  "title": "vNext Component Vocabulary",
+  "description": "The vocabulary of a schema in the COMPONENT role — the dataSchema of a reusable view that other views EMBED (`Component ref`) and that sends nothing itself. Its schema is the component's own input contract: the embedding view (a state view over the record, or a transition view over a form) BINDS its data into it, the way a caller passes arguments — the component does not inherit its host's role. So it carries the base keywords, the view hints and x-binding, and NO role-specific behaviour: what is sent and how (x-context-source, x-encryption with source 'client') belongs to the schema of the body that is sent; what the record exposes (x-roles, x-masking, x-encryption) and copies out (x-context-target) belongs to the master. A view that SUBMITS a move itself is not a component: its dataSchema is in the input role.",
+  "definitions": {
+    "property": {
+      "description": "A schema object (the root, or any property / item below it) written in this ROLE: it may carry the base keywords, the view hints and this role's own keywords, and no other x-* keyword. Applied recursively to properties, items, combinators and definitions.",
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "allOf": [
+            {
+              "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/data-base-vocab.json#/definitions/keywords"
+            },
+            {
+              "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-hints-vocab.json#/definitions/keywords"
+            },
+            {
+              "properties": {
+                "x-binding": {
+                  "$ref": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/vocabularies/view-vocab.json#/definitions/x-binding",
+                  "description": "The component's INPUT contract: 'required' = the view that embeds this component must bind the property (`Component.bind`), 'optional' = it may. Not JSON Schema's `required`, which says the PERSON must fill a field."
+                }
+              }
+            }
+          ],
+          "propertyNames": {
+            "if": {
+              "pattern": "^x-"
+            },
+            "then": {
+              "enum": [
+                "x-binding",
+                "x-conditional",
+                "x-displayFormat",
+                "x-enum",
+                "x-errorMessages",
+                "x-group",
+                "x-helpText",
+                "x-labels",
+                "x-lookup",
+                "x-lov",
+                "x-order",
+                "x-placeholder",
+                "x-uiHint",
+                "x-uiNote",
+                "x-validation"
+              ]
+            }
+          },
+          "properties": {
+            "properties": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "patternProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "definitions": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "$defs": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "dependentSchemas": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "items": {
+              "anyOf": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "$ref": "#/definitions/property"
+                    }
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/definitions/property"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "prefixItems": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/property"
+                }
+              ]
+            },
+            "allOf": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "anyOf": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "oneOf": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/definitions/property"
+                  }
+                ]
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/property"
+                }
+              ]
+            },
+            "if": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/property"
+                }
+              ]
+            },
+            "then": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/property"
+                }
+              ]
+            },
+            "else": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/property"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "schema": {
+      "description": "The root of a schema written in the component role.",
+      "$ref": "#/definitions/property"
+    },
+    "allowedKeywords": {
+      "description": "Every x-* keyword this role accepts (base + view hints + its own), as data — for tools that want to report rather than refuse.",
+      "const": [
+        "x-binding",
+        "x-conditional",
+        "x-displayFormat",
+        "x-enum",
+        "x-errorMessages",
+        "x-group",
+        "x-helpText",
+        "x-labels",
+        "x-lookup",
+        "x-lov",
+        "x-order",
+        "x-placeholder",
+        "x-uiHint",
+        "x-uiNote",
+        "x-validation"
+      ]
+    }
+  }
+}

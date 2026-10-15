@@ -38,8 +38,27 @@
 | updateData | updateDataTransition | No | Yes | Update data transition, manual only (since 0.0.44) |
 | schema | object | No | No | Master schema definition (`schema.schema`: reference) |
 | queryRoles | roleGrant[] | No | No | Root-level query roles. Used when state has no queryRoles. DENY overrides ALLOW |
+| history | enum | No | No | `none` \| `full` (default `full`). `none` marks a one-shot flow (vnext#1006) — see [history: none constraints](#history-none-constraints) |
 
 ---
+
+## history: none constraints
+
+`attributes.history: "none"` marks a one-shot flow: the runtime writes no `InstanceTransitions` / `InstanceTasks`
+rows and a single buffered `InstancesData` row (vnext#1006). The flow must start, run only automatic transitions and
+always finish. When `history` is `none`:
+
+| Rule | Enforced by |
+|------|-------------|
+| At least one Finish state (`stateType: 3`) | Schema + runtime |
+| Every state transition has `triggerType: 1` (Automatic) | Schema + runtime |
+| Every non-Finish state (SubFlow states included) has at least one transition | Schema + runtime |
+| No `sharedTransitions`, `cancel`, `exit`, `updateData` | Schema + runtime |
+| No workflow `timeout`, no `subFlow.overrides.timeout` | Schema + runtime |
+| No `interaction.longPoll`, no Wizard state (`stateType: 5`), no `subType` 4 / 5 / 6 | Schema + runtime |
+| `startTransition` stays manual; a workflow-level `event` start, SubFlow states and SubProcess tasks are allowed | — |
+| Every state can reach a Finish state (no cycles or dead ends) | Runtime only (publish) |
+| A SubFlow child started by a `none` parent is itself `none` | Runtime only (child start) |
 
 ## Definitions Reference
 
