@@ -853,7 +853,7 @@
     },
     "x-validation": {
       "type": "object",
-      "description": "Backend-defined custom validation rule metadata.",
+      "description": "Backend-defined custom validation rule metadata. The rule 'remote' runs a backend function (source) on the field value and reads the outcome from its response (resultField, messageField).",
       "required": [
         "rule"
       ],
@@ -867,7 +867,45 @@
         },
         "errorMessages": {
           "$ref": "#/definitions/localizedText"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Remote rule only: URN of the function the client calls to validate the value."
+        },
+        "resultField": {
+          "type": "string",
+          "description": "Remote rule only: path in the response whose truthy value means the value is valid."
+        },
+        "messageField": {
+          "type": "string",
+          "description": "Remote rule only: path in the response holding the message shown when the value is invalid."
+        },
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "change",
+            "blur"
+          ],
+          "description": "Remote rule only: when the client calls the function."
+        },
+        "debounce": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Remote rule only: milliseconds to wait after the last change before calling the function."
         }
+      },
+      "if": {
+        "properties": {
+          "rule": {
+            "const": "remote"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "source"
+        ]
       },
       "additionalProperties": false
     },
