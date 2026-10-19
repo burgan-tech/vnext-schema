@@ -64,6 +64,9 @@ const cases = {
         deviceId: prop({ 'x-context-source': { context: { boundary: 'device', key: 'device.id' } } }),
         district: prop({ 'x-lov': { source: 'urn:vnext:fn:sample:districts', valueField: '$.data[*].code', displayField: '$.data[*].name', filter: [{ param: 'cityCode', value: '$form.city', required: true }] }, 'x-conditional': { showIf: { field: 'city', operator: 'isNotEmpty' } } }),
         iban: prop({ 'x-validation': { rule: 'urn:vnext:fn:sample:iban-check' }, 'x-errorMessages': { pattern: { tr: 'Geçersiz', en: 'Invalid' } }, 'x-placeholder': { en: 'TR..' }, 'x-group': 'account' }),
+        // remote rule (pseudo-ui 0.8.6): the rule runs a backend function; 'source' is required
+        ibanRemote: prop({ 'x-validation': { rule: 'remote', source: 'urn:vnext:fn:core:check-iban', parameters: { iban: '$value' }, resultField: '$.valid', messageField: '$.message', errorMessages: { en: 'Invalid IBAN' }, trigger: 'blur', debounce: 400 } }),
+        confirm: prop({ 'x-validation': { rule: 'equalsField', parameters: { field: 'a' } } }),
         rows: { type: 'array', items: obj({ code: prop({ 'x-labels': { en: 'Code' }, 'x-uiHint': 'readonly' }) }) }
       }),
       true
@@ -82,6 +85,11 @@ const cases = {
       obj({ a: prop({ 'x-encryption': { source: 'client', key: 'urn:k', algorithm: 'AES' } }) }),
       obj({ a: prop({ 'x-encryption': { source: 'client', key: 'urn:k', algorithm: 'RSA-OAEP-256', roles: [{ role: 'r', grant: 'allow' }] } }) }),
       obj({ a: prop({ 'x-encryption': { source: 'runtime', type: 'hash' } }) }),
+      // remote rule without a source, an unknown key, a bad trigger and a negative debounce
+      obj({ a: prop({ 'x-validation': { rule: 'remote' } }) }),
+      obj({ a: prop({ 'x-validation': { rule: 'equalsField', foo: 1 } }) }),
+      obj({ a: prop({ 'x-validation': { rule: 'remote', source: 'urn:s', trigger: 'input' } }) }),
+      obj({ a: prop({ 'x-validation': { rule: 'remote', source: 'urn:s', debounce: -1 } }) }),
       obj({ a: prop({ 'x-bar': true }) }),
       obj({ a: prop({ 'x-binding': 'required' }) })
     ]
