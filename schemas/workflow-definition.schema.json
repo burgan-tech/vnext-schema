@@ -220,6 +220,9 @@
             "$ref": "#/definitions/roleGrant"
           }
         },
+        "rowSecurity": {
+          "$ref": "#/definitions/rowSecurity"
+        },
         "output": {
           "anyOf": [
             {
@@ -373,6 +376,60 @@
     }
   },
   "definitions": {
+    "rowSecurity": {
+      "type": "object",
+      "description": "Row security for instance list and GET queries. The caller's roles are matched against rules[].roles; the filters of every matching rule are OR-ed, and the result is AND-ed into the query. A rule without a filter grants all rows. There is no default member: a flow that declares rowSecurity is deny by default, so a caller matching no rule sees no rows. Absent = no row filtering.",
+      "required": ["rules"],
+      "additionalProperties": false,
+      "properties": {
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Role-keyed row rules. Evaluated for the calling user; no match means no rows.",
+          "items": {
+            "$ref": "#/definitions/rowSecurityRule"
+          }
+        }
+      }
+    },
+    "rowSecurityRule": {
+      "type": "object",
+      "description": "One row rule: the roles it applies to and an optional row filter.",
+      "required": ["roles"],
+      "additionalProperties": false,
+      "properties": {
+        "roles": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Role names this rule applies to. Static role names, or the reserved $InstanceStarter / $InstanceBehalfOfStarter (validated by the runtime).",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "filter": {
+          "type": "object",
+          "description": "Instance filter (same language as instance queries, e.g. { \"attributes\": { \"branchCode\": { \"eq\": \"$.context.Headers.x-branch-code\" } } }). Omitted = all rows. String values or { \"$param\": ... } objects may reference $.context.Headers.* (gateway-written claim headers), $.context.QueryParameters.* (client-controlled: do not use for security decisions) or $.context.CurrentUser.{ActorUserName,ActorUserId,UserName,Position}. Structural only here; the runtime publish check is authoritative for operators and parameters.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "rowSecurityParam": {
+      "type": "object",
+      "description": "A filter parameter reference: { \"$param\": \"$.context.Headers.x-branches\", \"split\": \",\" }. $param must be a $.context. path; split turns the string value into a list (for in).",
+      "required": ["$param"],
+      "additionalProperties": false,
+      "properties": {
+        "$param": {
+          "type": "string",
+          "pattern": "^\\$\\.context\\."
+        },
+        "split": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
     "resourceLockDefinition": {
       "type": "object",
       "description": "Defines a distributed resource-lock operation to be executed during a transition. The keyExpression is compiled as an ITransitionMapping and evaluated at runtime to produce the lock key.",
