@@ -378,7 +378,7 @@
   "definitions": {
     "rowSecurity": {
       "type": "object",
-      "description": "Row security for instance list and GET queries. The caller's roles are matched against rules[].roles; the filters of every matching rule are OR-ed, and the result is AND-ed into the query. A rule without a filter grants all rows. There is no default member: a flow that declares rowSecurity is deny by default, so a caller matching no rule sees no rows. Absent = no row filtering.",
+      "description": "Row security for instance list and GET queries. The caller's roles are matched against rules[].roles; the filters of every matching rule are OR-ed, and the result is AND-ed into the query. A static-role rule without a filter grants all rows. An identity rule ($InstanceStarter / $InstanceBehalfOfStarter) never grants all rows: it adds the caller's own instances (createdBy = the caller's ActorUserName / createdByBehalfOf = the caller's UserName), narrowed by its filter when one is given, and is ORed with the static rules. There is no default member: a flow that declares rowSecurity is deny by default, so a caller matching no rule sees no rows. Absent = no row filtering.",
       "required": ["rules"],
       "additionalProperties": false,
       "properties": {
@@ -409,7 +409,7 @@
         },
         "filter": {
           "type": "object",
-          "description": "Instance filter (same language as instance queries, e.g. { \"attributes\": { \"branchCode\": { \"eq\": \"$.context.Headers.x-branch-code\" } } }). Omitted = all rows. String values or { \"$param\": ... } objects may reference $.context.Headers.* (gateway-written claim headers), $.context.QueryParameters.* (client-controlled: do not use for security decisions) or $.context.CurrentUser.{ActorUserName,ActorUserId,UserName,Position}. Structural only here; the runtime publish check is authoritative for operators and parameters.",
+          "description": "Instance filter (same language as instance queries, e.g. { \"attributes\": { \"branchCode\": { \"eq\": \"$.context.Headers.x-branch-code\" } } }). Omitted = all rows for a static-role rule; for $InstanceStarter / $InstanceBehalfOfStarter it means all of the caller's own instances. String values or { \"$param\": ... } objects may reference $.context.Headers.* (gateway-written claim headers), $.context.QueryParameters.* (client-controlled: do not use for security decisions) or $.context.CurrentUser.{ActorUserName,ActorUserId,UserName,Position}. Structural only here; the runtime publish check is authoritative for operators and parameters.",
           "additionalProperties": true
         }
       }

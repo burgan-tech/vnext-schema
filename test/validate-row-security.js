@@ -31,6 +31,7 @@ const wf = rowSecurity => {
 assert.equal(valid(wf({ rules: [{ roles: ['branch-staff'], filter: { attributes: { branchCode: { eq: '$.context.Headers.x-branch-code' } } } }] })), true);
 assert.equal(valid(wf({ rules: [{ roles: ['region-manager'], filter: { attributes: { branchCode: { in: { $param: '$.context.Headers.x-branches', split: ',' } } } } }] })), true);
 assert.equal(valid(wf({ rules: [{ roles: ['hq-auditor'] }, { roles: ['$InstanceStarter'] }] })), true);
+assert.equal(valid(wf({ rules: [{ roles: ['$InstanceBehalfOfStarter'], filter: { attributes: { status: { eq: 'open' } } } }] })), true);
 assert.equal(valid(wf({ default: 'allow', rules: [{ roles: ['hq-auditor'] }] })), false); // no default member
 assert.equal(valid(wf({ rules: [] })), false);
 assert.equal(valid(wf({})), false);
