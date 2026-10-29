@@ -158,6 +158,10 @@ for (const [name, bad] of [['0', 0], ['2.5', 2.5], ['string', '1']]) {
 check('priority on a manual transition', withStateTransition({ triggerType: 0, rule: undefined, priority: 1 }), false, transitionPath);
 check('priority on a DefaultAutoTransition',
   withStateTransition({ triggerKind: 10, rule: undefined, priority: 1 }), false, transitionPath);
+const sharedWithPriority = document(); sharedWithPriority.attributes.sharedTransitions[0].priority = 1;
+check('priority on a shared transition', sharedWithPriority, false, '/attributes/sharedTransitions/0');
+const startWithPriority = document(); startWithPriority.attributes.startTransition.priority = 1;
+check('priority on the start transition', startWithPriority, false, '/attributes/startTransition');
 
 // Initial state is optional (the runtime supplies an implicit '$start' source state):
 // zero Initial states are valid, two are not, and startTransition.target stays mandatory.

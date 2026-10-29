@@ -1786,6 +1786,14 @@
               "event"
             ]
           }
+        },
+        {
+          "description": "priority orders a state's automatic transitions; a shared transition is never automatic.",
+          "not": {
+            "required": [
+              "priority"
+            ]
+          }
         }
       ]
     },
