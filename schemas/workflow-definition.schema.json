@@ -412,7 +412,7 @@
           ],
           "enumDescriptions": [
             "Abort the transition when the lock cannot be acquired: the instance is FAULTED and the caller gets 409 (Execution:200010). The contended work is lost — retrying means starting a new instance.",
-            "Reject the attempt without touching the instance: no fault, no state change, and the caller gets 409 with a distinct retryable code (Execution:200011). The instance stays exactly where it was, so the SAME call can be retried once the lock frees."
+            "Reject the attempt without touching the instance: no fault, no state change, and the caller gets 409 with a distinct retryable code (Execution:200014). The instance stays exactly where it was, so the SAME call can be retried once the lock frees."
           ],
           "default": "Abort",
           "description": "Policy applied when the lock cannot be acquired (e.g., resource already locked). To route the loser somewhere instead of failing it, leave this at Abort and add an errorBoundary rule matching Execution:200010 with a target transition — the lock step fails before OnExecute/ChangeState/OnEntry, so the instance never left its state and rerouting it is sound."
