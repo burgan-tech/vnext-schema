@@ -140,6 +140,29 @@ for (const [name, bad] of [['lower-case', 's'], ['old-code-sync', 'SYNC'], ['old
   check(`shared executionType rejects ${name}`, shared, false, '/attributes/sharedTransitions/0/executionType');
 }
 
+// priority: evaluation order among a state's automatic transitions (vnext#1133).
+const withStateTransition = (extra = {}) => {
+  const input = document();
+  input.attributes.states[0].transitions = [{
+    key: 'auto-fail', target: 'failed', triggerType: 1, versionStrategy: 'Minor', labels: labels('Auto'),
+    rule: script('return true;'), ...extra
+  }];
+  return input;
+};
+const transitionPath = '/attributes/states/0/transitions/0';
+check('priority 1 on a state auto transition', withStateTransition({ priority: 1 }), true);
+check('priority omitted', withStateTransition(), true);
+for (const [name, bad] of [['0', 0], ['2.5', 2.5], ['string', '1']]) {
+  check(`priority ${name}`, withStateTransition({ priority: bad }), false, `${transitionPath}/priority`);
+}
+check('priority on a manual transition', withStateTransition({ triggerType: 0, rule: undefined, priority: 1 }), false, transitionPath);
+check('priority on a DefaultAutoTransition',
+  withStateTransition({ triggerKind: 10, rule: undefined, priority: 1 }), false, transitionPath);
+const sharedWithPriority = document(); sharedWithPriority.attributes.sharedTransitions[0].priority = 1;
+check('priority on a shared transition', sharedWithPriority, false, '/attributes/sharedTransitions/0');
+const startWithPriority = document(); startWithPriority.attributes.startTransition.priority = 1;
+check('priority on the start transition', startWithPriority, false, '/attributes/startTransition');
+
 // Initial state is optional (the runtime supplies an implicit '$start' source state):
 // zero Initial states are valid, two are not, and startTransition.target stays mandatory.
 const noInitial = () => {

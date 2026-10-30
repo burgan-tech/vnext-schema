@@ -1212,6 +1212,11 @@
             "triggerKind": {
               "$ref": "#/definitions/triggerKind"
             },
+            "priority": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Evaluation priority among the state's automatic transitions. Lower values are evaluated first; the first satisfied rule wins. Omitted means 100. Equal values keep declaration order. The DefaultAutoTransition (triggerKind 10) is always evaluated last and cannot carry a priority. Only valid on state-level automatic transitions."
+            },
             "schema": {
               "anyOf": [
                 {
@@ -1311,6 +1316,44 @@
                 }
               ],
               "description": "Optional distributed resource-lock operation executed during this transition. Valid only for start, state-level, and shared transitions."
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerType": {
+                "const": 1
+              }
+            },
+            "required": [
+              "triggerType"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "priority"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "triggerKind": {
+                "const": 10
+              }
+            },
+            "required": [
+              "triggerKind"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "priority"
+              ]
             }
           }
         },
@@ -1741,6 +1784,14 @@
           "then": {
             "required": [
               "event"
+            ]
+          }
+        },
+        {
+          "description": "priority orders a state's automatic transitions; a shared transition is never automatic.",
+          "not": {
+            "required": [
+              "priority"
             ]
           }
         }
