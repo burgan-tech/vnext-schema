@@ -838,7 +838,7 @@
     },
     "x-storage": {
       "type": "object",
-      "description": "Master-schema file offload: a property marked x-storage keeps its file bytes in the named Dapr binding component instead of in the instance data. binding is the name of the Dapr binding component.",
+      "description": "Master-schema file offload: a property marked x-storage keeps its file bytes in the named Dapr binding component instead of in the instance data. binding is the name of the Dapr binding component; transport chooses how a client may send the bytes.",
       "required": [
         "binding"
       ],
@@ -848,6 +848,15 @@
           "type": "string",
           "minLength": 1,
           "description": "Name of the Dapr binding component that stores the file bytes."
+        },
+        "transport": {
+          "enum": [
+            "inline",
+            "stream",
+            "any"
+          ],
+          "default": "inline",
+          "description": "inline (default): base64 content in the JSON body. stream: a streamed upload to POST /{domain}/workflows/{flow}/files?path= referenced by its file id; inline content from a client is refused. any: both."
         }
       }
     },
