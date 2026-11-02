@@ -127,14 +127,19 @@ const cases = {
   },
   'x-storage': {
     valid: [
-      { binding: 'vnext-blob-local' }
+      { binding: 'vnext-blob-local' },
+      { binding: 'vnext-blob-s3', transport: 'inline' },
+      { binding: 'vnext-blob-s3', transport: 'stream' },
+      { binding: 'vnext-blob-s3', transport: 'any' }
     ],
     invalid: [
       'file',
       {},
       { binding: '' },
       { binding: 5 },
-      { binding: 'vnext-blob-local', extra: true }
+      { binding: 'vnext-blob-local', extra: true },
+      { binding: 'vnext-blob-s3', transport: 'chunked' },
+      { binding: 'vnext-blob-s3', transport: 1 }
     ]
   },
   // The names the runtime matches a DECLARATION against (SchemaFilterContext maps ne→neq, ge→gte, le→lte,
