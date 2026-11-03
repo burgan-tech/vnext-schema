@@ -46,6 +46,7 @@ This package provides comprehensive JSON Schema definitions used by the vNext ec
 | `20` | Dapr Conversation Task | Dapr conversation (LLM) call |
 | `21` | FanOut Task | Run an inner task once per collection item, in parallel, and join the results |
 | `22` | External HTTP Task | Same configuration contract as type 6, executed directly by the Orchestrator process instead of being routed through the Execution service |
+| `23` | Python Task | Call a named handler in the domain's own Python runtime container |
 
 #### External HTTP Task (`type: "22"`)
 
@@ -56,6 +57,29 @@ Only the transport differs: the call runs in-process in the Orchestrator, so no 
 circuit breaker or remote-invocation timeout participates — the task's own `timeoutSeconds`
 (default 30) is the only bound. In this schema both types validate against the same `if/then`
 branch; adding an HTTP config field means adding it once, for both.
+
+#### Python Task (`type: "23"`)
+
+Calls a handler registered in the domain's Python runtime image (built `FROM
+ghcr.io/burgan-tech/vnext/python-runtime`, enabled per domain with `pythonRuntime.enabled` in the
+Helm chart). The Orchestrator calls it directly over Dapr service invocation; the code and its
+packages live in the image, so the task carries only a handler name:
+
+```json
+{
+  "type": "23",
+  "config": {
+    "handler": "risk_score",
+    "input": { "income": 85000 },
+    "timeoutSeconds": 20
+  }
+}
+```
+
+`handler` is required (`^[A-Za-z_][A-Za-z0-9_.-]{0,127}$`), `input` is any JSON value and may be
+replaced by the task's input mapping (`SetInput`), `timeoutSeconds` is 1–50 (default 30). The config
+is closed: the earlier inline-script shape (`script`, `executionMode`) is rejected. Runtime contract
+and handler authoring: `docs/runtime/python-task.md` in the vnext repository.
 
 #### FanOut Task (`type: "21"`)
 
