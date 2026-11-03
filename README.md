@@ -20,7 +20,7 @@ This package provides comprehensive JSON Schema definitions used by the vNext ec
 
 ### Supported Task Types
 
-`task-definition.schema.json` validates 21 task types, selected through the `attributes.type` discriminator. Each type has its own `attributes.config` shape:
+`task-definition.schema.json` validates 23 task types, selected through the `attributes.type` discriminator. Each type has its own `attributes.config` shape:
 
 | `type` | Task | Purpose |
 |--------|------|---------|

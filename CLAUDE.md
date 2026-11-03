@@ -31,7 +31,7 @@ Each schema validates a specific component type in the workflow system. All comp
 | `tags` | array of strings |
 | `attributes` | component-specific object |
 
-The `attributes` object is where each schema diverges. Schemas use JSON Schema `if/then` conditionals extensively to handle multiple subtypes within a single schema (e.g., `task-definition.schema.json` covers 21 task types via the `type` discriminator; `workflow-definition.schema.json` covers types C/F/S/P).
+The `attributes` object is where each schema diverges. Schemas use JSON Schema `if/then` conditionals extensively to handle multiple subtypes within a single schema (e.g., `task-definition.schema.json` covers 23 task types via the `type` discriminator; `workflow-definition.schema.json` covers types C/F/S/P).
 
 #### Task types (`task-definition.schema.json`)
 
