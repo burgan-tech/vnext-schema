@@ -31,17 +31,17 @@ Each schema validates a specific component type in the workflow system. All comp
 | `tags` | array of strings |
 | `attributes` | component-specific object |
 
-The `attributes` object is where each schema diverges. Schemas use JSON Schema `if/then` conditionals extensively to handle multiple subtypes within a single schema (e.g., `task-definition.schema.json` covers 21 task types via the `type` discriminator; `workflow-definition.schema.json` covers types C/F/S/P).
+The `attributes` object is where each schema diverges. Schemas use JSON Schema `if/then` conditionals extensively to handle multiple subtypes within a single schema (e.g., `task-definition.schema.json` covers 23 task types via the `type` discriminator; `workflow-definition.schema.json` covers types C/F/S/P).
 
 #### Task types (`task-definition.schema.json`)
 
-`attributes.type` is a **string** discriminator (`"1"`–`"21"`), and each value has a matching `if/then` branch that constrains `attributes.config`. When adding a task type:
+`attributes.type` is a **string** discriminator (`"1"`–`"23"`), and each value has a matching `if/then` branch that constrains `attributes.config`. When adding a task type:
 
 1. Append the value to the `type` `enum` **and** its label to the parallel `enumDescriptions` array — the two arrays are index-aligned and must stay the same length.
 2. Add a new `if/then` entry at the end of the `attributes.allOf` list, with `then.title` set to the human-readable task name.
 3. Inside the branch, re-assert `type` as a `const` and set `additionalProperties: false` on both the branch and `config`.
 
-`1` Dapr HTTP Endpoint · `2` Dapr Binding · `3` Dapr Service · `4` Dapr PubSub · `5` Human · `6` HTTP · `7` Script · `8` Condition · `9` Timer · `10` Notification · `11` Start Flow · `12` Trigger Transition · `13` Get Instance Data · `14` SubProcess · `15` Get Instances · `16` SOAP · `17` State Store · `18` Cache Aside · `19` Get Instance · `20` Dapr Conversation · `21` FanOut · `22` External HTTP (same config contract as `6`, executed in-process by the Orchestrator — one shared `if/then` branch in the schema, deliberately)
+`1` Dapr HTTP Endpoint · `2` Dapr Binding · `3` Dapr Service · `4` Dapr PubSub · `5` Human · `6` HTTP · `7` Script · `8` Condition · `9` Timer · `10` Notification · `11` Start Flow · `12` Trigger Transition · `13` Get Instance Data · `14` SubProcess · `15` Get Instances · `16` SOAP · `17` State Store · `18` Cache Aside · `19` Get Instance · `20` Dapr Conversation · `21` FanOut · `22` External HTTP (same config contract as `6`, executed in-process by the Orchestrator — one shared `if/then` branch in the schema, deliberately) · `23` Python (a handler name in the domain's Python runtime image; closed config)
 
 #### FanOut task (`type: "21"`)
 
