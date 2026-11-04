@@ -88,7 +88,8 @@
                         "19",
                         "20",
                         "21",
-                        "22"
+                        "22",
+                        "23"
                     ],
                     "enumDescriptions": [
                         "Dapr HTTP Endpoint",
@@ -112,7 +113,8 @@
                         "Get Instance Task",
                         "Dapr Conversation Task",
                         "FanOut Task",
-                        "External HTTP Task"
+                        "External HTTP Task",
+                        "Python Task"
                     ]
                 }
             },
@@ -1809,6 +1811,54 @@
                                         }
                                     }
                                 ]
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "config"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "23"
+                            }
+                        }
+                    },
+                    "then": {
+                        "title": "Python Task",
+                        "description": "Calls a named handler in the domain's own Python runtime container (an image built FROM ghcr.io/burgan-tech/vnext/python-runtime, enabled per domain in the Helm chart). The Orchestrator invokes it directly over Dapr service invocation with runtime contract v1; the code and its packages live in the image, never in the task. Input and output use the standard InputHandler/OutputHandler mapping: an input mapping may replace config.input with SetInput.",
+                        "properties": {
+                            "type": {
+                                "const": "23"
+                            },
+                            "config": {
+                                "type": "object",
+                                "description": "Python Task configuration",
+                                "properties": {
+                                    "handler": {
+                                        "type": "string",
+                                        "description": "Name of a handler registered with @handler(\"name\") in the domain's Python runtime image",
+                                        "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,127}$"
+                                    },
+                                    "input": {
+                                        "description": "Default JSON input passed to the handler (any JSON value). An input mapping may replace it."
+                                    },
+                                    "timeoutSeconds": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 50,
+                                        "default": 30,
+                                        "description": "Handler timeout in seconds. The Orchestrator waits this long plus Workflow:PythonRuntime:TimeoutGraceSeconds."
+                                    }
+                                },
+                                "required": [
+                                    "handler"
+                                ],
+                                "additionalProperties": false
                             }
                         },
                         "required": [
