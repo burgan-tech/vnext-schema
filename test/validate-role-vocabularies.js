@@ -35,6 +35,8 @@ const cases = {
         displayName: prop({ readOnly: true, 'x-computed': { evaluatedBy: 'client', fallback: { join: { fields: ['firstName', 'lastName'] } } } }),
         fullName: prop({ readOnly: true, 'x-computed': { evaluatedBy: 'runtime', cases: [{ when: { field: 'kind', operator: 'equals', value: 'corporate' }, join: { fields: ['title'] } }], fallback: { join: { fields: ['firstName', 'lastName'], separator: ' ' } }, whenAbsent: 'empty' } }),
         address: obj({ line: prop({ 'x-roles': [{ role: '$InstanceStarter', grant: 'allow' }] }) }),
+        // $Everyone matches every caller; the runtime (not the schema) refuses it in x-masking/x-encryption roles
+        everyoneHidden: prop({ 'x-roles': [{ role: '$Everyone', grant: 'deny' }] }),
         tags: { type: 'array', items: prop({ 'x-enum': { a: { en: 'A' } } }) },
         // Shared with the input role: the runtime validates the merged record with the same validator, and a
         // record view hides fields by the data (the IDM's client-master: secret only for a confidential client).

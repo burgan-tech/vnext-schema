@@ -751,7 +751,7 @@
         },
         "roleGrantCondition": {
             "type": "object",
-            "description": "One role in an allOf/anyOf list: only a role name, a predefined instance role or a dynamic expression. No grant and no nesting (depth 1).",
+            "description": "One role in an allOf/anyOf list: only a role name, a predefined instance role (including $Everyone) or a dynamic expression. No grant and no nesting (depth 1).",
             "required": [
                 "role"
             ],
