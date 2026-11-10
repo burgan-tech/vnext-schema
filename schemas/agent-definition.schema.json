@@ -1,0 +1,763 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://unpkg.com/@burgan-tech/vnext-schema@__SCHEMA_VERSION__/schemas/agent-definition.schema.json",
+    "title": "vNext Agent Definition",
+    "description": "Schema for vNext AI Agent Component Definition JSON files (sys-agents flow). Experimental. A reusable agent: provider profile name, instructions, inline tools, memory, output schema, policy and audit. It never carries an endpoint, a model name or a secret; provider names a profile configured per environment.",
+    "type": "object",
+    "required": [
+        "key",
+        "version",
+        "domain",
+        "flow",
+        "flowVersion",
+        "tags",
+        "attributes"
+    ],
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "JSON Schema reference",
+            "format": "uri"
+        },
+        "key": {
+            "type": "string",
+            "description": "Agent key identifier",
+            "pattern": "^[a-z0-9-]+$"
+        },
+        "version": {
+            "type": "string",
+            "description": "Version in Major.Minor.Patch format",
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
+        },
+        "domain": {
+            "type": "string",
+            "description": "Domain identifier",
+            "pattern": "^[a-z0-9-]+$"
+        },
+        "flow": {
+            "type": "string",
+            "description": "Flow identifier for agents",
+            "const": "sys-agents"
+        },
+        "flowVersion": {
+            "type": "string",
+            "description": "Flow version",
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+\\.\\d+)?$"
+        },
+        "tags": {
+            "type": "array",
+            "description": "Agent tags",
+            "items": {
+                "type": "string"
+            },
+            "minItems": 1
+        },
+        "_comment": {
+            "type": "string",
+            "description": "Comment about the agent"
+        },
+        "attributes": {
+            "type": "object",
+            "description": "Agent definition attributes",
+            "required": [
+                "provider",
+                "instructions",
+                "output",
+                "policy"
+            ],
+            "properties": {
+                "provider": {
+                    "type": "string",
+                    "description": "Provider profile name (AiAgent:Providers:{name} in the orchestration host). Never an endpoint or a key.",
+                    "pattern": "\\S"
+                },
+                "runtime": {
+                    "type": "string",
+                    "description": "Agent runtime key.",
+                    "enum": [
+                        "maf"
+                    ],
+                    "enumDescriptions": [
+                        "Microsoft Agent Framework"
+                    ],
+                    "default": "maf"
+                },
+                "model": {
+                    "type": "object",
+                    "description": "Sampling settings sent to the provider.",
+                    "properties": {
+                        "temperature": {
+                            "type": "number",
+                            "description": "Sampling temperature."
+                        },
+                        "maxOutputTokens": {
+                            "type": "integer",
+                            "description": "Output token ceiling per model call."
+                        },
+                        "topP": {
+                            "type": "number",
+                            "description": "Nucleus sampling."
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "instructions": {
+                    "type": "object",
+                    "description": "The system prompt: inline text, or a file the CLI inlines at package time (location + code). Never a template over instance data.",
+                    "properties": {
+                        "text": {
+                            "type": "string",
+                            "description": "Inline instructions."
+                        },
+                        "location": {
+                            "type": "string",
+                            "description": "Source file the instructions came from (informational once packaged)."
+                        },
+                        "code": {
+                            "type": "string",
+                            "description": "Packaged file content, encoded as encoding says."
+                        },
+                        "encoding": {
+                            "type": "string",
+                            "description": "Encoding of code.",
+                            "enum": [
+                                "B64",
+                                "NAT"
+                            ],
+                            "default": "B64"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "anyOf": [
+                        {
+                            "required": [
+                                "text"
+                            ],
+                            "properties": {
+                                "text": {
+                                    "pattern": "\\S"
+                                }
+                            }
+                        },
+                        {
+                            "required": [
+                                "code"
+                            ],
+                            "properties": {
+                                "code": {
+                                    "minLength": 1
+                                }
+                            }
+                        }
+                    ]
+                },
+                "tools": {
+                    "type": "array",
+                    "description": "Inline tool definitions. Tool names (MCP names after the prefix) must be unique across the agent; the runtime checks that at publish.",
+                    "items": {
+                        "$ref": "#/definitions/agentTool"
+                    }
+                },
+                "memory": {
+                    "$ref": "#/definitions/agentMemory"
+                },
+                "output": {
+                    "type": "object",
+                    "description": "The structured output contract.",
+                    "required": [
+                        "schema"
+                    ],
+                    "properties": {
+                        "schema": {
+                            "$ref": "#/definitions/objectSchema",
+                            "description": "JSON schema of the produced object."
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "policy": {
+                    "$ref": "#/definitions/agentPolicy"
+                },
+                "audit": {
+                    "type": "object",
+                    "description": "What the run journal keeps.",
+                    "properties": {
+                        "transcript": {
+                            "type": "string",
+                            "description": "Transcript retention.",
+                            "enum": [
+                                "none",
+                                "summary",
+                                "full"
+                            ],
+                            "enumDescriptions": [
+                                "No transcript",
+                                "Final answer and tool call summaries",
+                                "Every message"
+                            ]
+                        },
+                        "persistToolResults": {
+                            "type": "boolean",
+                            "description": "Whether tool results are kept in the tool-call rows."
+                        },
+                        "redact": {
+                            "type": "array",
+                            "description": "JSON paths masked before anything is kept.",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false,
+    "definitions": {
+        "objectSchema": {
+            "type": "object",
+            "description": "A JSON schema whose root is \"type\": \"object\".",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "type": {
+                    "const": "object"
+                }
+            }
+        },
+        "reference": {
+            "type": "object",
+            "description": "Component reference",
+            "required": [
+                "key",
+                "domain",
+                "flow",
+                "version"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "domain": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "flow": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "version": {
+                    "type": "string",
+                    "minLength": 1
+                }
+            },
+            "additionalProperties": false
+        },
+        "agentTool": {
+            "type": "object",
+            "description": "An inline tool. kind 1 runs a sys-tasks component, kind 2 a script, kind 3 exposes the tools of an MCP task (type 24).",
+            "required": [
+                "kind",
+                "binding"
+            ],
+            "properties": {
+                "kind": {
+                    "type": "integer",
+                    "description": "Tool kind.",
+                    "enum": [
+                        1,
+                        2,
+                        3
+                    ],
+                    "enumDescriptions": [
+                        "Task: an existing sys-tasks component runs as the tool",
+                        "Script: a dynamicExpresso expression or a C# IToolHandler computes the result",
+                        "MCP: an MCP task (type 24) exposes the server's tools"
+                    ]
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name the model sees. Not used by kind 3.",
+                    "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "What the tool does; the model chooses tools by it. Not used by kind 3."
+                },
+                "parameters": {
+                    "$ref": "#/definitions/objectSchema",
+                    "description": "JSON schema of the arguments. Not used by kind 3."
+                },
+                "requiresApproval": {
+                    "type": "boolean",
+                    "description": "Human approval before the call: the run stops and the state leaves through decision.onApprovalRequest.",
+                    "default": false
+                },
+                "roles": {
+                    "type": "array",
+                    "description": "Caller roles that may see this tool; empty means every caller.",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "timeoutSeconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Per-tool timeout."
+                },
+                "resultMaxChars": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Tool result characters the model receives."
+                },
+                "binding": {
+                    "type": "object",
+                    "description": "What runs when the model calls the tool; which members apply depends on kind.",
+                    "properties": {
+                        "task": {
+                            "$ref": "#/definitions/reference",
+                            "description": "Kind 1: the sys-tasks component. Kind 3: the MCP task (type 24)."
+                        },
+                        "mapping": {
+                            "$ref": "#/definitions/scriptCode",
+                            "description": "Kind 1: optional IMapping; without it the arguments become the body."
+                        },
+                        "code": {
+                            "$ref": "#/definitions/scriptCode",
+                            "description": "Kind 2: the script (location dynamicExpresso with encoding NAT, or a C# IToolHandler)."
+                        },
+                        "allow": {
+                            "type": "array",
+                            "description": "Kind 3: server tool names exposed to the model. Each prefix + name must match ^[a-zA-Z0-9_-]{1,64}$.",
+                            "items": {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                            }
+                        },
+                        "prefix": {
+                            "type": "string",
+                            "description": "Kind 3: prefix added to every server tool name.",
+                            "pattern": "^[a-zA-Z0-9_-]*$"
+                        },
+                        "discoveryCacheMinutes": {
+                            "type": "integer",
+                            "description": "Kind 3: how long a server's tool list is reused (default 10)."
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "kind": {
+                                "const": 1
+                            }
+                        },
+                        "required": [
+                            "kind"
+                        ]
+                    },
+                    "then": {
+                        "title": "Task tool",
+                        "required": [
+                            "name",
+                            "description",
+                            "parameters"
+                        ],
+                        "properties": {
+                            "description": {
+                                "pattern": "\\S"
+                            },
+                            "binding": {
+                                "required": [
+                                    "task"
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "kind": {
+                                "const": 2
+                            }
+                        },
+                        "required": [
+                            "kind"
+                        ]
+                    },
+                    "then": {
+                        "title": "Script tool",
+                        "required": [
+                            "name",
+                            "description",
+                            "parameters"
+                        ],
+                        "properties": {
+                            "description": {
+                                "pattern": "\\S"
+                            },
+                            "binding": {
+                                "required": [
+                                    "code"
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "kind": {
+                                "const": 3
+                            }
+                        },
+                        "required": [
+                            "kind"
+                        ]
+                    },
+                    "then": {
+                        "title": "MCP tool",
+                        "properties": {
+                            "binding": {
+                                "required": [
+                                    "task",
+                                    "allow"
+                                ],
+                                "properties": {
+                                    "allow": {
+                                        "minItems": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "agentMemory": {
+            "type": "object",
+            "description": "Default conversation memory; a state may override it.",
+            "properties": {
+                "mode": {
+                    "type": "string",
+                    "enum": [
+                        "none",
+                        "state",
+                        "flow",
+                        "key"
+                    ],
+                    "enumDescriptions": [
+                        "Every entry starts clean",
+                        "Per instance and state",
+                        "Per instance, shared by the flow's agent states",
+                        "Across instances, keyed by the rendered memory.key"
+                    ],
+                    "description": "Memory scope."
+                },
+                "key": {
+                    "type": "string",
+                    "description": "Key template; required with mode key and only used with it."
+                },
+                "storage": {
+                    "type": "string",
+                    "enum": [
+                        "local",
+                        "provider"
+                    ],
+                    "description": "Where the conversation lives: the runtime stores the messages (local) or the provider stores it and only its id is kept (provider)."
+                },
+                "maxMessages": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Messages kept; the oldest are trimmed or summarized first."
+                },
+                "compaction": {
+                    "type": "string",
+                    "enum": [
+                        "trim",
+                        "summarize"
+                    ],
+                    "description": "How a local session is kept within maxMessages: drop the oldest messages (trim, default) or replace them with one model-written summary (summarize)."
+                },
+                "retentionDays": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Days a session is kept after its last write."
+                },
+                "resetOn": {
+                    "type": "array",
+                    "description": "Session reset triggers.",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "agentVersionChange",
+                            "instructionsChange"
+                        ]
+                    }
+                }
+            },
+            "additionalProperties": false,
+            "if": {
+                "properties": {
+                    "mode": {
+                        "const": "key"
+                    }
+                },
+                "required": [
+                    "mode"
+                ]
+            },
+            "then": {
+                "required": [
+                    "key"
+                ],
+                "properties": {
+                    "key": {
+                        "pattern": "\\S"
+                    }
+                }
+            },
+            "else": {
+                "properties": {
+                    "key": {
+                        "pattern": "^\\s*$"
+                    }
+                }
+            }
+        },
+        "agentPolicy": {
+            "type": "object",
+            "description": "Budgets and retry of an agent run; a state's policy may only narrow them. Values are also capped by the environment ceilings (checked by the runtime).",
+            "properties": {
+                "maxIterations": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Model round trips."
+                },
+                "maxToolCalls": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Tool calls (0 disables tools)."
+                },
+                "maxTokens": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Total tokens."
+                },
+                "timeoutSeconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Whole-run timeout."
+                },
+                "toolTimeoutSeconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Per tool timeout."
+                },
+                "resultMaxChars": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Tool result characters the model receives."
+                },
+                "maxEntries": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "State entries before decision.onExhausted is taken."
+                },
+                "retry": {
+                    "type": "object",
+                    "description": "Provider-call retry inside one run.",
+                    "properties": {
+                        "maxAttempts": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 5,
+                            "description": "Attempts including the first."
+                        },
+                        "backoffMs": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "Base backoff in milliseconds."
+                        },
+                        "on": {
+                            "type": "array",
+                            "description": "Retried failures.",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "429",
+                                    "5xx",
+                                    "timeout"
+                                ]
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "onProviderError": {
+                    "type": "string",
+                    "enum": [
+                        "fallback",
+                        "fault"
+                    ],
+                    "description": "After retries are exhausted: take the decision fallback, or fail the transition so the error boundary decides."
+                }
+            },
+            "additionalProperties": false
+        },
+        "scriptCode": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "G",
+                        "L"
+                    ],
+                    "enumDescriptions": [
+                        "Global",
+                        "Local"
+                    ],
+                    "default": "L",
+                    "description": "Script type - Global or Local"
+                },
+                "code": {
+                    "description": "Script code content (string), or a sys-mappings reference when encoding is REF.",
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/mappingRef"
+                        }
+                    ]
+                },
+                "location": {
+                    "type": "string",
+                    "description": "Location of the script file, or dynamicExpresso for an inline expression"
+                },
+                "encoding": {
+                    "type": "string",
+                    "description": "Code encoding format",
+                    "enum": [
+                        "B64",
+                        "NAT",
+                        "REF"
+                    ],
+                    "default": "B64"
+                },
+                "scripts": {
+                    "$ref": "#/definitions/scripts"
+                }
+            },
+            "additionalProperties": false,
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "G"
+                            }
+                        },
+                        "required": [
+                            "type"
+                        ]
+                    },
+                    "then": {
+                        "required": []
+                    },
+                    "else": {
+                        "required": [
+                            "code"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "encoding": {
+                                "const": "REF"
+                            }
+                        },
+                        "required": [
+                            "encoding"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "code"
+                        ],
+                        "properties": {
+                            "code": {
+                                "$ref": "#/definitions/mappingRef"
+                            }
+                        }
+                    },
+                    "else": {
+                        "properties": {
+                            "code": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "mappingRef": {
+            "type": "object",
+            "description": "Reference to a sys-mappings component.",
+            "required": [
+                "key",
+                "version",
+                "domain",
+                "flow"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "flow": {
+                    "type": "string",
+                    "const": "sys-mappings"
+                }
+            },
+            "additionalProperties": false
+        },
+        "scripts": {
+            "type": "object",
+            "description": "Helper script references and allowed assemblies for mapping execution.",
+            "properties": {
+                "helpers": {
+                    "type": "array",
+                    "description": "References to sys-mappings helper components.",
+                    "items": {
+                        "$ref": "#/definitions/mappingRef"
+                    }
+                },
+                "allowedAssemblies": {
+                    "type": "array",
+                    "description": "Allowed .NET assemblies for the script execution context.",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}

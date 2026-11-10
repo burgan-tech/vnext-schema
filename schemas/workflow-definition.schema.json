@@ -781,14 +781,16 @@
         2,
         3,
         4,
-        5
+        5,
+        6
       ],
       "enumDescriptions": [
         "Initial state",
         "Intermediate state",
         "Final state",
         "SubFlow state",
-        "Wizard state"
+        "Wizard state",
+        "AI Agent state (experimental): runs a sys-agents component on entry and lets it pick one of the state's automatic transitions"
       ],
       "description": "Type of workflow state"
     },
@@ -1190,6 +1192,10 @@
               "description": "Transition key",
               "pattern": "^[a-z0-9-]+$"
             },
+            "description": {
+              "type": "string",
+              "description": "Optional free-text description of when this transition applies. On an AiAgent state (stateType 6) it is the \"when\" text the agent sees for a candidate transition, after decision.hintsMapping and decision.hints. Never evaluated as a rule."
+            },
             "target": {
               "type": "string",
               "description": "Target state key. Can be a state key or special keyword like $self",
@@ -1560,6 +1566,10 @@
               "description": "Transition key",
               "pattern": "^[a-z0-9-]+$"
             },
+            "description": {
+              "type": "string",
+              "description": "Optional free-text description of when this transition applies. On an AiAgent state (stateType 6) it is the \"when\" text the agent sees for a candidate transition, after decision.hintsMapping and decision.hints. Never evaluated as a rule."
+            },
             "target": {
               "type": "string",
               "description": "Target state key. Can be a state key or special keyword like $self",
@@ -1812,6 +1822,10 @@
           "description": "Transition key",
           "pattern": "^[a-z0-9-]+$"
         },
+        "description": {
+          "type": "string",
+          "description": "Optional free-text description of when this transition applies. On an AiAgent state (stateType 6) it is the \"when\" text the agent sees for a candidate transition, after decision.hintsMapping and decision.hints. Never evaluated as a rule."
+        },
         "target": {
           "type": "string",
           "description": "Required. Key of the state the instance enters when it starts; must equal the key of a state declared in 'states' (checked by the runtime at publish). Reserved keys such as '$start' and '$self' are not allowed.",
@@ -1903,6 +1917,10 @@
           "type": "string",
           "description": "Cancel transition key",
           "pattern": "^[a-z0-9-]+$"
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional free-text description of when this transition applies. On an AiAgent state (stateType 6) it is the \"when\" text the agent sees for a candidate transition, after decision.hintsMapping and decision.hints. Never evaluated as a rule."
         },
         "target": {
           "type": "string",
@@ -2004,6 +2022,10 @@
           "description": "Exit transition key",
           "pattern": "^[a-z0-9-]+$"
         },
+        "description": {
+          "type": "string",
+          "description": "Optional free-text description of when this transition applies. On an AiAgent state (stateType 6) it is the \"when\" text the agent sees for a candidate transition, after decision.hintsMapping and decision.hints. Never evaluated as a rule."
+        },
         "target": {
           "type": "string",
           "description": "Target state key when exit is executed",
@@ -2104,6 +2126,10 @@
           "description": "Update data transition key",
           "pattern": "^[a-z0-9-]+$"
         },
+        "description": {
+          "type": "string",
+          "description": "Optional free-text description of when this transition applies. On an AiAgent state (stateType 6) it is the \"when\" text the agent sees for a candidate transition, after decision.hintsMapping and decision.hints. Never evaluated as a rule."
+        },
         "target": {
           "type": "string",
           "const": "$self",
@@ -2193,21 +2219,66 @@
         "versionStrategy",
         "labels"
       ],
-      "if": {
-        "properties": {
-          "stateType": {
-            "const": 5
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "stateType": {
+                "const": 5
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "transitions": {
+                "type": "array",
+                "maxItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "stateType": {
+                "const": 6
+              }
+            },
+            "required": [
+              "stateType"
+            ]
+          },
+          "then": {
+            "title": "AI Agent state",
+            "description": "An AiAgent state (stateType 6) must declare an agent block. Its sub type is None (0) or Busy (5) and it cannot run a subFlow. Candidate counts, reserved exits and hints keys are checked by the runtime at publish, not here.",
+            "required": [
+              "agent"
+            ],
+            "properties": {
+              "agent": {
+                "$ref": "#/definitions/agentStateBinding"
+              },
+              "subType": {
+                "enum": [
+                  0,
+                  5
+                ]
+              },
+              "subFlow": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "agent": {
+                "type": "null",
+                "description": "Only an AiAgent state (stateType 6) may declare an agent block."
+              }
+            }
           }
         }
-      },
-      "then": {
-        "properties": {
-          "transitions": {
-            "type": "array",
-            "maxItems": 1
-          }
-        }
-      },
+      ],
       "properties": {
         "_comment": {
           "type": "string",
@@ -2311,8 +2382,498 @@
           "items": {
             "$ref": "#/definitions/stateNotification"
           }
+        },
+        "agent": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/agentStateBinding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "AI agent binding (experimental). Required on, and only allowed on, an AiAgent state (stateType 6)."
         }
       }
+    },
+    "agentStateBinding": {
+      "type": "object",
+      "description": "The agent block of an AiAgent state: which sys-agents component runs, its prompt, where the structured output lands and how the next transition is chosen.",
+      "required": [
+        "agent",
+        "prompt",
+        "output",
+        "decision"
+      ],
+      "properties": {
+        "agent": {
+          "$ref": "#/definitions/reference",
+          "description": "The sys-agents component that runs (the lead agent when mode is not single)."
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "single",
+            "sequential",
+            "concurrent",
+            "handoff"
+          ],
+          "enumDescriptions": [
+            "Only the agent runs (default)",
+            "The participants run in order, each seeing the outputs before it, then the lead produces the output and decision",
+            "The participants run in parallel on the same prompt, then the lead produces the output and decision",
+            "The lead runs as a router and names one participant, which produces the output and decision"
+          ],
+          "default": "single",
+          "description": "How several agents work in this state."
+        },
+        "agents": {
+          "type": "array",
+          "description": "Participants of a multi-agent state. Required (at least one) when mode is sequential, concurrent or handoff; not allowed when mode is single. Names must be unique in the state (checked by the runtime).",
+          "items": {
+            "$ref": "#/definitions/agentParticipant"
+          }
+        },
+        "prompt": {
+          "$ref": "#/definitions/agentPrompt"
+        },
+        "output": {
+          "type": "object",
+          "description": "Where the structured output lands in instance data.",
+          "required": [
+            "path"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "JSON path the output (plus the $agent run summary) is merged under, e.g. $.triage.",
+              "pattern": "^\\$\\."
+            }
+          },
+          "additionalProperties": false
+        },
+        "memory": {
+          "$ref": "#/definitions/agentMemory",
+          "description": "Overrides the component's memory settings for this state."
+        },
+        "tools": {
+          "type": "object",
+          "description": "Tool selection for this state.",
+          "properties": {
+            "exclude": {
+              "type": "array",
+              "description": "Tool names hidden from the model in this state.",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "decision": {
+          "$ref": "#/definitions/agentDecision"
+        },
+        "policy": {
+          "$ref": "#/definitions/agentPolicy",
+          "description": "Narrows the component's policy; a state can only lower its budgets."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "sequential",
+                  "concurrent",
+                  "handoff"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "agents"
+            ],
+            "properties": {
+              "agents": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "agents": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "agentParticipant": {
+      "type": "object",
+      "description": "A participant agent of a multi-agent state.",
+      "required": [
+        "name",
+        "agent"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Participant name, unique in the state; the lead sees outputs and routes by it.",
+          "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+        },
+        "agent": {
+          "$ref": "#/definitions/reference",
+          "description": "The sys-agents component of the participant."
+        },
+        "description": {
+          "type": "string",
+          "description": "What the lead is told this participant is for (handoff)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "agentPrompt": {
+      "type": "object",
+      "description": "The user prompt: an inline template with {{ data.* }}, {{ body.* }}, {{ instance.id }}, {{ instance.key }} and {{ state }} placeholders, or a C# IAgentPromptMapping (location + code).",
+      "properties": {
+        "template": {
+          "type": "string",
+          "description": "Inline prompt template."
+        },
+        "location": {
+          "type": "string",
+          "description": "Source file of the C# IAgentPromptMapping."
+        },
+        "code": {
+          "type": "string",
+          "description": "Packaged C# IAgentPromptMapping code."
+        },
+        "encoding": {
+          "type": "string",
+          "description": "Encoding of code.",
+          "enum": [
+            "B64",
+            "NAT"
+          ],
+          "default": "B64"
+        },
+        "messages": {
+          "type": "array",
+          "description": "Seed messages sent before the user prompt on every run (few-shot examples, extra instructions).",
+          "items": {
+            "type": "object",
+            "required": [
+              "role",
+              "content"
+            ],
+            "properties": {
+              "role": {
+                "type": "string",
+                "enum": [
+                  "system",
+                  "user",
+                  "assistant"
+                ]
+              },
+              "content": {
+                "type": "string",
+                "description": "Message content; a template with the same placeholders as prompt.template.",
+                "pattern": "\\S"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "context": {
+          "type": "object",
+          "description": "Named data blocks appended to the user prompt as <data name=\"…\">…</data>, so the model reads them as data and not as instructions. The value is a data., body. or instance. path.",
+          "propertyNames": {
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^\\s*(data|body|instance)\\."
+          }
+        }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "template"
+          ],
+          "properties": {
+            "template": {
+              "pattern": "\\S"
+            }
+          }
+        },
+        {
+          "required": [
+            "code"
+          ],
+          "properties": {
+            "code": {
+              "pattern": "\\S"
+            }
+          }
+        }
+      ]
+    },
+    "agentDecision": {
+      "type": "object",
+      "description": "How the next transition is chosen. Candidates are the state's automatic transitions without a rule, minus the reserved exits (fallback, onApprovalRequest, onExhausted) and exclude. The runtime checks at publish that every reserved exit is a rule-less automatic transition of the state, that model mode has at least two candidates, that rules mode has none, and that every hints key is a candidate.",
+      "required": [
+        "fallback"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "model",
+            "rules",
+            "script"
+          ],
+          "enumDescriptions": [
+            "The model chooses among the candidates (default)",
+            "The transitions' own rules choose over the agent's output",
+            "A C# IAgentDecisionMapping chooses"
+          ],
+          "default": "model",
+          "description": "Who chooses the next transition."
+        },
+        "exclude": {
+          "type": "array",
+          "description": "Automatic transitions left out of the candidate set.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hints": {
+          "type": "object",
+          "description": "\"When\" texts per candidate transition key; they win over the transition description.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "hintsMapping": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "C# IAgentDecisionHintMapping producing hints."
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "C# IAgentDecisionMapping; required when mode is script."
+        },
+        "fallback": {
+          "type": "string",
+          "description": "Automatic transition taken when the run cannot decide (failure, timeout, budget, non-candidate decision).",
+          "pattern": "\\S"
+        },
+        "onApprovalRequest": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Automatic transition taken when a tool asks for human approval; it may target any state. Without it the state takes its fallback."
+        },
+        "onExhausted": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Automatic transition taken when policy.maxEntries is reached."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "script"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "mapping"
+            ],
+            "properties": {
+              "mapping": {
+                "$ref": "#/definitions/scriptCode"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "agentMemory": {
+      "type": "object",
+      "description": "Conversation memory settings. On a state they overlay the component's.",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "none",
+            "state",
+            "flow",
+            "key"
+          ],
+          "enumDescriptions": [
+            "Every entry starts clean",
+            "Per instance and state",
+            "Per instance, shared by the flow's agent states",
+            "Across instances, keyed by the rendered memory.key"
+          ],
+          "description": "Memory scope."
+        },
+        "key": {
+          "type": "string",
+          "description": "Key template for mode key."
+        },
+        "storage": {
+          "type": "string",
+          "enum": [
+            "local",
+            "provider"
+          ],
+          "description": "Where the conversation lives: the runtime stores the messages (local) or the provider stores it and only its id is kept (provider)."
+        },
+        "maxMessages": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Messages kept; the oldest are trimmed or summarized first."
+        },
+        "compaction": {
+          "type": "string",
+          "enum": [
+            "trim",
+            "summarize"
+          ],
+          "description": "How a local session is kept within maxMessages: drop the oldest messages (trim, default) or replace them with one model-written summary (summarize)."
+        },
+        "retentionDays": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Days a session is kept after its last write."
+        },
+        "resetOn": {
+          "type": "array",
+          "description": "Session reset triggers.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "agentVersionChange",
+              "instructionsChange"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "agentPolicy": {
+      "type": "object",
+      "description": "Budgets and retry of an agent run. Values are also capped by the environment ceilings (checked by the runtime).",
+      "properties": {
+        "maxIterations": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Model round trips."
+        },
+        "maxToolCalls": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Tool calls (0 disables tools)."
+        },
+        "maxTokens": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Total tokens."
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Whole-run timeout."
+        },
+        "toolTimeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Per tool timeout."
+        },
+        "resultMaxChars": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Tool result characters the model receives."
+        },
+        "maxEntries": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "State entries before decision.onExhausted is taken."
+        },
+        "retry": {
+          "type": "object",
+          "description": "Provider-call retry inside one run.",
+          "properties": {
+            "maxAttempts": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5,
+              "description": "Attempts including the first."
+            },
+            "backoffMs": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Base backoff in milliseconds."
+            },
+            "on": {
+              "type": "array",
+              "description": "Retried failures.",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "429",
+                  "5xx",
+                  "timeout"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "onProviderError": {
+          "type": "string",
+          "enum": [
+            "fallback",
+            "fault"
+          ],
+          "description": "After retries are exhausted: take the decision fallback, or fail the transition so the error boundary decides."
+        }
+      },
+      "additionalProperties": false
     },
     "stateAlias": {
       "type": "object",

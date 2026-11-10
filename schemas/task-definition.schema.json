@@ -89,7 +89,8 @@
                         "20",
                         "21",
                         "22",
-                        "23"
+                        "23",
+                        "24"
                     ],
                     "enumDescriptions": [
                         "Dapr HTTP Endpoint",
@@ -114,7 +115,8 @@
                         "Dapr Conversation Task",
                         "FanOut Task",
                         "External HTTP Task",
-                        "Python Task"
+                        "Python Task",
+                        "MCP Task"
                     ]
                 }
             },
@@ -1859,6 +1861,177 @@
                                     "handler"
                                 ],
                                 "additionalProperties": false
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "config"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "24"
+                            }
+                        }
+                    },
+                    "then": {
+                        "title": "MCP Task",
+                        "description": "Experimental. Calls one operation of a remote MCP (Model Context Protocol) server over streamable HTTP, in-process on the Orchestrator. Used standalone (onEntry, onExit, functions) and as the binding of an agent's kind 3 tool, where the runtime overrides operation with listTools and callTool. The task never carries a credential: auth and every header value name a secret (secretRef) resolved at call time. The endpoint host must be in Mcp:AllowedHosts (checked by the runtime at publish and on every call). Input and output use the standard IMapping contract; an input mapping may replace config.arguments.",
+                        "properties": {
+                            "type": {
+                                "const": "24"
+                            },
+                            "config": {
+                                "type": "object",
+                                "description": "MCP Task configuration",
+                                "properties": {
+                                    "transport": {
+                                        "type": "string",
+                                        "description": "MCP transport; only streamable HTTP is supported.",
+                                        "enum": [
+                                            "http"
+                                        ],
+                                        "default": "http"
+                                    },
+                                    "endpoint": {
+                                        "type": "string",
+                                        "description": "Absolute http(s) URL of the MCP server; its host must be in Mcp:AllowedHosts.",
+                                        "format": "uri",
+                                        "pattern": "^[hH][tT][tT][pP][sS]?://"
+                                    },
+                                    "auth": {
+                                        "type": "object",
+                                        "description": "Authorization header built from a secret: {header}: {scheme} {secret}.",
+                                        "properties": {
+                                            "header": {
+                                                "type": "string",
+                                                "description": "Header name.",
+                                                "default": "Authorization"
+                                            },
+                                            "scheme": {
+                                                "type": "string",
+                                                "description": "Optional scheme prefix such as Bearer."
+                                            },
+                                            "secretRef": {
+                                                "type": "string",
+                                                "description": "Secret reference: store/bundle/key reads the Dapr secret store, anything else reads configuration.",
+                                                "pattern": "\\S"
+                                            }
+                                        },
+                                        "required": [
+                                            "secretRef"
+                                        ],
+                                        "additionalProperties": false
+                                    },
+                                    "headers": {
+                                        "type": "object",
+                                        "description": "Extra request headers. Each value names a secret; a plain-text value is a publish error.",
+                                        "additionalProperties": {
+                                            "type": "object",
+                                            "properties": {
+                                                "secretRef": {
+                                                    "type": "string",
+                                                    "description": "Secret reference resolved at call time.",
+                                                    "pattern": "\\S"
+                                                }
+                                            },
+                                            "required": [
+                                                "secretRef"
+                                            ],
+                                            "additionalProperties": false
+                                        }
+                                    },
+                                    "operation": {
+                                        "type": "string",
+                                        "description": "MCP operation to run.",
+                                        "enum": [
+                                            "callTool",
+                                            "listTools",
+                                            "readResource",
+                                            "listResources",
+                                            "getPrompt",
+                                            "listPrompts"
+                                        ],
+                                        "default": "callTool"
+                                    },
+                                    "tool": {
+                                        "type": "string",
+                                        "description": "callTool: the server tool name (a callTool without it fails the call)."
+                                    },
+                                    "uri": {
+                                        "type": "string",
+                                        "description": "readResource: the resource uri."
+                                    },
+                                    "prompt": {
+                                        "type": "string",
+                                        "description": "getPrompt: the prompt name."
+                                    },
+                                    "arguments": {
+                                        "type": "object",
+                                        "description": "Static call arguments; an input mapping (SetArguments) or the agent replaces them."
+                                    },
+                                    "timeoutSeconds": {
+                                        "type": "integer",
+                                        "description": "Per-call timeout in seconds.",
+                                        "minimum": 1,
+                                        "maximum": 120,
+                                        "default": 20
+                                    }
+                                },
+                                "required": [
+                                    "endpoint"
+                                ],
+                                "additionalProperties": false,
+                                "allOf": [
+                                    {
+                                        "if": {
+                                            "properties": {
+                                                "operation": {
+                                                    "const": "readResource"
+                                                }
+                                            },
+                                            "required": [
+                                                "operation"
+                                            ]
+                                        },
+                                        "then": {
+                                            "required": [
+                                                "uri"
+                                            ],
+                                            "properties": {
+                                                "uri": {
+                                                    "pattern": "\\S"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "if": {
+                                            "properties": {
+                                                "operation": {
+                                                    "const": "getPrompt"
+                                                }
+                                            },
+                                            "required": [
+                                                "operation"
+                                            ]
+                                        },
+                                        "then": {
+                                            "required": [
+                                                "prompt"
+                                            ],
+                                            "properties": {
+                                                "prompt": {
+                                                    "pattern": "\\S"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
                             }
                         },
                         "required": [
