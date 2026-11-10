@@ -58,6 +58,7 @@ const valid = [
   ['customer allOf', [allOf('customer-role', '$InstanceStarter')]],
   ['two corporate allOf', [allOf('a.corporate-maker', 'a.region'), allOf('b.corporate-checker', 'b.region')]],
   ['anyOf starter / behalf-of starter', [anyOf('$InstanceStarter', '$InstanceBehalfOfStarter')]],
+  ['$Everyone as allOf child', [allOf('$Everyone', 'customer-role')]],
   ['plain role+grant', [{ role: 'morph-idm.maker', grant: 'allow' }]],
   ['combinator deny', [{ anyOf: [{ role: 'a' }], grant: 'deny' }]],
   ['mixed plain and combinator', [{ role: 'a', grant: 'allow' }, allOf('b', 'c')]]
