@@ -163,6 +163,36 @@ check('priority on a shared transition', sharedWithPriority, false, '/attributes
 const startWithPriority = document(); startWithPriority.attributes.startTransition.priority = 1;
 check('priority on the start transition', startWithPriority, false, '/attributes/startTransition');
 
+// schemas: rule-based transition schema selection, next to the single schema.
+const schemaRef = key => ({ key, domain: 'test', flow: 'sys-schemas', version: '1.0.0' });
+const ruleEntries = [
+  { rule: script('return true;'), schema: schemaRef('corporate') },
+  { schema: schemaRef('retail') }
+];
+const withManualSchemas = schemas => {
+  const input = withStateTransition({ triggerType: 0, rule: undefined, schemas });
+  return input;
+};
+check('schemas array on a manual state transition', withManualSchemas(ruleEntries), true);
+check('schemas wrapped form', withManualSchemas({ schemas: ruleEntries }), true);
+check('schemas next to schema', withStateTransition({ triggerType: 0, rule: undefined, schema: schemaRef('one'), schemas: ruleEntries }), true);
+check('schemas empty array', withManualSchemas([]), false, `${transitionPath}/schemas`);
+check('schemas entry without schema', withManualSchemas([{ rule: script('return true;') }]), false, `${transitionPath}/schemas`);
+check('schemas entry with an unknown property', withManualSchemas([{ schema: schemaRef('x'), loadData: true }]), false, `${transitionPath}/schemas`);
+check('schemas on an automatic transition', withStateTransition({ schemas: ruleEntries }), false, transitionPath);
+check('schemas on a DefaultAutoTransition', withStateTransition({ triggerKind: 10, rule: undefined, schemas: ruleEntries }), false, transitionPath);
+const scheduledWithSchemas = document(2); scheduledWithSchemas.attributes.sharedTransitions[0].schemas = ruleEntries;
+check('schemas on a scheduled shared transition', scheduledWithSchemas, false, '/attributes/sharedTransitions/0');
+const manualSharedWithSchemas = document(); manualSharedWithSchemas.attributes.sharedTransitions[0].schemas = ruleEntries;
+check('schemas on a manual shared transition', manualSharedWithSchemas, true);
+const startWithSchemas = document(); startWithSchemas.attributes.startTransition.schemas = ruleEntries;
+check('schemas on the start transition', startWithSchemas, true);
+for (const kind of ['cancel', 'exit', 'updateData']) {
+  const input = document();
+  input.attributes[kind] = { key: kind.toLowerCase(), target: kind === 'updateData' ? '$self' : 'failed', triggerType: 0, versionStrategy: 'Minor', labels: labels(kind), schemas: ruleEntries };
+  check(`schemas on ${kind}`, input, true);
+}
+
 // Initial state is optional (the runtime supplies an implicit '$start' source state):
 // zero Initial states are valid, two are not, and startTransition.target stays mandatory.
 const noInitial = () => {
