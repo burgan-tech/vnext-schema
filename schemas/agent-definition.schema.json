@@ -491,7 +491,7 @@
                 "retentionDays": {
                     "type": "integer",
                     "minimum": 1,
-                    "description": "Days a session is kept after its last write."
+                    "description": "Days a session is kept after its last write. An instance session (mode state or flow) is also deleted when its instance completes or is cancelled; a key session is kept until it expires."
                 },
                 "resetOn": {
                     "type": "array",
