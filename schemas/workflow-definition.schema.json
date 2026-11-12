@@ -1890,7 +1890,7 @@
         },
         "roles": {
           "type": "array",
-          "description": "Transition roles for authorization. DENY overrides ALLOW; default DENY when no match.",
+          "description": "Transition roles for authorization. DENY overrides ALLOW; default DENY when no match. Evaluated before any instance exists by the workflow-scoped GET /api/v1/{domain}/workflows/{workflow}/functions/authorize?type=instance (since runtime 0.0.105), which the gateway calls to decide a start; the runtime itself does not check them at instances/start. Instance-bound grants ($InstanceStarter, $PreviousUser, $InstanceBehalfOfStarter, $PreviousBehalfOfUser and $user./$userBehalfOf./$role. context references) never match there, so a start guarded only by such grants is closed to everyone; static roles and $Everyone compare as usual.",
           "items": {
             "$ref": "#/definitions/roleGrant"
           }

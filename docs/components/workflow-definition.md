@@ -245,6 +245,14 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 
 **Not available:** view, rule, timer, from, availableIn, triggerKind
 
+`roles` on the start transition are evaluated before any instance exists by the workflow-scoped
+`GET /api/v1/{domain}/workflows/{workflow}/functions/authorize?type=instance[&version=x]` (since runtime
+0.0.105), which the gateway calls to decide a start; the runtime does not check them at
+`instances/start` itself. Static roles and `$Everyone` compare as usual; instance-bound grants
+(`$InstanceStarter`, `$PreviousUser`, `$InstanceBehalfOfStarter`, `$PreviousBehalfOfUser`, `$user.` /
+`$userBehalfOf.` / `$role.` references) never match there, so a start guarded only by
+`allow $InstanceStarter` is closed to everyone.
+
 ---
 
 ## cancelTransition (Manual Only)
