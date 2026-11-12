@@ -74,7 +74,7 @@ Schema files contain a `__SCHEMA_VERSION__` placeholder in their `$id` and `$sch
 
 ### Test approach (`test/`)
 
-`npm test` runs two scripts:
+`npm test` runs every `test/validate-*.js` script (chained in `package.json`); notably:
 
 - `test/validate-schemas.js` reads every `*.schema.json` from `schemas/`, compiles each with AJV (draft-07), and reports success/failure — i.e. it only proves the schema itself is a valid JSON Schema.
 - `test/validate-function-documents.js` is fixture-based: it asserts that specific function documents are accepted or rejected as expected.
@@ -92,5 +92,6 @@ A reusable sub-schema fragment for role grants (domain.rolename + allow/deny). R
 
 ## CI/CD
 
-- **SonarCloud** runs on PRs to `master` or `release-v*` branches.
+- **CI** (`ci.yml`, job `Unit Tests`) runs `npm ci`, `npm run lint:check`, `npm test` and a prod `npm audit` on every PR to `master` / `release-v*` and on push to `master`. It is meant to be a required status check.
+- **SonarCloud** (`check-sonar.yml`) runs on PRs to `master` or `release-v*` branches (skipped for Dependabot/fork PRs, which get no `SONAR_TOKEN`). It only uploads coverage + analysis; pass/fail of tests is owned by CI.
 - **Publishing** triggers on push to `release-v*` branches or manual dispatch. Supports publishing to npmjs, GitHub Packages, or both. Version is derived from the branch name (e.g., `release-v1.2` → `1.2.x`) with auto-incremented patch.
