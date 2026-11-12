@@ -340,7 +340,7 @@
                     ]
                 },
                 "inputSchema": {
-                    "description": "The sys-schemas contract describing the request body. When set, the runtime validates the request body against the entry that wins rule evaluation.",
+                    "description": "The sys-schemas contract describing the request body. When set, the runtime validates the request body against the entry that wins rule evaluation. With the rule-based form, a request carrying a body that matches no entry is rejected with 400 Function:800006 (since runtime 0.0.105; previously it was accepted unvalidated) - add a rule-less last entry to keep accepting unmatched callers.",
                     "allOf": [
                         {
                             "$ref": "#/definitions/schemaSlot"
@@ -751,7 +751,7 @@
         },
         "roleGrantCondition": {
             "type": "object",
-            "description": "One role in an allOf/anyOf list: only a role name, a predefined instance role or a dynamic expression. No grant and no nesting (depth 1).",
+            "description": "One role in an allOf/anyOf list: only a role name, a predefined instance role (including $Everyone) or a dynamic expression. No grant and no nesting (depth 1).",
             "required": [
                 "role"
             ],

@@ -173,6 +173,7 @@ Discriminator: `triggerType` (with `triggerKind` sub-discriminator for Auto)
 | timer | null | null | null | **Required** (scriptCode) | null |
 | view | Optional/null (viewDefinition) | null | null | null | null |
 | schema | Optional/null | null | null | null | Optional/null |
+| schemas | Optional/null (transitionSchemas) | null | null | null | Optional/null (transitionSchemas) |
 | mapping | Optional/null | null | null | null | Optional/null |
 | onExecutionTasks | Optional | Optional | Optional | Optional | Optional |
 | roles | Optional | Optional | Optional | Optional | Optional |
@@ -184,6 +185,7 @@ Discriminator: `triggerType` (with `triggerKind` sub-discriminator for Auto)
 - Auto (1): `rule` is a mandatory scriptCode (routing logic)
 - Auto Default (1+kind:10): `rule` is optional (default auto path, no routing needed)
 - Manual (0): `view` supports both single and rule-based viewDefinition
+- `schemas` (rule-based schema selection) is allowed wherever `schema` is, except Auto and Scheduled; see [transitionSchemas](#transitionschemas)
 - `additionalProperties` is **not** restricted (open schema)
 
 ---
@@ -204,6 +206,7 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | timer | null | **Required** (scriptCode) | null |
 | view | Optional/null (viewDefinition) | null | null |
 | schema | Optional/null | null | Optional/null |
+| schemas | Optional/null (transitionSchemas) | null | Optional/null (transitionSchemas) |
 | mapping | Optional/null | null | Optional/null |
 | onExecutionTasks | Optional | Optional | Optional |
 | roles | Optional | Optional | Optional |
@@ -234,12 +237,21 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | versionStrategy | versionStrategy | Yes | No | enum |
 | labels | languageLabel[] | Yes | No | minItems: 1 |
 | schema | reference | No | Yes | Data schema for start |
+| schemas | transitionSchemas | No | Yes | Rule-based schema entries; wins over `schema` |
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
 | roles | roleGrant[] | No | No | Authorization roles |
 | annotations | object | No | Yes | Key-value metadata (since 0.0.42) |
 
 **Not available:** view, rule, timer, from, availableIn, triggerKind
+
+`roles` on the start transition are evaluated before any instance exists by the workflow-scoped
+`GET /api/v1/{domain}/workflows/{workflow}/functions/authorize?type=instance[&version=x]` (since runtime
+0.0.105), which the gateway calls to decide a start; the runtime does not check them at
+`instances/start` itself. Static roles and `$Everyone` compare as usual; instance-bound grants
+(`$InstanceStarter`, `$PreviousUser`, `$InstanceBehalfOfStarter`, `$PreviousBehalfOfUser`, `$user.` /
+`$userBehalfOf.` / `$role.` references) never match there, so a start guarded only by
+`allow $InstanceStarter` is closed to everyone.
 
 ---
 
@@ -255,6 +267,7 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | versionStrategy | versionStrategy | Yes | No | enum |
 | labels | languageLabel[] | Yes | No | - |
 | schema | reference | No | Yes | Data schema for cancel |
+| schemas | transitionSchemas | No | Yes | Rule-based schema entries; wins over `schema` |
 | view | viewDefinition | No | Yes | Single or rule-based |
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
@@ -280,6 +293,7 @@ Discriminator: `triggerType` (only 0, 2, 3 -- Auto is not supported)
 | versionStrategy | versionStrategy | Yes | No | enum |
 | labels | languageLabel[] | Yes | No | - |
 | schema | reference | No | Yes | Data schema for exit |
+| schemas | transitionSchemas | No | Yes | Rule-based schema entries; wins over `schema` |
 | view | viewDefinition | No | Yes | Single or rule-based |
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
@@ -310,6 +324,7 @@ was accepted by the schema but never evaluated.
 | versionStrategy | versionStrategy | Yes | No | enum |
 | labels | languageLabel[] | Yes | No | - |
 | schema | reference | No | Yes | Data schema for update |
+| schemas | transitionSchemas | No | Yes | Rule-based schema entries; wins over `schema` |
 | view | viewDefinition | No | Yes | Single or rule-based |
 | mapping | scriptCode | No | Yes | Input mapping |
 | onExecutionTasks | onExecuteTask[] | No | No | Tasks during transition |
@@ -350,11 +365,44 @@ Summary of all 6 transition types side by side:
 | triggerKind | Yes | No | No | No | No | No |
 | availableIn | No | Optional/null | No | Optional/null | Optional/null | Optional/null |
 | schema | Manual/Event | Manual/Event | Optional | Optional | Optional | Optional |
+| schemas | Manual/Event | Manual/Event | Optional | Optional | Optional | Optional |
 | mapping | Manual/Event | Manual/Event | Optional | Optional | Optional | Optional |
 | onExecutionTasks | Optional | Optional | Optional | Optional | Optional | Optional |
 | roles | Optional | Optional | Optional | Optional | Optional | Optional |
 | annotations | Optional | Optional | Optional | Optional | Optional | Optional |
 | additionalProperties | open | open | **false** | **false** | **false** | **false** |
+
+---
+
+## transitionSchemas
+
+Rule-based schema selection for a transition payload, next to the single `schema` (mirrors
+`view` / rule-based views). Accepted as a plain array of entries or the wrapped form
+`{ "schemas": [...] }` (what the runtime writes back), `minItems: 1`, or null.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| rule | scriptCode | No | Condition script (IConditionMapping). Omit on the final fallback entry |
+| schema | reference | Yes | sys-schemas component this entry selects |
+
+`additionalProperties: false`
+
+Runtime semantics (enforced by the runtime, not by this schema):
+- Entries are evaluated in declaration order; the first matching rule wins. A rule-less entry always
+  matches, so it must be the last entry.
+- `schemas` takes precedence over `schema` when both are present.
+- A declared list where no entry matches rejects the transition with `400` `Transition:100025`; a
+  transition that declares no schema accepts any payload.
+- The rule context carries workflow, instance, runtime, transition, `body` (the instance's latest data)
+  and request headers.
+
+```json
+"schemas": [
+  { "rule": { "location": "./src/IsCorporate.csx", "code": "<base64>" },
+    "schema": { "key": "corporate-payload", "domain": "core", "flow": "sys-schemas", "version": "1.0.0" } },
+  { "schema": { "key": "retail-payload", "domain": "core", "flow": "sys-schemas", "version": "1.0.0" } }
+]
+```
 
 ---
 
@@ -628,6 +676,6 @@ and no transition type has ever had its roles re-checked at execution.
 |---------------------|---------|
 | view-definition | state.view, transition.view, sharedTransition.view, cancelTransition.view, exitTransition.view, updateDataTransition.view, viewRule.view |
 | task-definition | onExecuteTask.task |
-| schema-definition | startTransition.schema, transition.schema, cancelTransition.schema, exitTransition.schema, updateDataTransition.schema, attributes.schema.schema |
+| schema-definition | startTransition.schema, transition.schema, cancelTransition.schema, exitTransition.schema, updateDataTransition.schema, transitionSchemaRuleEntry.schema, attributes.schema.schema |
 | function-definition | attributes.functions[] |
 | extension-definition | attributes.extensions[], attributes.features[] |
