@@ -464,13 +464,15 @@
         "onConflict": {
           "type": "string",
           "enum": [
-            "Abort"
+            "Abort",
+            "Reject"
           ],
           "enumDescriptions": [
-            "Abort the transition immediately when the lock cannot be acquired."
+            "Abort the transition when the lock cannot be acquired: the instance is FAULTED and the caller gets 409 (Execution:200010). The contended work is lost — retrying means starting a new instance.",
+            "Reject the attempt without touching the instance: no fault, no state change, and the caller gets 409 with a distinct retryable code (Execution:200014). The instance stays exactly where it was, so the SAME call can be retried once the lock frees."
           ],
           "default": "Abort",
-          "description": "Policy applied when the lock cannot be acquired (e.g., resource already locked)."
+          "description": "Policy applied when the lock cannot be acquired (e.g., resource already locked). To route the loser somewhere instead of failing it, leave this at Abort and add an errorBoundary rule matching Execution:200010 with a target transition — the lock step fails before OnExecute/ChangeState/OnEntry, so the instance never left its state and rerouting it is sound."
         }
       },
       "additionalProperties": false
@@ -1233,6 +1235,17 @@
                 }
               ]
             },
+            "schemas": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/transitionSchemas"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Rule-based schema selection for the transition payload, mirroring view/views. Entries are evaluated in declaration order and the first entry whose rule matches validates the request; an entry without a rule always matches, so it must be the last entry. Takes precedence over schema. When declared and no entry matches, the runtime rejects the transition with 400 Transition:100025. Not allowed on automatic or scheduled transitions."
+            },
             "rule": {
               "anyOf": [
                 {
@@ -1392,6 +1405,9 @@
               "schema": {
                 "type": "null"
               },
+              "schemas": {
+                "type": "null"
+              },
               "view": {
                 "type": "null"
               },
@@ -1430,6 +1446,9 @@
               "schema": {
                 "type": "null"
               },
+              "schemas": {
+                "type": "null"
+              },
               "view": {
                 "type": "null"
               },
@@ -1459,6 +1478,9 @@
                 "type": "null"
               },
               "schema": {
+                "type": "null"
+              },
+              "schemas": {
                 "type": "null"
               },
               "view": {
@@ -1615,6 +1637,17 @@
                 }
               ]
             },
+            "schemas": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/transitionSchemas"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Rule-based schema selection for the transition payload, mirroring view/views. Entries are evaluated in declaration order and the first entry whose rule matches validates the request; an entry without a rule always matches, so it must be the last entry. Takes precedence over schema. When declared and no entry matches, the runtime rejects the transition with 400 Transition:100025. Not allowed on automatic or scheduled transitions."
+            },
             "rule": {
               "anyOf": [
                 {
@@ -1720,6 +1753,9 @@
                 "type": "null"
               },
               "schema": {
+                "type": "null"
+              },
+              "schemas": {
                 "type": "null"
               },
               "view": {
@@ -1870,7 +1906,7 @@
         },
         "roles": {
           "type": "array",
-          "description": "Transition roles for authorization. DENY overrides ALLOW; default DENY when no match.",
+          "description": "Transition roles for authorization. DENY overrides ALLOW; default DENY when no match. Evaluated before any instance exists by the workflow-scoped GET /api/v1/{domain}/workflows/{workflow}/functions/authorize?type=instance (since runtime 0.0.105), which the gateway calls to decide a start; the runtime itself does not check them at instances/start. Instance-bound grants ($InstanceStarter, $PreviousUser, $InstanceBehalfOfStarter, $PreviousBehalfOfUser and $user./$userBehalfOf./$role. context references) never match there, so a start guarded only by such grants is closed to everyone; static roles and $Everyone compare as usual.",
           "items": {
             "$ref": "#/definitions/roleGrant"
           }
@@ -1884,6 +1920,17 @@
               "type": "null"
             }
           ]
+        },
+        "schemas": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/transitionSchemas"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Rule-based schema selection for the transition payload, mirroring view/views. Entries are evaluated in declaration order and the first entry whose rule matches validates the request; an entry without a rule always matches, so it must be the last entry. Takes precedence over schema. When declared and no entry matches, the runtime rejects the transition with 400 Transition:100025. Not allowed on automatic or scheduled transitions."
         },
         "resourceLock": {
           "anyOf": [
@@ -1950,6 +1997,17 @@
             }
           ],
           "description": "Data schema reference that must be sent to execute the cancel transition"
+        },
+        "schemas": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/transitionSchemas"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Rule-based schema selection for the transition payload, mirroring view/views. Entries are evaluated in declaration order and the first entry whose rule matches validates the request; an entry without a rule always matches, so it must be the last entry. Takes precedence over schema. When declared and no entry matches, the runtime rejects the transition with 400 Transition:100025. Not allowed on automatic or scheduled transitions."
         },
         "labels": {
           "type": "array",
@@ -2055,6 +2113,17 @@
           ],
           "description": "Data schema reference that must be sent to execute the exit transition"
         },
+        "schemas": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/transitionSchemas"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Rule-based schema selection for the transition payload, mirroring view/views. Entries are evaluated in declaration order and the first entry whose rule matches validates the request; an entry without a rule always matches, so it must be the last entry. Takes precedence over schema. When declared and no entry matches, the runtime rejects the transition with 400 Transition:100025. Not allowed on automatic or scheduled transitions."
+        },
         "labels": {
           "type": "array",
           "description": "Multi-language exit transition labels",
@@ -2158,6 +2227,17 @@
             }
           ],
           "description": "Data schema reference that must be sent to execute the update data transition"
+        },
+        "schemas": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/transitionSchemas"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Rule-based schema selection for the transition payload, mirroring view/views. Entries are evaluated in declaration order and the first entry whose rule matches validates the request; an entry without a rule always matches, so it must be the last entry. Takes precedence over schema. When declared and no entry matches, the runtime rejects the transition with 400 Transition:100025. Not allowed on automatic or scheduled transitions."
         },
         "labels": {
           "type": "array",
@@ -3374,6 +3454,60 @@
         }
       },
       "additionalProperties": false
+    },
+    "transitionSchemaRuleEntry": {
+      "type": "object",
+      "description": "One entry of a rule-based transition schema list. The first entry whose rule matches wins; an entry without a rule is the fallback and must be last.",
+      "properties": {
+        "rule": {
+          "description": "Selection rule (IConditionMapping script). Omit on the final fallback entry.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/scriptCode"
+            }
+          ]
+        },
+        "schema": {
+          "description": "The sys-schemas component this entry selects.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/reference"
+            }
+          ]
+        }
+      },
+      "required": [
+        "schema"
+      ],
+      "additionalProperties": false
+    },
+    "transitionSchemas": {
+      "description": "Rule-based transition schema entries: a plain array, or the wrapped { \"schemas\": [...] } form the runtime writes back.",
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/transitionSchemaRuleEntry"
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "schemas"
+          ],
+          "properties": {
+            "schemas": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/transitionSchemaRuleEntry"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }
