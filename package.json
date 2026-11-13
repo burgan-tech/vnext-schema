@@ -12,9 +12,10 @@
     "README.md"
   ],
   "scripts": {
-    "test": "node test/validate-schemas.js && node test/validate-vocab-keywords.js && node test/validate-role-vocabularies.js && node test/validate-function-documents.js && node test/validate-schema-documents.js && node test/validate-workflow-documents.js && node test/validate-role-grant-combinators.js && node test/validate-row-security.js && node test/validate-python-task-documents.js",
+    "test": "node test/validate-schemas.js && node test/validate-vocab-keywords.js && node test/validate-role-vocabularies.js && node test/validate-function-documents.js && node test/validate-task-documents.js && node test/validate-schema-documents.js && node test/validate-workflow-documents.js && node test/validate-role-grant-combinators.js && node test/validate-row-security.js && node test/validate-python-task-documents.js",
     "test:coverage": "nyc npm test",
     "lint": "eslint . --fix",
+    "lint:check": "eslint .",
     "validate": "npm run test",
     "inject-schema-version": "node scripts/inject-schema-version.js --inject",
     "restore-schema-version": "node scripts/inject-schema-version.js --restore",
@@ -44,10 +45,15 @@
     "node": ">=14.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "ajv": "^8.17.1",
     "eslint": "^8.57.0",
-    "@eslint/js": "^9.0.0",
-    "nyc": "^15.1.0",
-    "mocha": "^10.2.0"
+    "nyc": "^18.0.0"
+  },
+  "overrides": {
+    "nyc": {
+      "glob": "^14.0.6",
+      "minimatch": "^11.0.8"
+    }
   }
 }

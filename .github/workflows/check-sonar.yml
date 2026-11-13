@@ -3,10 +3,16 @@ on:
   pull_request:
     branches: [ master, 'release-v*']
     types: [opened, synchronize, reopened]
-      
+
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   sonarcloud:
     name: SonarCloud Analysis
+    # Secrets are not exposed to Dependabot or fork PRs; the scan cannot authenticate there.
+    if: github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -17,37 +23,29 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
+      # Pass/fail of the tests is enforced by the "Unit Tests" job in ci.yml;
+      # here we only need the lcov report, even if a test fails.
       - name: Run tests with coverage
         run: npm run test:coverage
         continue-on-error: true
 
-      - name: Lint code
-        run: npm run lint
-        continue-on-error: true
-
-      - name: Validate JSON schemas
-        run: npm run validate
-        continue-on-error: true
-
+      # sonarcloud-github-action@v2 shipped Java 17, which SonarCloud no longer accepts.
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2.3.0
+        uses: SonarSource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65 # v8.4.1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          projectBaseDir: .
           args: >
             -Dsonar.projectKey=burgan-tech_vnext-schema
             -Dsonar.organization=burgan-tech
-            -Dsonar.projectVersion=1.0.0
-            -Dsonar.sources=index.js,schemas
+            -Dsonar.sources=index.js,schemas,vocabularies
             -Dsonar.tests=test
-            -Dsonar.language=js
             -Dsonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/**,**/*.d.ts
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
             -Dsonar.sourceEncoding=UTF-8
