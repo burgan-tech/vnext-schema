@@ -31,17 +31,17 @@ Each schema validates a specific component type in the workflow system. All comp
 | `tags` | array of strings |
 | `attributes` | component-specific object |
 
-The `attributes` object is where each schema diverges. Schemas use JSON Schema `if/then` conditionals extensively to handle multiple subtypes within a single schema (e.g., `task-definition.schema.json` covers 23 task types via the `type` discriminator; `workflow-definition.schema.json` covers types C/F/S/P).
+The `attributes` object is where each schema diverges. Schemas use JSON Schema `if/then` conditionals extensively to handle multiple subtypes within a single schema (e.g., `task-definition.schema.json` covers 24 task types via the `type` discriminator; `workflow-definition.schema.json` covers types C/F/S/P).
 
 #### Task types (`task-definition.schema.json`)
 
-`attributes.type` is a **string** discriminator (`"1"`–`"23"`), and each value has a matching `if/then` branch that constrains `attributes.config`. When adding a task type:
+`attributes.type` is a **string** discriminator (`"1"`–`"24"`), and each value has a matching `if/then` branch that constrains `attributes.config`. When adding a task type:
 
 1. Append the value to the `type` `enum` **and** its label to the parallel `enumDescriptions` array — the two arrays are index-aligned and must stay the same length.
 2. Add a new `if/then` entry at the end of the `attributes.allOf` list, with `then.title` set to the human-readable task name.
 3. Inside the branch, re-assert `type` as a `const` and set `additionalProperties: false` on both the branch and `config`.
 
-`1` Dapr HTTP Endpoint · `2` Dapr Binding · `3` Dapr Service · `4` Dapr PubSub · `5` Human · `6` HTTP · `7` Script · `8` Condition · `9` Timer · `10` Notification · `11` Start Flow · `12` Trigger Transition · `13` Get Instance Data · `14` SubProcess · `15` Get Instances · `16` SOAP · `17` State Store · `18` Cache Aside · `19` Get Instance · `20` Dapr Conversation · `21` FanOut · `22` External HTTP (same config contract as `6`, executed in-process by the Orchestrator — one shared `if/then` branch in the schema, deliberately) · `23` Python (a handler name in the domain's Python runtime image; closed config)
+`1` Dapr HTTP Endpoint · `2` Dapr Binding · `3` Dapr Service · `4` Dapr PubSub · `5` Human · `6` HTTP · `7` Script · `8` Condition · `9` Timer · `10` Notification · `11` Start Flow · `12` Trigger Transition · `13` Get Instance Data · `14` SubProcess · `15` Get Instances · `16` SOAP · `17` State Store · `18` Cache Aside · `19` Get Instance · `20` Dapr Conversation · `21` FanOut · `22` External HTTP (same config contract as `6`, executed in-process by the Orchestrator — one shared `if/then` branch in the schema, deliberately) · `23` Python (a handler name in the domain's Python runtime image; closed config) · `24` MCP (remote MCP server over streamable HTTP; credentials only as `{ secretRef }`)
 
 #### FanOut task (`type: "21"`)
 
@@ -51,6 +51,10 @@ Runs a referenced inner task once per item of a runtime-resolved collection, in 
 - `config.mode` accepts `inline` only; `durable` is reserved for a later phase and is rejected at parse time.
 - `config.join.policy` is one of `all` / `allSettled` (default) / `quorum` / `firstSuccess`. A conditional inside `config.allOf` requires `join.minSuccess` when the policy is `quorum`.
 - `config.errorBoundary.onError` reuses the same rule shape as state/transition error boundaries (`action` 0–5, `retryPolicy`, `priority`), applied **per item**.
+
+#### AI Agent state and `sys-agents` (`workflow-definition` / `agent-definition.schema.json`)
+
+`stateType: 6` (AiAgent) requires an `agent` block (`#/definitions/agentStateBinding`). The state's conditionals are an `allOf` of `if/then`s (wizard, AiAgent), and the AiAgent `else` forbids `agent` on other state types. Every transition shape, including the closed start/cancel/exit/updateData shapes and `sharedTransitions`, accepts an optional `description`. `agent-definition.schema.json` is the `sys-agents` component; tool `kind` 1/2/3 bindings are `if/then` branches. The runtime (`WorkflowValidator.ValidateAiAgentStates`, `AgentComponentValidator`) owns the semantic checks: candidate counts, reserved exits, `hints` keys, unique tool and participant names, environment ceilings.
 
 #### Schema component role (`schema-definition.schema.json`)
 

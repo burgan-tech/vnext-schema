@@ -8,6 +8,7 @@ export interface SchemaDefinitions {
     extensionDefinition: object;
     schemaDefinition: object;
     mappingDefinition: object;
+    agentDefinition: object;
     coreHeader: object;
   };
 
@@ -31,10 +32,11 @@ export interface SchemaDefinitions {
   extensionDefinition: object;
   schemaDefinition: object;
   mappingDefinition: object;
+  agentDefinition: object;
   coreHeader: object;
 
   // Helper functions
-  getSchema(type: 'core' | 'workflow' | 'task' | 'view' | 'function' | 'extension' | 'schema' | 'mapping' | 'header'): object | null;
+  getSchema(type: 'core' | 'workflow' | 'task' | 'view' | 'function' | 'extension' | 'schema' | 'mapping' | 'agent' | 'header'): object | null;
   getAvailableTypes(): string[];
   /** Registers every vocabulary on the validator so cross-file $refs (e.g. schema-definition → role vocabularies) resolve. Idempotent. */
   addVocabularies<T extends { getSchema(id: string): unknown; addSchema(schema: object): unknown }>(ajv: T): T;

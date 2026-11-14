@@ -16,11 +16,12 @@ This package provides comprehensive JSON Schema definitions used by the vNext ec
 - **Extension Definition**: Schema for extension component definitions (`sys-extensions`)
 - **Schema Definition**: Meta-schema for schema definitions (`sys-schemas`)
 - **Mapping Definition**: Schema for mapping component definitions (`sys-mappings`)
+- **Agent Definition**: Schema for AI agent component definitions (`sys-agents`, experimental)
 - **Core Header**: Schema for runtime HTTP headers and metadata (`sys-schemas`)
 
 ### Supported Task Types
 
-`task-definition.schema.json` validates 23 task types, selected through the `attributes.type` discriminator. Each type has its own `attributes.config` shape:
+`task-definition.schema.json` validates 24 task types, selected through the `attributes.type` discriminator. Each type has its own `attributes.config` shape:
 
 | `type` | Task | Purpose |
 |--------|------|---------|
@@ -47,6 +48,7 @@ This package provides comprehensive JSON Schema definitions used by the vNext ec
 | `21` | FanOut Task | Run an inner task once per collection item, in parallel, and join the results |
 | `22` | External HTTP Task | Same configuration contract as type 6, executed directly by the Orchestrator process instead of being routed through the Execution service |
 | `23` | Python Task | Call a named handler in the domain's own Python runtime container |
+| `24` | MCP Task | Call one operation of a remote MCP server over streamable HTTP (experimental) |
 
 #### External HTTP Task (`type: "22"`)
 
@@ -80,6 +82,33 @@ packages live in the image, so the task carries only a handler name:
 replaced by the task's input mapping (`SetInput`), `timeoutSeconds` is 1–50 (default 30). The config
 is closed: the earlier inline-script shape (`script`, `executionMode`) is rejected. Runtime contract
 and handler authoring: `docs/runtime/python-task.md` in the vnext repository.
+
+#### MCP Task (`type: "24"`)
+
+Calls one operation of a remote MCP (Model Context Protocol) server over streamable HTTP, in-process
+on the Orchestrator. Used standalone and as the binding of an agent's `kind: 3` tool. Experimental.
+
+```json
+{
+  "type": "24",
+  "config": {
+    "transport": "http",
+    "endpoint": "https://crm-mcp.internal/mcp",
+    "auth": { "header": "Authorization", "scheme": "Bearer", "secretRef": "vault/workflow-secret/CRM_MCP_TOKEN" },
+    "headers": { "X-Tenant": { "secretRef": "CRM_TENANT" } },
+    "operation": "callTool",
+    "tool": "search_customer",
+    "arguments": { "q": "x" },
+    "timeoutSeconds": 20
+  }
+}
+```
+
+`endpoint` is required (absolute http(s)); `operation` is one of `callTool` (default), `listTools`,
+`readResource` (needs `uri`), `listResources`, `getPrompt` (needs `prompt`), `listPrompts`;
+`timeoutSeconds` is 1–120 (default 20). Credentials are never authored inline: `auth` needs a
+`secretRef` and every `headers` value is a `{ "secretRef": "…" }` object — a plain-text header value is
+rejected. The endpoint host allow-list (`Mcp:AllowedHosts`) is checked by the runtime, not here.
 
 #### FanOut Task (`type: "21"`)
 
@@ -124,6 +153,43 @@ Authoring notes:
 - `execution.itemTimeoutSeconds` must be less than or equal to `execution.batchTimeoutSeconds` (also runtime-enforced).
 - A FanOut task cannot reference another FanOut task as its inner task.
 - `join.ordered` is accepted for forward compatibility; in `inline` mode item results are always ordered by item index.
+
+## AI Agent State and `sys-agents` (experimental)
+
+A workflow state of `stateType: 6` (AiAgent) runs a `sys-agents` component on entry and lets it pick one
+of the state's automatic transitions. The state must carry an `agent` block (no other state type may);
+its sub type is `0` or `5` and it cannot run a `subFlow`.
+
+```jsonc
+{
+  "key": "classifying", "stateType": 6, "subType": 5,
+  "agent": {
+    "agent": { "key": "triage-agent", "domain": "core", "flow": "sys-agents", "version": "1.0.0" },
+    "prompt": { "template": "<message>{{ data.message }}</message>",
+                "messages": [ { "role": "user", "content": "Example: my card is lost" } ],
+                "context": { "customer": "data.customer" } },
+    "output": { "path": "$.triage" },
+    "decision": { "mode": "model", "fallback": "classify-failed" }
+  },
+  "transitions": [ { "key": "is-question", "target": "drafting", "triggerType": 1, "description": "The customer asks." } ]
+}
+```
+
+- `agent`, `prompt` (a `template`, or a C# `location` + `code`), `output.path` (`$.…`) and `decision.fallback` are required.
+- `decision.mode`: `model` (default) | `rules` | `script` (needs `decision.mapping`).
+- `mode`: `single` (default) | `sequential` | `concurrent` | `handoff`. A team mode needs at least one
+  participant in `agents[]` (`name` matching `^[a-zA-Z0-9_-]{1,64}$`, `agent`, `description`); `single` allows none.
+- Every transition shape accepts an optional `description`: the "when" text the agent sees for a candidate.
+- Candidate counts, reserved exits being rule-less automatic transitions and `hints` keys are checked by the
+  runtime at publish, not here.
+
+`agent-definition.schema.json` validates the `sys-agents` component. `provider` (a profile name, never an
+endpoint or key), `instructions`, `output.schema` (`type: object`) and `policy` are required. `tools[]` entries
+are `kind` 1 (task: `binding.task`), 2 (script: `binding.code` as ScriptCode) or 3 (MCP: `binding.task`
+pointing at a type-24 task, a non-empty `binding.allow`, an optional `prefix`). Kinds 1 and 2 need `name`
+(matching `^[a-zA-Z0-9_-]{1,64}$`), `description` and object `parameters`, and may set `requiresApproval`.
+`memory` (`mode`, `storage`, `compaction: trim | summarize`, …), `model` and `audit` are optional.
+Tool-name uniqueness and the environment ceilings are runtime checks.
 
 ## Field Exposure Vocabulary (`view-vocab.json`)
 
@@ -295,7 +361,7 @@ const headerSchemaByType = schemas.getSchema('header');
 
 // Get all available schema types
 const availableTypes = schemas.getAvailableTypes();
-// Returns: ['core', 'workflow', 'task', 'view', 'function', 'extension', 'schema', 'header']
+// Returns: ['core', 'workflow', 'task', 'view', 'function', 'extension', 'schema', 'mapping', 'agent', 'header']
 ```
 
 ## Schema Structure
