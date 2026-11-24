@@ -483,10 +483,39 @@ Two formats (oneOf):
 |-------|------|----------|----------|------------|
 | order | integer | Yes | No | minimum: 1 |
 | task | reference | Yes | No | Task component reference |
-| mapping | scriptCode | Yes | No | Input/output mapping |
+| mapping | scriptCode | One of mapping / input / output | No | C# `IMapping` input/output mapping. Mutually exclusive with `input` / `output` |
+| input | inputMappingBlock | One of mapping / input / output | No | Declarative request mapping (see below) |
+| output | outputMappingBlock | One of mapping / input / output | No | Declarative result mapping (see below) |
 | errorBoundary | errorBoundary | No | Yes | Task-level error boundary |
 | variableKey | string | No | No | `^[A-Za-z_][A-Za-z0-9_]*$`, maxLength 100. Response slot in `context.TaskResponse`; defaults to the task key as a variable name (`send-notification` → `sendNotification`). Entries at one `order` run in parallel and need distinct slots |
 | _comment | string | No | No | - |
+
+A binding carries **either** `mapping` **or** one or both declarative blocks — never both, never neither.
+
+### inputMappingBlock / outputMappingBlock
+
+`additionalProperties: false`, at least one member.
+
+| Field | Type | Constraint |
+|-------|------|------------|
+| select | string | Read path: `$`, `.name`, `['name']`, `[n]`, `[*]`. Input: starts with a variable (`$.data.customer`); output: reads `result` (`{ body, headers, statusCode }`, default `$.body`) |
+| into | string | Write path, no index / wildcard. Input: `$.body`, `$.headers` or `$.query` (no `$.route`), and `select` + `into` appear together; output: an instance-data path other than the root `$` |
+| set | object | Write path (same rule as `into`) → Dynamic Expresso expression (string, 1–8000 chars). Applied after `into`, in declaration order |
+
+Expression variables: `data`, `input`, `instance` (camelCase members such as `currentState`), `now`, `user` (`available`, `roles`, `hasRole`), `context` (legacy), and `result` in output only. Requires a runtime that supports declarative task mappings.
+
+```json
+{
+  "order": 1,
+  "task": { "key": "score-task", "domain": "core", "version": "1.0.0", "flow": "sys-tasks" },
+  "input": { "set": { "$.body.customerId": "data.customer.id", "$.headers.x-channel": "\"web\"" } },
+  "output": {
+    "select": "$.body.score",
+    "into": "$.kyc.score",
+    "set": { "$.kyc.checkedAt": "now", "$.kyc.state": "instance.currentState" }
+  }
+}
+```
 
 ---
 

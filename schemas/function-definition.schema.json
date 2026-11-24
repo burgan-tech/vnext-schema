@@ -102,12 +102,48 @@
                 "task": {
                     "type": "object",
                     "description": "Function execution task (legacy single-task; use onExecutionTasks for multi-task)",
-                    "required": [
-                        "order",
-                        "task",
-                        "mapping"
-                    ],
+                        "anyOf": [
+                            {
+                                "required": [
+                                    "mapping"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "input"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "output"
+                                ]
+                            }
+                        ],
+                        "not": {
+                            "required": [
+                                "mapping"
+                            ],
+                            "anyOf": [
+                                {
+                                    "required": [
+                                        "input"
+                                    ]
+                                },
+                                {
+                                    "required": [
+                                        "output"
+                                    ]
+                                }
+                            ]
+                        },
                     "properties": {
+                            "input": {
+                                "$ref": "#/definitions/inputMappingBlock"
+                            },
+                            "output": {
+                                "$ref": "#/definitions/outputMappingBlock"
+                            },
+
                         "_comment": {
                             "type": "string",
                             "description": "Comment about the task"
@@ -184,12 +220,48 @@
                     "minItems": 1,
                     "items": {
                         "type": "object",
-                        "required": [
-                            "order",
-                            "task",
-                            "mapping"
-                        ],
+                            "anyOf": [
+                                {
+                                    "required": [
+                                        "mapping"
+                                    ]
+                                },
+                                {
+                                    "required": [
+                                        "input"
+                                    ]
+                                },
+                                {
+                                    "required": [
+                                        "output"
+                                    ]
+                                }
+                            ],
+                            "not": {
+                                "required": [
+                                    "mapping"
+                                ],
+                                "anyOf": [
+                                    {
+                                        "required": [
+                                            "input"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "output"
+                                        ]
+                                    }
+                                ]
+                            },
                         "properties": {
+                                "input": {
+                                    "$ref": "#/definitions/inputMappingBlock"
+                                },
+                                "output": {
+                                    "$ref": "#/definitions/outputMappingBlock"
+                                },
+
                             "_comment": {
                                 "type": "string",
                                 "description": "Comment about the task"
@@ -443,6 +515,108 @@
     },
     "additionalProperties": false,
     "definitions": {
+            "mappingReadPath": {
+                "type": "string",
+                "pattern": "^\\$(?:\\.[^.\\[\\]'\"\\s]+|\\['(?:[^'\\\\]|\\\\['\\\\])*'\\]|\\[(?:[0-9]+|\\*)\\])*$",
+                "maxLength": 1000,
+                "description": "JSON path read by a declarative mapping: $, .name, ['name'], [n], [*]. No filters, no recursive descent."
+            },
+            "mappingWritePath": {
+                "type": "string",
+                "pattern": "^\\$(?:\\.[^.\\[\\]'\"\\s]+|\\['(?:[^'\\\\]|\\\\['\\\\])*'\\])+$",
+                "maxLength": 1000,
+                "description": "Instance-data write target of a declarative output mapping: $ followed by at least one .name or ['name'] segment. No index, no wildcard, not the root."
+            },
+            "mappingInputWritePath": {
+                "type": "string",
+                "pattern": "^\\$(?:\\.(?:body|headers|query)|\\['(?:body|headers|query)'\\])(?:\\.[^.\\[\\]'\"\\s]+|\\['(?:[^'\\\\]|\\\\['\\\\])*'\\])*$",
+                "maxLength": 1000,
+                "description": "Request-surface write target of a declarative input mapping: $.body, $.headers or $.query, then .name / ['name'] segments. $.route is not supported."
+            },
+            "mappingExpression": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8000,
+                "description": "Dynamic Expresso expression producing the value to write. Variables: data, input, instance (camelCase members), now, user (available, roles, hasRole), context (legacy), result (output only). Assignment is disabled."
+            },
+            "inputMappingBlock": {
+                "type": "object",
+                "description": "Declarative input mapping: shapes the task request. select + into copy one value (both or neither); set writes expressions in declaration order. Targets are request surfaces the task type supports.",
+                "minProperties": 1,
+                "additionalProperties": false,
+                "properties": {
+                    "select": {
+                        "$ref": "#/definitions/mappingReadPath",
+                        "description": "Path read from the scope; starts with a variable name, for example $.data.customer."
+                    },
+                    "into": {
+                        "$ref": "#/definitions/mappingInputWritePath"
+                    },
+                    "set": {
+                        "type": "object",
+                        "minProperties": 1,
+                        "propertyNames": {
+                            "$ref": "#/definitions/mappingInputWritePath"
+                        },
+                        "additionalProperties": {
+                            "$ref": "#/definitions/mappingExpression"
+                        },
+                        "description": "Request-surface path -> expression, applied after into in declaration order."
+                    }
+                },
+                "allOf": [
+                    {
+                        "if": {
+                            "required": [
+                                "select"
+                            ]
+                        },
+                        "then": {
+                            "required": [
+                                "into"
+                            ]
+                        }
+                    },
+                    {
+                        "if": {
+                            "required": [
+                                "into"
+                            ]
+                        },
+                        "then": {
+                            "required": [
+                                "select"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "outputMappingBlock": {
+                "type": "object",
+                "description": "Declarative output mapping: writes the task result into instance data as one append. select reads result (default $.body); into writes the selected value (without into it merges at the data root); set writes expressions after into, in declaration order.",
+                "minProperties": 1,
+                "additionalProperties": false,
+                "properties": {
+                    "select": {
+                        "$ref": "#/definitions/mappingReadPath",
+                        "description": "Path read from result ({ body, headers, statusCode }); root $ is result."
+                    },
+                    "into": {
+                        "$ref": "#/definitions/mappingWritePath"
+                    },
+                    "set": {
+                        "type": "object",
+                        "minProperties": 1,
+                        "propertyNames": {
+                            "$ref": "#/definitions/mappingWritePath"
+                        },
+                        "additionalProperties": {
+                            "$ref": "#/definitions/mappingExpression"
+                        },
+                        "description": "Instance-data path -> expression, applied after into in declaration order (a later entry wins)."
+                    }
+                }
+            },
         "componentRef": {
             "description": "Reference to another component - either an explicit reference or a file $ref.",
             "oneOf": [
