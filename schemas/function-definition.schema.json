@@ -529,19 +529,19 @@
             },
             "mappingInputWritePath": {
                 "type": "string",
-                "pattern": "^\\$(?:\\.(?:body|headers|query)|\\['(?:body|headers|query)'\\])(?:\\.[^.\\[\\]'\"\\s]+|\\['(?:[^'\\\\]|\\\\['\\\\])*'\\])*$",
+                "pattern": "^\\$(?:\\.[^.\\[\\]'\"\\s]+|\\['(?:[^'\\\\]|\\\\['\\\\])*'\\])+$",
                 "maxLength": 1000,
-                "description": "Request-surface write target of a declarative input mapping: $.body, $.headers or $.query, then .name / ['name'] segments. $.route is not supported."
+                "description": "Task-config write target of a declarative input mapping: a field of the task's config as authored in the task definition ($.url, $.body.customer, $.headers.x-channel, $.queryString), then .name / ['name'] segments. No index, no wildcard, not the root."
             },
             "mappingExpression": {
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 8000,
-                "description": "Dynamic Expresso expression producing the value to write. Variables: data, input, instance (camelCase members), now, user (available, roles, hasRole), context (legacy), result (output only). Assignment is disabled."
+                "description": "Dynamic Expresso expression producing the value to write. Variables: data, input, instance (camelCase members), now, user (available, roles, hasRole), context (legacy), task (the task's config), config (host configuration: config.get(key[, fallback])), result (output only). Function: urlEncode(value). Assignment is disabled."
             },
             "inputMappingBlock": {
                 "type": "object",
-                "description": "Declarative input mapping: shapes the task request. select + into copy one value (both or neither); set writes expressions in declaration order. Targets are request surfaces the task type supports.",
+                "description": "Declarative input mapping: shapes the task request by editing the task's config (url, body, headers, ...) before the call. select + into copy one value (both or neither); set writes expressions in declaration order.",
                 "minProperties": 1,
                 "additionalProperties": false,
                 "properties": {
@@ -561,7 +561,7 @@
                         "additionalProperties": {
                             "$ref": "#/definitions/mappingExpression"
                         },
-                        "description": "Request-surface path -> expression, applied after into in declaration order."
+                        "description": "Task-config path -> expression, applied after into in declaration order."
                     }
                 },
                 "allOf": [

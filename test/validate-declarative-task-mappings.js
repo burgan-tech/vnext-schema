@@ -61,9 +61,13 @@ const valid = {
   'output select only': bind({ output: { select: '$.body' } }),
   'output set with quoted and hyphenated names': bind({ output: { set: { '$.kyc[\'risk level\']': '1', '$.x-ref.id': '"a"' } } }),
   'output select with index and wildcard': bind({ output: { select: '$.body.items[0].tags[*]', into: '$.tags' } }),
-  'input set on every surface': bind({
-    input: { set: { '$.body.customerId': 'data.customer.id', '$.headers.x-channel': '"web"', '$.query.lang': '"tr"' } }
+  'input set on task-config fields': bind({
+    input: { set: { '$.body.customerId': 'data.customer.id', '$.headers.x-channel': '"web"', '$.queryString': '"lang=tr"' } }
   }),
+  'input set on the url from task + config': bind({
+    input: { set: { '$.url': 'task.url.ToString().Replace("API_BASEURL", config.get("Example:ApiBaseUrl")) + "/" + urlEncode(data.id)' } }
+  }),
+  'input target on any config field': bind({ input: { set: { '$.route.id': '1', '$.timeoutSeconds': '60' } } }),
   'input select + into': bind({ input: { select: '$.data.customer', into: '$.body.customer' } }),
   'input whole body': bind({ input: { select: '$.data', into: '$.body' } }),
   'input and output together': bind({ input: { set: { '$.body.a': '1' } }, output: { into: '$.b' } })
@@ -86,8 +90,8 @@ const invalid = {
   'malformed select': bind({ output: { select: 'body.score' } }),
   'input select without into': bind({ input: { select: '$.data.customer' } }),
   'input into without select': bind({ input: { into: '$.body.customer' } }),
-  'input target on $.route': bind({ input: { set: { '$.route.id': '1' } } }),
-  'input target outside a surface': bind({ input: { set: { '$.data.x': '1' } } })
+  'input target at the root': bind({ input: { set: { '$': '1' } } }),
+  'input target with index': bind({ input: { set: { '$.body.items[0]': '1' } } })
 };
 
 let checked = 0;
