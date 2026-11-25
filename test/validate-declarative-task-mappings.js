@@ -114,6 +114,91 @@ for (const [surface, run, errors] of surfaces) {
   }
 }
 
+// --- Phase B: the same blocks passed through to real task executors -----------------------------
+// CacheAside (task type 18): sourceInput / sourceOutput, alternative to sourceMapping (not both).
+// AI agent kind-1 tool binding: input / output, alternative to mapping (not both).
+const taskSchema = require('../schemas/task-definition.schema.json');
+const agentSchema = require('../schemas/agent-definition.schema.json');
+const validateTask = new Ajv({ strict: false, allErrors: true, validateFormats: false }).compile(taskSchema);
+const validateAgent = new Ajv({ strict: false, allErrors: true, validateFormats: false }).compile(agentSchema);
+
+const cacheAsideDoc = config => ({
+  key: 'ca', domain: 'test', flow: 'sys-tasks', flowVersion: '1.0.0', version: '1.0.0', tags: ['test'],
+  attributes: { type: '18', config: { sourceTask: { key: 'src', domain: 'test', version: '1.0.0' }, ...config } }
+});
+const agentDoc = binding => ({
+  key: 'triage-agent', domain: 'test', flow: 'sys-agents', flowVersion: '1.0.0', version: '1.0.0', tags: ['test'],
+  attributes: {
+    provider: 'bank-llm',
+    instructions: { text: 'You classify.' },
+    output: { schema: { type: 'object', properties: { category: { type: 'string' } }, required: ['category'] } },
+    policy: { maxIterations: 6, maxToolCalls: 10, timeoutSeconds: 60 },
+    tools: [{
+      kind: 1, name: 'get_customer', description: 'Customer by id.',
+      parameters: { type: 'object', properties: { customerId: { type: 'string' } }, required: ['customerId'] },
+      binding: { task: taskRef, ...binding }
+    }]
+  }
+});
+
+const inputBlock = { set: { '$.url': 'task.url + "/" + urlEncode(input.customerId)' } };
+const outputBlock = { select: '$.body.customer', set: { '$.fetchedAt': 'now' } };
+
+const phaseB = [
+  ['cacheAside', 'no source mapping (unchanged)', cacheAsideDoc({}), true],
+  ['cacheAside', 'sourceMapping only (unchanged)', cacheAsideDoc({ sourceMapping: script }), true],
+  ['cacheAside', 'sourceInput only', cacheAsideDoc({ sourceInput: inputBlock }), true],
+  ['cacheAside', 'sourceOutput only', cacheAsideDoc({ sourceOutput: outputBlock }), true],
+  ['cacheAside', 'sourceInput and sourceOutput', cacheAsideDoc({ sourceInput: inputBlock, sourceOutput: outputBlock }), true],
+  ['cacheAside', 'sourceMapping and sourceInput', cacheAsideDoc({ sourceMapping: script, sourceInput: inputBlock }), false],
+  ['cacheAside', 'sourceMapping and sourceOutput', cacheAsideDoc({ sourceMapping: script, sourceOutput: outputBlock }), false],
+  ['cacheAside', 'empty sourceOutput', cacheAsideDoc({ sourceOutput: {} }), false],
+  ['cacheAside', 'sourceInput select without into', cacheAsideDoc({ sourceInput: { select: '$.data' } }), false],
+  ['agent tool', 'mapping only (unchanged)', agentDoc({ mapping: script }), true],
+  ['agent tool', 'no mapping (unchanged)', agentDoc({}), true],
+  ['agent tool', 'input only', agentDoc({ input: inputBlock }), true],
+  ['agent tool', 'output only', agentDoc({ output: outputBlock }), true],
+  ['agent tool', 'input and output', agentDoc({ input: inputBlock, output: outputBlock }), true],
+  ['agent tool', 'mapping and input', agentDoc({ mapping: script, input: inputBlock }), false],
+  ['agent tool', 'mapping and output', agentDoc({ mapping: script, output: outputBlock }), false],
+  ['agent tool', 'output into root', agentDoc({ output: { into: '$' } }), false]
+];
+for (const [surface, name, doc, expected] of phaseB) {
+  checked++;
+  const validate = surface === 'cacheAside' ? validateTask : validateAgent;
+  if (validate(doc) !== expected) {
+    failures.push(`${surface} / ${name}: expected ${expected ? 'valid' : 'invalid'}, got ${expected ? JSON.stringify(validate.errors) : 'valid'}`);
+  }
+}
+
+// --- Phase A: Dynamic Expresso in value slots (timer, workflow timeout and subflow timeout override) ---
+const expr = code => ({ location: 'dynamicExpresso', encoding: 'NAT', code });
+const timedDoc = () => {
+  const doc = workflowDoc(bind({ mapping: script }));
+  const timeout = {
+    key: 'expired', target: 'end', versionStrategy: 'Minor', timer: { reset: 'N', duration: 'PT1H' },
+    mapping: expr('now.AddHours(2)')
+  };
+  doc.attributes.timeout = timeout;
+  doc.attributes.states[0].transitions.push({
+    key: 'auto-timer', target: 'end', triggerType: 2, versionStrategy: 'Minor', labels: labels('Timer'),
+    timer: expr('TimeSpan.FromMinutes(15)')
+  });
+  doc.attributes.states.splice(1, 0, {
+    key: 'child', stateType: 4, versionStrategy: 'Minor', labels: labels('Child'),
+    subFlow: {
+      type: 'S', process: { key: 'child-flow', domain: 'test', flow: 'sys-flows', version: '1.0.0' }, mapping: script,
+      overrides: { timeout: { ...timeout, mapping: expr('"PT15M"') } }
+    },
+    transitions: [{ key: 'child-done', target: 'end', triggerType: 1, versionStrategy: 'Minor', labels: labels('Done') }]
+  });
+  return doc;
+};
+checked++;
+if (!validateWorkflow(timedDoc())) {
+  failures.push(`workflow / dynamicExpresso timer + timeout mappings: expected valid, got ${JSON.stringify(validateWorkflow.errors)}`);
+}
+
 if (failures.length) {
   console.error(failures.join('\n'));
   console.error(`\n❌ ${failures.length} of ${checked} declarative mapping checks failed`);

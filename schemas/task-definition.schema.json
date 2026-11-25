@@ -1272,7 +1272,7 @@
                             },
                             "config": {
                                 "type": "object",
-                                "description": "Cache Aside Task configuration - Read-through cache pattern: the cache key comes from the static key, the key script or the task-level mapping InputHandler (SetCacheKey); on a miss the referenced source task runs as a task (its request shaped by sourceMapping), the sourceMapping OutputHandler result is written to the Dapr state store with a TTL and returned.",
+                                "description": "Cache Aside Task configuration - Read-through cache pattern: the cache key comes from the static key, the key script or the task-level mapping InputHandler (SetCacheKey); on a miss the referenced source task runs as a task (its request shaped by sourceMapping or the declarative sourceInput block), the sourceMapping OutputHandler result (or the sourceOutput-shaped result) is written to the Dapr state store with a TTL and returned.",
                                 "properties": {
                                     "key": {
                                         "description": "Cache key. A string is a static key. An object is a key script (ScriptCode): location 'dynamicExpresso' evaluates a Dynamic Expresso expression; any other location is a C# ICacheKeyMapping. NAT, B64 and REF encodings are allowed. Optional - the task-level mapping InputHandler (SetCacheKey) may set the key instead.",
@@ -1336,7 +1336,15 @@
                                     },
                                     "sourceMapping": {
                                         "$ref": "#/definitions/scriptCode",
-                                        "description": "The source task's IMapping: InputHandler runs before the source call (e.g. SetKey/SetUrl), OutputHandler after it; its Data is what is cached."
+                                        "description": "The source task's IMapping: InputHandler runs before the source call (e.g. SetKey/SetUrl), OutputHandler after it; its Data is what is cached. Alternative to sourceInput / sourceOutput - not both."
+                                    },
+                                    "sourceInput": {
+                                        "$ref": "#/definitions/inputMappingBlock",
+                                        "description": "Declarative input block for the source task (same shape as a task binding's input): edits the source task's config (url, body, headers, ...) before the call on a cache miss. Alternative to sourceMapping - not both."
+                                    },
+                                    "sourceOutput": {
+                                        "$ref": "#/definitions/outputMappingBlock",
+                                        "description": "Declarative output block for the source task (same shape as a task binding's output): shapes the source result (select / into / set) into the value that is cached and returned. Alternative to sourceMapping - not both."
                                     },
                                     "bypassOnCacheError": {
                                         "type": "boolean",
@@ -1352,6 +1360,23 @@
                                 "required": [
                                     "sourceTask"
                                 ],
+                                "not": {
+                                    "required": [
+                                        "sourceMapping"
+                                    ],
+                                    "anyOf": [
+                                        {
+                                            "required": [
+                                                "sourceInput"
+                                            ]
+                                        },
+                                        {
+                                            "required": [
+                                                "sourceOutput"
+                                            ]
+                                        }
+                                    ]
+                                },
                                 "additionalProperties": false
                             }
                         },
@@ -2045,6 +2070,108 @@
         }
     },
     "definitions": {
+        "mappingReadPath": {
+            "type": "string",
+            "pattern": "^\\$(?:\\.[^.\\[\\]'\"\\s]+|\\['(?:[^'\\\\]|\\\\['\\\\])*'\\]|\\[(?:[0-9]+|\\*)\\])*$",
+            "maxLength": 1000,
+            "description": "JSON path read by a declarative mapping: $, .name, ['name'], [n], [*]. No filters, no recursive descent."
+        },
+        "mappingWritePath": {
+            "type": "string",
+            "pattern": "^\\$(?:\\.[^.\\[\\]'\"\\s]+|\\['(?:[^'\\\\]|\\\\['\\\\])*'\\])+$",
+            "maxLength": 1000,
+            "description": "Instance-data write target of a declarative output mapping: $ followed by at least one .name or ['name'] segment. No index, no wildcard, not the root."
+        },
+        "mappingInputWritePath": {
+            "type": "string",
+            "pattern": "^\\$(?:\\.[^.\\[\\]'\"\\s]+|\\['(?:[^'\\\\]|\\\\['\\\\])*'\\])+$",
+            "maxLength": 1000,
+            "description": "Task-config write target of a declarative input mapping: a field of the task's config as authored in the task definition ($.url, $.body.customer, $.headers.x-channel, $.queryString), then .name / ['name'] segments. No index, no wildcard, not the root."
+        },
+        "mappingExpression": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000,
+            "description": "Dynamic Expresso expression producing the value to write. Variables: data, input, instance (camelCase members), now, user (available, roles, hasRole), context (legacy), task (the task's config), config (host configuration: config.get(key[, fallback])), result (output only). Function: urlEncode(value). Assignment is disabled."
+        },
+        "inputMappingBlock": {
+            "type": "object",
+            "description": "Declarative input mapping: shapes the task request by editing the task's config (url, body, headers, ...) before the call. select + into copy one value (both or neither); set writes expressions in declaration order.",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "select": {
+                    "$ref": "#/definitions/mappingReadPath",
+                    "description": "Path read from the scope; starts with a variable name, for example $.data.customer."
+                },
+                "into": {
+                    "$ref": "#/definitions/mappingInputWritePath"
+                },
+                "set": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "propertyNames": {
+                        "$ref": "#/definitions/mappingInputWritePath"
+                    },
+                    "additionalProperties": {
+                        "$ref": "#/definitions/mappingExpression"
+                    },
+                    "description": "Task-config path -> expression, applied after into in declaration order."
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "required": [
+                            "select"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "into"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "required": [
+                            "into"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "select"
+                        ]
+                    }
+                }
+            ]
+        },
+        "outputMappingBlock": {
+            "type": "object",
+            "description": "Declarative output mapping: writes the task result into instance data as one append. select reads result (default $.body); into writes the selected value (without into it merges at the data root); set writes expressions after into, in declaration order.",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "select": {
+                    "$ref": "#/definitions/mappingReadPath",
+                    "description": "Path read from result ({ body, headers, statusCode }); root $ is result."
+                },
+                "into": {
+                    "$ref": "#/definitions/mappingWritePath"
+                },
+                "set": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "propertyNames": {
+                        "$ref": "#/definitions/mappingWritePath"
+                    },
+                    "additionalProperties": {
+                        "$ref": "#/definitions/mappingExpression"
+                    },
+                    "description": "Instance-data path -> expression, applied after into in declaration order (a later entry wins)."
+                }
+            }
+        },
         "scriptCode": {
             "type": "object",
             "properties": {
