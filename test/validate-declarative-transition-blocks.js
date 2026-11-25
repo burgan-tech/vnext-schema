@@ -64,6 +64,15 @@ const cases = [
   ['exit mapping + output', false, wellKnown('exit', { mapping: script, output: out })],
   ['transition empty output', false, doc({ state: { output: {} } })],
   ['startTransition input is not a member', false, doc({ start: { input: inp } })],
+  // automatic and scheduled transitions take no output (the runtime rejects it at publish)
+  ['automatic transition output', false, doc({ state: { triggerType: 1, rule: script, output: out } })],
+  ['automatic default transition output', false, doc({ state: { triggerType: 1, triggerKind: 10, output: out } })],
+  ['scheduled transition output', false, doc({ state: { triggerType: 2, timer: script, output: out } })],
+  ['scheduled sharedTransition output', false, doc({ shared: { triggerType: 2, timer: script, output: out } })],
+  ['automatic transition without output (control)', true, doc({ state: { triggerType: 1, rule: script } })],
+  ['automatic default transition without output (control)', true, doc({ state: { triggerType: 1, triggerKind: 10 } })],
+  ['scheduled transition without output (control)', true, doc({ state: { triggerType: 2, timer: script } })],
+  ['scheduled sharedTransition without output (control)', true, doc({ shared: { triggerType: 2, timer: script } })],
   // subFlow blocks
   ['subFlow mapping only (unchanged)', true, subflowDoc({ mapping: script })],
   ['subFlow input + output, no mapping', true, subflowDoc({ input: inp, output: out })],
@@ -72,7 +81,10 @@ const cases = [
   ['subFlow mapping + input', false, subflowDoc({ mapping: script, input: inp })],
   ['subFlow mapping + output', false, subflowDoc({ mapping: script, output: out })],
   ['subFlow neither mapping nor blocks', false, subflowDoc({})],
-  ['subFlow empty input', false, subflowDoc({ input: {} })]
+  ['subFlow empty input', false, subflowDoc({ input: {} })],
+  ['subFlow null mapping + input (null counts as absent)', true, subflowDoc({ mapping: null, input: inp })],
+  ['subFlow null mapping + output (null counts as absent)', true, subflowDoc({ mapping: null, output: out })],
+  ['subFlow null mapping only', false, subflowDoc({ mapping: null })]
 ];
 
 const failures = [];

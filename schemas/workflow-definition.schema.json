@@ -1186,12 +1186,16 @@
             "process"
           ],
           "anyOf": [
-            { "required": ["mapping"] },
+            {
+              "required": ["mapping"],
+              "properties": { "mapping": { "not": { "type": "null" } } }
+            },
             { "required": ["input"] },
             { "required": ["output"] }
           ],
           "not": {
             "required": ["mapping"],
+            "properties": { "mapping": { "not": { "type": "null" } } },
             "anyOf": [
               { "required": ["input"] },
               { "required": ["output"] }
@@ -1212,7 +1216,11 @@
               "description": "SubFlow process reference"
             },
             "mapping": {
-              "$ref": "#/definitions/scriptCode"
+              "anyOf": [
+                { "$ref": "#/definitions/scriptCode" },
+                { "type": "null" }
+              ],
+              "description": "Script mapping for the child's start request and result. A null mapping counts as absent; exclusive with input / output."
             },
             "input": {
               "$ref": "#/definitions/inputMappingBlock",
@@ -1581,6 +1589,9 @@
               },
               "mapping": {
                 "type": "null"
+              },
+              "output": {
+                "type": "null"
               }
             }
           }
@@ -1622,6 +1633,9 @@
               },
               "mapping": {
                 "type": "null"
+              },
+              "output": {
+                "type": "null"
               }
             }
           }
@@ -1655,6 +1669,9 @@
                 "type": "null"
               },
               "mapping": {
+                "type": "null"
+              },
+              "output": {
                 "type": "null"
               }
             }
@@ -1941,6 +1958,9 @@
                 "type": "null"
               },
               "mapping": {
+                "type": "null"
+              },
+              "output": {
                 "type": "null"
               }
             }
