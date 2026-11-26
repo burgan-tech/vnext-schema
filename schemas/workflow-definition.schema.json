@@ -226,13 +226,20 @@
         "output": {
           "anyOf": [
             {
-              "$ref": "#/definitions/scriptCode"
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/scriptCode"
+                },
+                {
+                  "$ref": "#/definitions/workflowOutputBlock"
+                }
+              ]
             },
             {
               "type": "null"
             }
           ],
-          "description": "Optional output mapping for the workflow. Based on ScriptCode definition."
+          "description": "Optional output mapping for the workflow (sync responses only). Either a script (ScriptCode: location/code) or a declarative block (select/into/set) that builds { data, statusCode, headers }; mixing script and block members is invalid."
         },
         "event": {
           "anyOf": [
@@ -399,6 +406,112 @@
         "minLength": 1,
         "maxLength": 8000,
         "description": "Dynamic Expresso expression producing the value to write. Variables: data, input, instance (camelCase members), now, user (available, roles, hasRole), context (legacy), task (the task's config), config (host configuration: config.get(key[, fallback])), result (output only). Function: urlEncode(value). Assignment is disabled."
+      },
+      "eventInputBlock": {
+        "type": "object",
+        "description": "Declarative event mapping (alternative to 'mapping'): shapes the document { key, attributes } from the event payload. Variables: input (the event payload after CloudEvent unwrapping; null for an empty body), now, context, headers (event headers). data, instance and user do not exist. attributes starts empty; key is a string or absent. select + into copy one value (both or neither); set writes expressions in declaration order. Publish-time rules (select needs into, empty blocks) are enforced by the runtime.",
+        "minProperties": 1,
+        "additionalProperties": false,
+        "properties": {
+          "select": {
+            "$ref": "#/definitions/mappingReadPath",
+            "description": "Path read from the scope; starts with a variable name, for example $.input.customerId."
+          },
+          "into": {
+            "$ref": "#/definitions/mappingInputWritePath",
+            "description": "Target in the event document: $.key or $.attributes.<name>."
+          },
+          "set": {
+            "type": "object",
+            "minProperties": 1,
+            "propertyNames": {
+              "$ref": "#/definitions/mappingInputWritePath"
+            },
+            "additionalProperties": {
+              "$ref": "#/definitions/mappingExpression"
+            },
+            "description": "Event-document path ($.key, $.attributes.<name>) -> expression, applied after into in declaration order."
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "select"
+              ]
+            },
+            "then": {
+              "required": [
+                "into"
+              ]
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "into"
+              ]
+            },
+            "then": {
+              "required": [
+                "select"
+              ]
+            }
+          }
+        ]
+      },
+      "workflowOutputBlock": {
+        "type": "object",
+        "description": "Declarative workflow output (alternative to a script; sync responses only, never for sub-flow instances). Builds the document { data, statusCode, headers }. Variables: data (latest data; x-encryption fields stay tokens), input (the admitted hop payload; null when no hop ran here), instance, now, user (the caller), context, headers. statusCode must be an integer, headers an object of strings; data absent or null means an empty response. select + into copy one value (both or neither); set writes expressions in declaration order. Any failure falls back to the standard envelope.",
+        "minProperties": 1,
+        "additionalProperties": false,
+        "properties": {
+          "select": {
+            "$ref": "#/definitions/mappingReadPath",
+            "description": "Path read from the scope; starts with a variable name, for example $.data.customer."
+          },
+          "into": {
+            "$ref": "#/definitions/mappingWritePath",
+            "description": "Target in the response document: $.data..., $.statusCode or $.headers.<name>."
+          },
+          "set": {
+            "type": "object",
+            "minProperties": 1,
+            "propertyNames": {
+              "$ref": "#/definitions/mappingWritePath"
+            },
+            "additionalProperties": {
+              "$ref": "#/definitions/mappingExpression"
+            },
+            "description": "Response-document path -> expression, applied after into in declaration order."
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "select"
+              ]
+            },
+            "then": {
+              "required": [
+                "into"
+              ]
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "into"
+              ]
+            },
+            "then": {
+              "required": [
+                "select"
+              ]
+            }
+          }
+        ]
       },
       "inputMappingBlock": {
         "type": "object",
@@ -1021,15 +1134,19 @@
     },
     "event": {
       "type": "object",
-      "description": "Event mapping for the event-workflow feature. The referenced mapping script (implements IEventMapping) turns the raw external event payload into an InstanceKey + Body.",
-      "required": [
-        "mapping"
-      ],
+      "description": "Event mapping for the event-workflow feature. Exactly one of 'mapping' (script implementing IEventMapping) or 'input' (declarative block) turns the raw external event payload into an instance key + attributes.",
       "properties": {
         "mapping": {
           "$ref": "#/definitions/scriptCode"
+        },
+        "input": {
+          "$ref": "#/definitions/eventInputBlock"
         }
       },
+      "oneOf": [
+        { "required": ["mapping"] },
+        { "required": ["input"] }
+      ],
       "additionalProperties": false
     },
     "scriptCode": {
