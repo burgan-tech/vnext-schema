@@ -1,5 +1,6 @@
 /**
- * Document-level tests for task-definition.schema.json - CacheAside task (type 18).
+ * Document-level tests for task-definition.schema.json - CacheAside task (type 18) and the HTTP task
+ * config (types 6 / 22).
  *
  * validate-schemas.js only checks that each schema is itself valid JSON Schema. This file validates
  * real CacheAside task documents: `key` is a static string or a ScriptCode object, `sourceMapping`
@@ -87,6 +88,35 @@ expectInvalid('sourceMapping: REF with a string code', doc({
 const missingSource = doc();
 delete missingSource.attributes.config.sourceTask;
 expectInvalid('missing sourceTask', missingSource);
+
+// HTTP task (types 6 and 22 share one config): rawBody is read by the runtime's HttpTask and sent as is.
+const httpDoc = (type, config = {}) => ({
+  key: 'http',
+  version: VERSION,
+  domain: DOMAIN,
+  flow: 'sys-tasks',
+  flowVersion: VERSION,
+  tags: ['http'],
+  attributes: {
+    type,
+    config: { url: 'https://example.test/api', method: 'POST', ...config }
+  }
+});
+
+expectValid('HTTP (6): minimal', httpDoc('6'));
+expectValid('HTTP (6): rawBody XML with contentType', httpDoc('6', {
+  rawBody: '<order><id>42</id></order>',
+  contentType: 'application/xml'
+}));
+expectValid('HTTP (6): rawBody form-urlencoded', httpDoc('6', {
+  rawBody: 'a=1&b=two',
+  contentType: 'application/x-www-form-urlencoded'
+}));
+expectValid('HTTP (22): rawBody', httpDoc('22', { rawBody: '{"raw":true}' }));
+expectValid('HTTP (6): rawBody beside body', httpDoc('6', { rawBody: 'x', body: { y: 1 } }));
+expectInvalid('HTTP (6): rawBody object', httpDoc('6', { rawBody: { a: 1 } }));
+expectInvalid('HTTP (22): rawBody number', httpDoc('22', { rawBody: 42 }));
+expectInvalid('HTTP (6): unknown config field still rejected', httpDoc('6', { rawBodyX: 'x' }));
 
 function run() {
   console.log('🔍 Task document validation starting...\n');

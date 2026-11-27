@@ -53,7 +53,7 @@ This package provides comprehensive JSON Schema definitions used by the vNext ec
 #### External HTTP Task (`type: "22"`)
 
 Type `22` shares the type-6 HTTP configuration surface unchanged (`url`, `method`, `headers`, `body`,
-`contentType`, `timeoutSeconds`, `validateSsl`, `acceptedStatusCodes`) — in the runtime
+`contentType`, `rawBody`, `timeoutSeconds`, `validateSsl`, `acceptedStatusCodes`) — in the runtime
 `ExternalHttpTask` derives from `HttpTask`, so mapping scripts (`task as HttpTask`) work for both.
 Only the transport differs: the call runs in-process in the Orchestrator, so no Dapr sidecar,
 circuit breaker or remote-invocation timeout participates — the task's own `timeoutSeconds`
