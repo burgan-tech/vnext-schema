@@ -376,6 +376,108 @@
     }
   },
   "definitions": {
+      "mappingReadPath": {
+        "type": "string",
+        "pattern": "^\\$(?:\\.[^.\\[\\]'\"\\s]+|\\['(?:[^'\\\\]|\\\\['\\\\])*'\\]|\\[(?:[0-9]+|\\*)\\])*$",
+        "maxLength": 1000,
+        "description": "JSON path read by a declarative mapping: $, .name, ['name'], [n], [*]. No filters, no recursive descent."
+      },
+      "mappingWritePath": {
+        "type": "string",
+        "pattern": "^\\$(?:\\.[^.\\[\\]'\"\\s]+|\\['(?:[^'\\\\]|\\\\['\\\\])*'\\])+$",
+        "maxLength": 1000,
+        "description": "Instance-data write target of a declarative output mapping: $ followed by at least one .name or ['name'] segment. No index, no wildcard, not the root."
+      },
+      "mappingInputWritePath": {
+        "type": "string",
+        "pattern": "^\\$(?:\\.[^.\\[\\]'\"\\s]+|\\['(?:[^'\\\\]|\\\\['\\\\])*'\\])+$",
+        "maxLength": 1000,
+        "description": "Task-config write target of a declarative input mapping: a field of the task's config as authored in the task definition ($.url, $.body.customer, $.headers.x-channel, $.queryString), then .name / ['name'] segments. No index, no wildcard, not the root."
+      },
+      "mappingExpression": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 8000,
+        "description": "Dynamic Expresso expression producing the value to write. Variables: data, input, instance (camelCase members), now, user (available, roles, hasRole), context (legacy), task (the task's config), config (host configuration: config.get(key[, fallback])), result (output only). Function: urlEncode(value). Assignment is disabled."
+      },
+      "inputMappingBlock": {
+        "type": "object",
+        "description": "Declarative input mapping: shapes the task request by editing the task's config (url, body, headers, ...) before the call. select + into copy one value (both or neither); set writes expressions in declaration order.",
+        "minProperties": 1,
+        "additionalProperties": false,
+        "properties": {
+          "select": {
+            "$ref": "#/definitions/mappingReadPath",
+            "description": "Path read from the scope; starts with a variable name, for example $.data.customer."
+          },
+          "into": {
+            "$ref": "#/definitions/mappingInputWritePath"
+          },
+          "set": {
+            "type": "object",
+            "minProperties": 1,
+            "propertyNames": {
+              "$ref": "#/definitions/mappingInputWritePath"
+            },
+            "additionalProperties": {
+              "$ref": "#/definitions/mappingExpression"
+            },
+            "description": "Task-config path -> expression, applied after into in declaration order."
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "select"
+              ]
+            },
+            "then": {
+              "required": [
+                "into"
+              ]
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "into"
+              ]
+            },
+            "then": {
+              "required": [
+                "select"
+              ]
+            }
+          }
+        ]
+      },
+      "outputMappingBlock": {
+        "type": "object",
+        "description": "Declarative output mapping: writes the task result into instance data as one append. select reads result (default $.body); into writes the selected value (without into it merges at the data root); set writes expressions after into, in declaration order.",
+        "minProperties": 1,
+        "additionalProperties": false,
+        "properties": {
+          "select": {
+            "$ref": "#/definitions/mappingReadPath",
+            "description": "Path read from result ({ body, headers, statusCode }); root $ is result."
+          },
+          "into": {
+            "$ref": "#/definitions/mappingWritePath"
+          },
+          "set": {
+            "type": "object",
+            "minProperties": 1,
+            "propertyNames": {
+              "$ref": "#/definitions/mappingWritePath"
+            },
+            "additionalProperties": {
+              "$ref": "#/definitions/mappingExpression"
+            },
+            "description": "Instance-data path -> expression, applied after into in declaration order (a later entry wins)."
+          }
+        }
+      },
     "rowSecurity": {
       "type": "object",
       "description": "Row security for instance list and GET queries. The caller's roles are matched against rules[].roles; the filters of every matching rule are OR-ed, and the result is AND-ed into the query. A static-role rule without a filter grants all rows. An identity rule ($InstanceStarter / $InstanceBehalfOfStarter) never grants all rows: it adds the caller's own instances (createdBy = the caller's ActorUserName / createdByBehalfOf = the caller's UserName), narrowed by its filter when one is given, and is ORed with the static rules. There is no default member: a flow that declares rowSecurity is deny by default, so a caller matching no rule sees no rows. Absent = no row filtering.",
@@ -432,7 +534,7 @@
     },
     "resourceLockDefinition": {
       "type": "object",
-      "description": "Defines a distributed resource-lock operation to be executed during a transition. The keyExpression is compiled as an ITransitionMapping and evaluated at runtime to produce the lock key.",
+      "description": "Defines a distributed resource-lock operation to be executed during a transition. The keyExpression (a Dynamic Expresso expression or an ITransitionMapping script) is evaluated at runtime to produce the lock key.",
       "required": [
         "keyExpression",
         "action"
@@ -440,7 +542,7 @@
       "properties": {
         "keyExpression": {
           "$ref": "#/definitions/scriptCode",
-          "description": "Script compiled as ITransitionMapping whose handler returns the lock key string."
+          "description": "The lock key: with location \"dynamicExpresso\" a Dynamic Expresso expression over context whose string result is the key; otherwise a script compiled as ITransitionMapping whose handler returns the key string."
         },
         "action": {
           "type": "string",
@@ -1133,12 +1235,48 @@
     },
     "onExecuteTask": {
       "type": "object",
-      "required": [
-        "order",
-        "task",
-        "mapping"
-      ],
+        "anyOf": [
+          {
+            "required": [
+              "mapping"
+            ]
+          },
+          {
+            "required": [
+              "input"
+            ]
+          },
+          {
+            "required": [
+              "output"
+            ]
+          }
+        ],
+        "not": {
+          "required": [
+            "mapping"
+          ],
+          "anyOf": [
+            {
+              "required": [
+                "input"
+              ]
+            },
+            {
+              "required": [
+                "output"
+              ]
+            }
+          ]
+        },
       "properties": {
+          "input": {
+            "$ref": "#/definitions/inputMappingBlock"
+          },
+          "output": {
+            "$ref": "#/definitions/outputMappingBlock"
+          },
+
         "_comment": {
           "type": "string",
           "description": "Comment about the task"
@@ -1265,7 +1403,7 @@
                   "type": "null"
                 }
               ],
-              "description": "Timer information if the transition should execute automatically"
+              "description": "Timer information if the transition should execute automatically. Otherwise a C# timer mapping script. With location \"dynamicExpresso\" (encoding NAT) the code is a Dynamic Expresso expression whose result is the schedule: a TimeSpan (TimeSpan.FromMinutes(15.0)), a DateTime / DateTimeOffset (now.AddHours(2)), an ISO-8601 string (\"PT15M\" or a date-time) or null = immediately (now + 2 s); numbers are rejected. Expression variables: data, input, instance (camelCase members: currentState, key, id, ...), now, user (available, roles, hasRole(\"x\")), context (legacy PascalCase); JSON values need AsDouble() / AsInt32() / AsBoolean() to compare."
             },
             "labels": {
               "type": "array",
@@ -1667,7 +1805,7 @@
                   "type": "null"
                 }
               ],
-              "description": "Timer information if the transition should execute automatically"
+              "description": "Timer information if the transition should execute automatically. Otherwise a C# timer mapping script. With location \"dynamicExpresso\" (encoding NAT) the code is a Dynamic Expresso expression whose result is the schedule: a TimeSpan (TimeSpan.FromMinutes(15.0)), a DateTime / DateTimeOffset (now.AddHours(2)), an ISO-8601 string (\"PT15M\" or a date-time) or null = immediately (now + 2 s); numbers are rejected. Expression variables: data, input, instance (camelCase members: currentState, key, id, ...), now, user (available, roles, hasRole(\"x\")), context (legacy PascalCase); JSON values need AsDouble() / AsInt32() / AsBoolean() to compare."
             },
             "labels": {
               "type": "array",
@@ -2621,7 +2759,7 @@
     },
     "agentPrompt": {
       "type": "object",
-      "description": "The user prompt: an inline template with {{ data.* }}, {{ body.* }}, {{ instance.id }}, {{ instance.key }} and {{ state }} placeholders, or a C# IAgentPromptMapping (location + code).",
+      "description": "The user prompt: an inline template with {{ data.* }}, {{ body.* }}, {{ instance.id }}, {{ instance.key }} and {{ state }} placeholders, a C# IAgentPromptMapping (location + code), or with location \"dynamicExpresso\" (encoding NAT) a Dynamic Expresso expression whose string result is the prompt. Expression variables: data, input, instance (camelCase members: currentState, key, id, ...), now, user (available, roles, hasRole(\"x\")), context (legacy PascalCase); JSON values need AsDouble() / AsInt32() / AsBoolean() to compare.",
       "properties": {
         "template": {
           "type": "string",
@@ -2629,7 +2767,7 @@
         },
         "location": {
           "type": "string",
-          "description": "Source file of the C# IAgentPromptMapping."
+          "description": "Source file of the C# IAgentPromptMapping, or \"dynamicExpresso\" to make code an inline Dynamic Expresso expression returning the prompt string."
         },
         "code": {
           "type": "string",
@@ -2724,7 +2862,7 @@
           "enumDescriptions": [
             "The model chooses among the candidates (default)",
             "The transitions' own rules choose over the agent's output",
-            "A C# IAgentDecisionMapping chooses"
+            "decision.mapping chooses: a C# IAgentDecisionMapping or a Dynamic Expresso expression"
           ],
           "default": "model",
           "description": "Who chooses the next transition."
@@ -2752,7 +2890,7 @@
               "type": "null"
             }
           ],
-          "description": "C# IAgentDecisionHintMapping producing hints."
+          "description": "C# IAgentDecisionHintMapping producing hints (C# only; a dynamicExpresso location is not supported here)."
         },
         "mapping": {
           "anyOf": [
@@ -2763,7 +2901,7 @@
               "type": "null"
             }
           ],
-          "description": "C# IAgentDecisionMapping; required when mode is script."
+          "description": "Required when mode is script. A C# IAgentDecisionMapping, or with location \"dynamicExpresso\" (encoding NAT) a Dynamic Expresso expression returning the chosen transition key string (null = no decision). Expression variables: data, input, instance (camelCase members: currentState, key, id, ...), now, user (available, roles, hasRole(\"x\")), context (legacy PascalCase); JSON values need AsDouble() / AsInt32() / AsBoolean() to compare. Extra variables: outcome (the agent run outcome) and candidates (the candidate transition keys). hintsMapping stays C# only."
         },
         "fallback": {
           "type": "string",
@@ -3212,7 +3350,7 @@
               "type": "null"
             }
           ],
-          "description": "Optional mapping script for dynamic timeout duration calculation. When provided, the script is executed at runtime to determine the timeout schedule. If the mapping fails, the static timer duration is used as fallback."
+          "description": "Optional mapping for dynamic timeout duration calculation. When provided, it is evaluated at runtime to determine the timeout schedule; if it fails, the static timer duration is used as fallback. A C# mapping script, or: With location \"dynamicExpresso\" (encoding NAT) the code is a Dynamic Expresso expression whose result is the schedule: a TimeSpan (TimeSpan.FromMinutes(15.0)), a DateTime / DateTimeOffset (now.AddHours(2)), an ISO-8601 string (\"PT15M\" or a date-time) or null = immediately (now + 2 s); numbers are rejected. Expression variables: data, input, instance (camelCase members: currentState, key, id, ...), now, user (available, roles, hasRole(\"x\")), context (legacy PascalCase); JSON values need AsDouble() / AsInt32() / AsBoolean() to compare."
         },
         "annotations": {
           "anyOf": [
@@ -3347,7 +3485,7 @@
               "type": "null"
             }
           ],
-          "description": "Timeout override for the subflow."
+          "description": "Timeout override for the subflow. Its mapping may be a C# script or a Dynamic Expresso expression (location \"dynamicExpresso\") returning a TimeSpan, a DateTime / DateTimeOffset, an ISO-8601 string or null (= immediately); numbers are rejected."
         }
       },
       "additionalProperties": false

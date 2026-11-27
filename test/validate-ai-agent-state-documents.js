@@ -82,6 +82,15 @@ expectValid('prompt seed messages and data context', withBinding({
     context: { customer: 'data.customer', amount: 'body.amount', instanceKey: 'instance.key' }
   }
 }));
+expectValid('prompt as a Dynamic Expresso expression', withBinding({
+  prompt: { location: 'dynamicExpresso', encoding: 'NAT', code: '"Classify: " + data.message' }
+}));
+expectValid('script decision as a Dynamic Expresso expression', withBinding({
+  decision: {
+    mode: 'script', fallback: 'classify-failed',
+    mapping: { location: 'dynamicExpresso', encoding: 'NAT', code: 'outcome == "fraud" ? "is-fraud" : null' }
+  }
+}));
 expectValid('rules decision', withBinding({ decision: { mode: 'rules', fallback: 'classify-failed' } }));
 expectValid('script decision with mapping', withBinding({
   decision: { mode: 'script', fallback: 'classify-failed', mapping: { location: './src/Decide.csx', code: 'cmV0dXJuIG51bGw7' } }
