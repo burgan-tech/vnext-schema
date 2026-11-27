@@ -1183,9 +1183,24 @@
           "type": "object",
           "required": [
             "type",
-            "process",
-            "mapping"
+            "process"
           ],
+          "anyOf": [
+            {
+              "required": ["mapping"],
+              "properties": { "mapping": { "not": { "type": "null" } } }
+            },
+            { "required": ["input"] },
+            { "required": ["output"] }
+          ],
+          "not": {
+            "required": ["mapping"],
+            "properties": { "mapping": { "not": { "type": "null" } } },
+            "anyOf": [
+              { "required": ["input"] },
+              { "required": ["output"] }
+            ]
+          },
           "properties": {
             "type": {
               "type": "string",
@@ -1201,7 +1216,19 @@
               "description": "SubFlow process reference"
             },
             "mapping": {
-              "$ref": "#/definitions/scriptCode"
+              "anyOf": [
+                { "$ref": "#/definitions/scriptCode" },
+                { "type": "null" }
+              ],
+              "description": "Script mapping for the child's start request and result. A null mapping counts as absent; exclusive with input / output."
+            },
+            "input": {
+              "$ref": "#/definitions/inputMappingBlock",
+              "description": "Builds the child's start request: target document { attributes, headers, key, tags }."
+            },
+            "output": {
+              "$ref": "#/definitions/outputMappingBlock",
+              "description": "Writes the child's result into the parent's data; select reads result { data, status } (default $.data); status is completed or faulted."
             },
             "viewOverrides": {
               "type": "object",
@@ -1322,6 +1349,13 @@
       ],
       "allOf": [
         {
+          "description": "output is the declarative alternative to mapping: exactly one of the two forms (a null mapping counts as absent).",
+          "not": {
+            "required": ["mapping", "output"],
+            "properties": { "mapping": { "not": { "type": "null" } } }
+          }
+        },
+        {
           "properties": {
             "_comment": {
               "type": "string",
@@ -1422,6 +1456,10 @@
               "items": {
                 "$ref": "#/definitions/onExecuteTask"
               }
+            },
+            "output": {
+              "$ref": "#/definitions/outputMappingBlock",
+              "description": "Declarative alternative to mapping: builds the data the transition writes; select reads variables ($.input…, $.data…); starts empty."
             },
             "mapping": {
               "anyOf": [
@@ -1551,6 +1589,9 @@
               },
               "mapping": {
                 "type": "null"
+              },
+              "output": {
+                "type": "null"
               }
             }
           }
@@ -1592,6 +1633,9 @@
               },
               "mapping": {
                 "type": "null"
+              },
+              "output": {
+                "type": "null"
               }
             }
           }
@@ -1625,6 +1669,9 @@
                 "type": "null"
               },
               "mapping": {
+                "type": "null"
+              },
+              "output": {
                 "type": "null"
               }
             }
@@ -1715,6 +1762,13 @@
         "labels"
       ],
       "allOf": [
+        {
+          "description": "output is the declarative alternative to mapping: exactly one of the two forms (a null mapping counts as absent).",
+          "not": {
+            "required": ["mapping", "output"],
+            "properties": { "mapping": { "not": { "type": "null" } } }
+          }
+        },
         {
           "properties": {
             "_comment": {
@@ -1825,6 +1879,10 @@
                 "$ref": "#/definitions/onExecuteTask"
               }
             },
+            "output": {
+              "$ref": "#/definitions/outputMappingBlock",
+              "description": "Declarative alternative to mapping: builds the data the transition writes; select reads variables ($.input…, $.data…); starts empty."
+            },
             "mapping": {
               "anyOf": [
                 {
@@ -1900,6 +1958,9 @@
                 "type": "null"
               },
               "mapping": {
+                "type": "null"
+              },
+              "output": {
                 "type": "null"
               }
             }
@@ -1983,6 +2044,15 @@
     },
     "startTransition": {
       "type": "object",
+      "allOf": [
+        {
+          "description": "output is the declarative alternative to mapping: exactly one of the two forms (a null mapping counts as absent).",
+          "not": {
+            "required": ["mapping", "output"],
+            "properties": { "mapping": { "not": { "type": "null" } } }
+          }
+        }
+      ],
       "required": [
         "key",
         "target",
@@ -2030,6 +2100,10 @@
           "items": {
             "$ref": "#/definitions/onExecuteTask"
           }
+        },
+        "output": {
+          "$ref": "#/definitions/outputMappingBlock",
+          "description": "Declarative alternative to mapping: builds the data the transition writes; select reads variables ($.input…, $.data…); starts empty."
         },
         "mapping": {
           "anyOf": [
@@ -2086,6 +2160,15 @@
     },
     "cancelTransition": {
       "type": "object",
+      "allOf": [
+        {
+          "description": "output is the declarative alternative to mapping: exactly one of the two forms (a null mapping counts as absent).",
+          "not": {
+            "required": ["mapping", "output"],
+            "properties": { "mapping": { "not": { "type": "null" } } }
+          }
+        }
+      ],
       "required": [
         "key",
         "target",
@@ -2164,6 +2247,10 @@
             "$ref": "#/definitions/onExecuteTask"
           }
         },
+        "output": {
+          "$ref": "#/definitions/outputMappingBlock",
+          "description": "Declarative alternative to mapping: builds the data the transition writes; select reads variables ($.input…, $.data…); starts empty."
+        },
         "mapping": {
           "anyOf": [
             {
@@ -2201,6 +2288,15 @@
     },
     "exitTransition": {
       "type": "object",
+      "allOf": [
+        {
+          "description": "output is the declarative alternative to mapping: exactly one of the two forms (a null mapping counts as absent).",
+          "not": {
+            "required": ["mapping", "output"],
+            "properties": { "mapping": { "not": { "type": "null" } } }
+          }
+        }
+      ],
       "required": [
         "key",
         "target",
@@ -2279,6 +2375,10 @@
             "$ref": "#/definitions/onExecuteTask"
           }
         },
+        "output": {
+          "$ref": "#/definitions/outputMappingBlock",
+          "description": "Declarative alternative to mapping: builds the data the transition writes; select reads variables ($.input…, $.data…); starts empty."
+        },
         "mapping": {
           "anyOf": [
             {
@@ -2316,6 +2416,15 @@
     },
     "updateDataTransition": {
       "type": "object",
+      "allOf": [
+        {
+          "description": "output is the declarative alternative to mapping: exactly one of the two forms (a null mapping counts as absent).",
+          "not": {
+            "required": ["mapping", "output"],
+            "properties": { "mapping": { "not": { "type": "null" } } }
+          }
+        }
+      ],
       "required": [
         "key",
         "target",
@@ -2393,6 +2502,10 @@
           "items": {
             "$ref": "#/definitions/onExecuteTask"
           }
+        },
+        "output": {
+          "$ref": "#/definitions/outputMappingBlock",
+          "description": "Declarative alternative to mapping: builds the data the transition writes; select reads variables ($.input…, $.data…); starts empty."
         },
         "mapping": {
           "anyOf": [
