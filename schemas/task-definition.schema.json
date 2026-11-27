@@ -486,6 +486,10 @@
                                         "type": "string",
                                         "description": "Content-Type header for the HTTP request body (e.g. application/json)."
                                     },
+                                    "rawBody": {
+                                        "type": "string",
+                                        "description": "Request body sent verbatim as UTF-8 text, without JSON serialization (e.g. an XML or form-urlencoded payload). When non-empty it takes precedence over body; an empty string counts as absent. Not sent on GET."
+                                    },
                                     "timeoutSeconds": {
                                         "type": "integer",
                                         "minimum": 1,
