@@ -334,10 +334,13 @@
                     }
                 },
                 "output": {
-                    "description": "Output mapping for multi-task execution result. Required when onExecutionTasks is defined.",
-                    "allOf": [
+                    "description": "Output mapping for the function result. Either a script (location/code) or a declarative block (select/into/set) building { data, statusCode, headers }; mixing script and block members is invalid. In a block, user is unavailable and statusCode/headers apply only with rawResponse: true. Required when onExecutionTasks is defined.",
+                    "oneOf": [
                         {
                             "$ref": "#/definitions/taskMapping"
+                        },
+                        {
+                            "$ref": "#/definitions/functionOutputBlock"
                         }
                     ]
                 },
@@ -538,6 +541,59 @@
                 "minLength": 1,
                 "maxLength": 8000,
                 "description": "Dynamic Expresso expression producing the value to write. Variables: data, input, instance (camelCase members), now, user (available, roles, hasRole), context (legacy), task (the task's config), config (host configuration: config.get(key[, fallback])), result (output only). Function: urlEncode(value). Assignment is disabled."
+            },
+            "functionOutputBlock": {
+                "type": "object",
+                "description": "Declarative function output (alternative to an output script). Builds the document { data, statusCode, headers } from the executed tasks. Variables: data, input (the function request body), instance (empty for domain/flow-scoped functions), now, context, headers, result ({ <variableKey>: { body, headers, statusCode } } per executed task). user is unavailable: a block that reads user is a publish error (the function response cache does not vary by role). With rawResponse false the response is { <functionKey>: data } and statusCode/headers are ignored; with rawResponse true, data, statusCode (integer) and headers (object of strings) are used. select + into copy one value (both or neither); select paths are relative to result and there is no default select.",
+                "minProperties": 1,
+                "additionalProperties": false,
+                "properties": {
+                    "select": {
+                        "$ref": "#/definitions/mappingReadPath",
+                        "description": "Path read from the scope; starts with a variable name, for example $.result.lookup.body."
+                    },
+                    "into": {
+                        "$ref": "#/definitions/mappingWritePath",
+                        "description": "Target in the response document: $.data..., $.statusCode or $.headers.<name>."
+                    },
+                    "set": {
+                        "type": "object",
+                        "minProperties": 1,
+                        "propertyNames": {
+                            "$ref": "#/definitions/mappingWritePath"
+                        },
+                        "additionalProperties": {
+                            "$ref": "#/definitions/mappingExpression"
+                        },
+                        "description": "Response-document path -> expression, applied after into in declaration order."
+                    }
+                },
+                "allOf": [
+                    {
+                        "if": {
+                            "required": [
+                                "select"
+                            ]
+                        },
+                        "then": {
+                            "required": [
+                                "into"
+                            ]
+                        }
+                    },
+                    {
+                        "if": {
+                            "required": [
+                                "into"
+                            ]
+                        },
+                        "then": {
+                            "required": [
+                                "select"
+                            ]
+                        }
+                    }
+                ]
             },
             "inputMappingBlock": {
                 "type": "object",
